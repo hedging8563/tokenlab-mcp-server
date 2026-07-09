@@ -1,5 +1,5 @@
 {
-  "name": "@tokenlab/mcp-server",
+  "name": "@tokenlabai/mcp-server",
   "version": "0.2.0",
   "description": "MCP server for TokenLab model discovery, pricing, native endpoint guidance, and optional inference helpers.",
   "type": "module",

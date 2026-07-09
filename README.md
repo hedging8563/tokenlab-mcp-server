@@ -22,10 +22,10 @@ npm install
 npm start
 ```
 
-When the npm package is published, the intended install command is:
+Install from npm:
 
 ```bash
-npx -y @tokenlab/mcp-server
+npx -y @tokenlabai/mcp-server
 ```
 
 Claude Desktop style config:
@@ -57,13 +57,13 @@ This repository includes `server.json` for the official MCP Registry.
 
 The package uses:
 
-- npm package: `@tokenlab/mcp-server`
+- npm package: `@tokenlabai/mcp-server`
 - MCP registry name: `io.github.hedging8563/tokenlab`
 - `package.json.mcpName`: `io.github.hedging8563/tokenlab`
 
 Publish order:
 
-1. Publish `@tokenlab/mcp-server` to npm.
+1. Publish `@tokenlabai/mcp-server` to npm.
 2. Authenticate with `mcp-publisher login github`.
 3. Run `mcp-publisher publish`.
 
