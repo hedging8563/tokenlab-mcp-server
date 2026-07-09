@@ -4,7 +4,9 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
+const VERSION = "0.2.0";
 const API_BASE = (process.env.TOKENLAB_API_BASE || "https://api.tokenlab.sh").replace(/\/$/, "");
+const API_KEY = process.env.TOKENLAB_API_KEY || "";
 
 const scenes = [
   "image",
@@ -19,16 +21,29 @@ const scenes = [
 ];
 
 const server = new McpServer({
-  name: "tokenlab-model-catalog",
-  version: "0.1.0"
+  name: "tokenlab",
+  version: VERSION
 });
 
-async function fetchJson(path) {
-  const response = await fetch(`${API_BASE}${path}`, {
-    headers: {
-      Accept: "application/json",
-      "User-Agent": "tokenlab-mcp-server/0.1.0"
+async function fetchJson(path, options = {}) {
+  const headers = {
+    Accept: "application/json",
+    "User-Agent": `tokenlab-mcp-server/${VERSION}`
+  };
+  if (options.body) {
+    headers["Content-Type"] = "application/json";
+  }
+  if (options.auth) {
+    if (!API_KEY) {
+      throw new Error("TOKENLAB_API_KEY is required for TokenLab inference tools.");
     }
+    headers.Authorization = `Bearer ${API_KEY}`;
+  }
+
+  const response = await fetch(`${API_BASE}${path}`, {
+    method: options.method || "GET",
+    headers,
+    body: options.body ? JSON.stringify(options.body) : undefined
   });
 
   const text = await response.text();
@@ -48,6 +63,20 @@ function textResult(value) {
         text: typeof value === "string" ? value : JSON.stringify(value, null, 2)
       }
     ]
+  };
+}
+
+function compactModelDetails(details, pricing) {
+  return {
+    id: details.id || details.model || details.name,
+    object: details.object,
+    owned_by: details.owned_by,
+    request_endpoint: details.request_endpoint,
+    request_shape_mode: details.request_shape_mode,
+    supported_operations: details.supported_operations,
+    supported_parameters: details.supported_parameters,
+    recommended_request: details.recommended_request,
+    pricing
   };
 }
 
@@ -74,7 +103,7 @@ server.tool(
 
 server.tool(
   "get_model",
-  "Fetch public TokenLab model contract details for one model ID.",
+  "Fetch public TokenLab model details for one model ID.",
   {
     model: z.string().min(1).describe("Public TokenLab model ID, for example gpt-5.5 or gemini-3.5-flash.")
   },
@@ -95,6 +124,114 @@ server.tool(
 );
 
 server.tool(
+  "compare_models",
+  "Compare public TokenLab model details and pricing for several model IDs.",
+  {
+    models: z.array(z.string().min(1)).min(2).max(8).describe("Public TokenLab model IDs to compare."),
+    include_raw: z.boolean().default(false).describe("Return raw details and pricing payloads instead of compact summaries.")
+  },
+  async ({ models, include_raw }) => {
+    const compared = await Promise.all(models.map(async (model) => {
+      const encoded = encodeURIComponent(model);
+      const [details, pricing] = await Promise.all([
+        fetchJson(`/v1/models/${encoded}`),
+        fetchJson(`/v1/models/${encoded}/pricing`).catch((error) => ({
+          error: error.message
+        }))
+      ]);
+
+      return include_raw ? { model, details, pricing } : compactModelDetails(details, pricing);
+    }));
+
+    return textResult({ compared });
+  }
+);
+
+server.tool(
+  "create_response",
+  "Create a TokenLab Responses API call. Requires TOKENLAB_API_KEY.",
+  {
+    model: z.string().min(1).describe("Public TokenLab model ID."),
+    input: z.string().min(1).describe("Responses API input text."),
+    instructions: z.string().optional().describe("Optional system/developer instructions."),
+    max_output_tokens: z.number().int().min(1).max(8192).optional().describe("Optional output token cap.")
+  },
+  async ({ model, input, instructions, max_output_tokens }) => {
+    return textResult(await fetchJson("/v1/responses", {
+      method: "POST",
+      auth: true,
+      body: {
+        model,
+        input,
+        ...(instructions ? { instructions } : {}),
+        ...(max_output_tokens ? { max_output_tokens } : {})
+      }
+    }));
+  }
+);
+
+server.tool(
+  "create_anthropic_message",
+  "Create a TokenLab Anthropic Messages call. Requires TOKENLAB_API_KEY.",
+  {
+    model: z.string().min(1).describe("Public TokenLab Claude-compatible model ID."),
+    prompt: z.string().min(1).describe("User prompt text."),
+    system: z.string().optional().describe("Optional system prompt."),
+    max_tokens: z.number().int().min(1).max(8192).default(512).describe("Maximum output tokens.")
+  },
+  async ({ model, prompt, system, max_tokens }) => {
+    return textResult(await fetchJson("/v1/messages", {
+      method: "POST",
+      auth: true,
+      body: {
+        model,
+        max_tokens,
+        ...(system ? { system } : {}),
+        messages: [
+          {
+            role: "user",
+            content: prompt
+          }
+        ]
+      }
+    }));
+  }
+);
+
+server.tool(
+  "create_gemini_content",
+  "Create a TokenLab Gemini generateContent call. Requires TOKENLAB_API_KEY.",
+  {
+    model: z.string().min(1).describe("Public TokenLab Gemini-compatible model ID."),
+    prompt: z.string().min(1).describe("User prompt text."),
+    temperature: z.number().min(0).max(2).optional().describe("Optional Gemini generation temperature.")
+  },
+  async ({ model, prompt, temperature }) => {
+    return textResult(await fetchJson(`/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+      method: "POST",
+      auth: true,
+      body: {
+        contents: [
+          {
+            role: "user",
+            parts: [
+              {
+                text: prompt
+              }
+            ]
+          }
+        ],
+        ...(temperature === undefined ? {} : {
+          generationConfig: {
+            temperature
+          }
+        })
+      }
+    }));
+  }
+);
+
+server.tool(
   "get_api_overview",
   "Fetch TokenLab's agent-readable API overview.",
   {},
@@ -102,7 +239,7 @@ server.tool(
     const response = await fetch(`${API_BASE}/llms.txt`, {
       headers: {
         Accept: "text/plain",
-        "User-Agent": "tokenlab-mcp-server/0.1.0"
+        "User-Agent": `tokenlab-mcp-server/${VERSION}`
       }
     });
 

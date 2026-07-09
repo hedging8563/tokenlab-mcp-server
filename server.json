@@ -1,0 +1,36 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.hedging8563/tokenlab",
+  "title": "TokenLab",
+  "description": "MCP server for TokenLab model discovery, pricing, native endpoint guidance, and optional inference helpers.",
+  "repository": {
+    "url": "https://github.com/hedging8563/tokenlab-mcp-server",
+    "source": "github"
+  },
+  "version": "0.2.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@tokenlab/mcp-server",
+      "version": "0.2.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "TOKENLAB_API_BASE",
+          "description": "Optional TokenLab API base URL. Defaults to https://api.tokenlab.sh.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "TOKENLAB_API_KEY",
+          "description": "Optional TokenLab API key. Required only for inference tools such as create_response, create_anthropic_message, and create_gemini_content.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,8 +1,9 @@
 {
-  "name": "tokenlab-mcp-server",
-  "version": "0.1.0",
-  "description": "MCP server for TokenLab public model discovery, model contracts, and pricing.",
+  "name": "@tokenlab/mcp-server",
+  "version": "0.2.0",
+  "description": "MCP server for TokenLab model discovery, pricing, native endpoint guidance, and optional inference helpers.",
   "type": "module",
+  "mcpName": "io.github.hedging8563/tokenlab",
   "bin": {
     "tokenlab-mcp-server": "./src/index.js"
   },
@@ -20,6 +21,9 @@
   ],
   "author": "TokenLab",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "zod": "^4.2.0"
