@@ -58,7 +58,7 @@ This repository includes `server.json` for the official MCP Registry.
 
 Current publication:
 
-- npm package: `@tokenlabai/mcp-server@0.2.1`
+- npm package: `@tokenlabai/mcp-server@0.2.2`
 - MCP registry name: `io.github.hedging8563/tokenlab`
 - Official MCP Registry status: active
 - `package.json.mcpName`: `io.github.hedging8563/tokenlab`
