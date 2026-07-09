@@ -29,6 +29,15 @@ Install from npm:
 npx -y @tokenlabai/mcp-server
 ```
 
+Run in Docker:
+
+```bash
+docker build -t tokenlab-mcp-server .
+docker run --rm -i tokenlab-mcp-server
+```
+
+Add `-e TOKENLAB_API_KEY` when using inference tools. Public catalog tools do not require a key.
+
 Claude Desktop style config:
 
 ```json
