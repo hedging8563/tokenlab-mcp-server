@@ -1,6 +1,6 @@
 {
   "name": "@tokenlabai/mcp-server",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "MCP server for TokenLab model discovery, pricing, OpenAI-compatible Chat Completions, native endpoint guidance, and optional inference helpers.",
   "type": "module",
   "mcpName": "io.github.hedging8563/tokenlab",

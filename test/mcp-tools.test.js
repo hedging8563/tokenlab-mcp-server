@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
+import { stat } from "node:fs/promises";
 import test from "node:test";
 
 function startServer() {
@@ -69,4 +70,9 @@ test("advertises an OpenAI-compatible Chat Completions tool", async (t) => {
   assert.equal(tool.inputSchema.properties.model.type, "string");
   assert.equal(tool.inputSchema.properties.messages.type, "array");
   assert.equal(tool.inputSchema.properties.stream, undefined);
+});
+
+test("ships an executable npm binary", async () => {
+  const { mode } = await stat(new URL("../src/index.js", import.meta.url));
+  assert.notEqual(mode & 0o111, 0);
 });
