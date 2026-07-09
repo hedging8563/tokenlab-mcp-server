@@ -65,9 +65,11 @@ Current publication:
 
 For a new release:
 
-1. Publish the next `@tokenlabai/mcp-server` version to npm.
-2. Authenticate with `mcp-publisher login github`.
-3. Update `server.json` and run `mcp-publisher publish`.
+1. Bump the matching versions in `package.json`, `package-lock.json`, and `server.json`.
+2. Push a matching tag such as `v0.3.0`.
+3. The publish workflow tests and publishes npm through trusted publishing, then publishes the MCP Registry entry through GitHub Actions OIDC.
+
+The same workflow can be run manually from `main` to republish only the current MCP Registry metadata. No npm or MCP Registry token is stored in GitHub.
 
 ## Links
 
