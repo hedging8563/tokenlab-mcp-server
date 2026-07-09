@@ -55,17 +55,18 @@ No TokenLab API key is required for the public catalog tools. Set `TOKENLAB_API_
 
 This repository includes `server.json` for the official MCP Registry.
 
-The package uses:
+Current publication:
 
-- npm package: `@tokenlabai/mcp-server`
+- npm package: `@tokenlabai/mcp-server@0.2.0`
 - MCP registry name: `io.github.hedging8563/tokenlab`
+- Official MCP Registry status: active
 - `package.json.mcpName`: `io.github.hedging8563/tokenlab`
 
-Publish order:
+For a new release:
 
-1. Publish `@tokenlabai/mcp-server` to npm.
+1. Publish the next `@tokenlabai/mcp-server` version to npm.
 2. Authenticate with `mcp-publisher login github`.
-3. Run `mcp-publisher publish`.
+3. Update `server.json` and run `mcp-publisher publish`.
 
 ## Links
 
