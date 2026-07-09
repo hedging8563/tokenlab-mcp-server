@@ -33,6 +33,8 @@ Install from npm:
 npx -y @tokenlabai/mcp-server
 ```
 
+Agent-assisted installers can follow [`llms-install.md`](./llms-install.md) for a minimal, credential-safe setup and verification flow.
+
 Run in Docker:
 
 ```bash
