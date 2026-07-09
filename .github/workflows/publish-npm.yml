@@ -1,9 +1,10 @@
-name: Publish npm package
+name: Publish npm package and MCP Registry
 
 on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -16,14 +17,37 @@ jobs:
       - uses: actions/checkout@v6
 
       - uses: actions/setup-node@v6
+        if: github.event_name == 'push'
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
           package-manager-cache: false
 
       - name: Verify tag matches package version
+        if: github.event_name == 'push'
         run: node --eval 'if (process.env.GITHUB_REF_NAME !== `v${require("./package.json").version}`) process.exit(1)'
 
-      - run: npm ci
-      - run: npm test
-      - run: npm publish
+      - name: Install dependencies
+        if: github.event_name == 'push'
+        run: npm ci
+
+      - name: Test package
+        if: github.event_name == 'push'
+        run: npm test
+
+      - name: Publish npm package
+        if: github.event_name == 'push'
+        run: npm publish
+
+      - name: Install MCP Registry publisher
+        run: |
+          curl -fsSLo mcp-publisher.tar.gz \
+            https://github.com/modelcontextprotocol/registry/releases/download/v1.7.9/mcp-publisher_linux_amd64.tar.gz
+          echo "5925c8d2c942b2a0330b979530b5d70284c3bdb03850a3cd1032685b80ddc2e3  mcp-publisher.tar.gz" | sha256sum --check
+          tar -xzf mcp-publisher.tar.gz mcp-publisher
+
+      - name: Authenticate to MCP Registry
+        run: ./mcp-publisher login github-oidc
+
+      - name: Publish to MCP Registry
+        run: ./mcp-publisher publish
