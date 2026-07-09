@@ -4,7 +4,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
-const VERSION = "0.2.0";
+const VERSION = "0.2.1";
 const API_BASE = (process.env.TOKENLAB_API_BASE || "https://api.tokenlab.sh").replace(/\/$/, "");
 const API_KEY = process.env.TOKENLAB_API_KEY || "";
 
@@ -19,6 +19,28 @@ const scenes = [
   "rerank",
   "translation"
 ];
+
+const chatMessageSchema = z.object({
+  role: z.enum(["system", "user", "assistant", "function", "tool", "developer"])
+    .describe("OpenAI Chat Completions message role."),
+  content: z.union([
+    z.string(),
+    z.array(z.object({}).passthrough()),
+    z.null()
+  ]).optional().describe("Text, OpenAI-compatible multimodal content parts, or null for tool/function messages."),
+  name: z.string().optional().describe("Optional name for a function or tool message."),
+  tool_calls: z.array(z.object({}).passthrough()).optional().describe("Tool calls made by an assistant message."),
+  tool_call_id: z.string().optional().describe("Tool call ID answered by a tool message.")
+}).passthrough();
+
+const chatCompletionToolSchema = z.object({
+  type: z.literal("function"),
+  function: z.object({
+    name: z.string().min(1),
+    description: z.string().optional(),
+    parameters: z.object({}).passthrough().optional()
+  }).passthrough()
+}).passthrough();
 
 const server = new McpServer({
   name: "tokenlab",
@@ -144,6 +166,60 @@ server.tool(
     }));
 
     return textResult({ compared });
+  }
+);
+
+server.tool(
+  "create_chat_completion",
+  "Create a non-streaming TokenLab OpenAI-compatible Chat Completions call. Requires TOKENLAB_API_KEY.",
+  {
+    model: z.string().min(1).describe("Public TokenLab model ID."),
+    messages: z.array(chatMessageSchema).min(1).describe("OpenAI-compatible conversation messages, including text, image, tool, and function messages."),
+    temperature: z.number().min(0).max(2).optional().describe("Optional sampling temperature."),
+    top_p: z.number().min(0).max(1).optional().describe("Optional nucleus sampling probability."),
+    n: z.number().int().min(1).max(128).optional().describe("Optional number of non-streaming completions."),
+    stop: z.union([z.string(), z.array(z.string()).min(1).max(4)]).optional().describe("Optional stop sequence or up to four stop sequences."),
+    max_tokens: z.number().int().min(1).optional().describe("Optional maximum generated tokens."),
+    max_completion_tokens: z.number().int().min(1).optional().describe("Optional completion-token cap for compatible reasoning models."),
+    presence_penalty: z.number().min(-2).max(2).optional().describe("Optional presence penalty."),
+    frequency_penalty: z.number().min(-2).max(2).optional().describe("Optional frequency penalty."),
+    tools: z.array(chatCompletionToolSchema).optional().describe("Optional OpenAI function tools available to the model."),
+    tool_choice: z.union([
+      z.enum(["none", "auto", "required"]),
+      z.object({
+        type: z.literal("function"),
+        function: z.object({ name: z.string().min(1) })
+      })
+    ]).optional().describe("Optional OpenAI tool-choice setting."),
+    response_format: z.object({
+      type: z.enum(["text", "json_object"])
+    }).optional().describe("Optional response format."),
+    seed: z.number().int().optional().describe("Optional deterministic seed for compatible models."),
+    user: z.string().optional().describe("Optional end-user identifier."),
+    parallel_tool_calls: z.boolean().optional().describe("Whether compatible models may make parallel tool calls."),
+    reasoning_effort: z.string().optional().describe("Optional reasoning-effort hint for compatible models."),
+    logprobs: z.boolean().optional().describe("Whether to return output-token log probabilities."),
+    top_logprobs: z.number().int().min(0).max(20).optional().describe("Optional number of likely tokens to include with log probabilities."),
+    top_k: z.number().int().min(1).optional().describe("Optional top-k sampling cutoff for compatible models."),
+    logit_bias: z.record(z.string(), z.number()).optional().describe("Optional per-token logit-bias map."),
+    modalities: z.array(z.string()).min(1).optional().describe("Optional requested output modalities, such as text or audio."),
+    audio: z.object({}).passthrough().optional().describe("Optional audio output configuration."),
+    prediction: z.object({}).passthrough().optional().describe("Optional prediction hint for compatible models."),
+    service_tier: z.string().nullable().optional().describe("Optional service-tier hint for compatible models.")
+  },
+  async (input) => {
+    const body = Object.fromEntries(
+      Object.entries({
+        ...input,
+        stream: false
+      }).filter(([, value]) => value !== undefined)
+    );
+
+    return textResult(await fetchJson("/v1/chat/completions", {
+      method: "POST",
+      auth: true,
+      body
+    }));
   }
 );
 
