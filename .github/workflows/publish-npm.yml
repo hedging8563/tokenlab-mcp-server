@@ -43,7 +43,7 @@ jobs:
         run: |
           curl -fsSLo mcp-publisher.tar.gz \
             https://github.com/modelcontextprotocol/registry/releases/download/v1.7.9/mcp-publisher_linux_amd64.tar.gz
-          echo "5925c8d2c942b2a0330b979530b5d70284c3bdb03850a3cd1032685b80ddc2e3  mcp-publisher.tar.gz" | sha256sum --check
+          echo "ab128162b0616090b47cf245afe0a23f3ef08936fdce19074f5ba0a4469281ac  mcp-publisher.tar.gz" | sha256sum --check
           tar -xzf mcp-publisher.tar.gz mcp-publisher
 
       - name: Authenticate to MCP Registry
