@@ -1,5 +1,9 @@
 # TokenLab MCP Server
 
+[![CI](https://github.com/hedging8563/tokenlab-mcp-server/actions/workflows/ci.yml/badge.svg)](https://github.com/hedging8563/tokenlab-mcp-server/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/%40tokenlabai%2Fmcp-server)](https://www.npmjs.com/package/@tokenlabai/mcp-server)
+[![npm downloads](https://img.shields.io/npm/dm/%40tokenlabai%2Fmcp-server)](https://www.npmjs.com/package/@tokenlabai/mcp-server)
+
 Model Context Protocol server for TokenLab public model discovery, pricing, OpenAI-compatible Chat Completions, and native Responses, Anthropic Messages, and Gemini inference.
 
 It exposes public catalog tools for agents that need to choose models, inspect supported request formats, or compare pricing before calling TokenLab APIs. Optional inference tools require `TOKENLAB_API_KEY`.
