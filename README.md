@@ -1,6 +1,6 @@
 # TokenLab MCP Server
 
-Model Context Protocol server for TokenLab public model discovery, pricing, OpenAI-compatible Chat Completions, native endpoint guidance, and optional inference helpers.
+Model Context Protocol server for TokenLab public model discovery, pricing, OpenAI-compatible Chat Completions, and native Responses, Anthropic Messages, and Gemini inference.
 
 It exposes public catalog tools for agents that need to choose models, inspect supported request formats, or compare pricing before calling TokenLab APIs. Optional inference tools require `TOKENLAB_API_KEY`.
 
@@ -35,8 +35,8 @@ Claude Desktop style config:
 {
   "mcpServers": {
     "tokenlab-model-catalog": {
-      "command": "node",
-      "args": ["/absolute/path/to/tokenlab-mcp-server/src/index.js"],
+      "command": "npx",
+      "args": ["-y", "@tokenlabai/mcp-server"],
       "env": {
         "TOKENLAB_API_BASE": "https://api.tokenlab.sh"
       }
@@ -45,12 +45,13 @@ Claude Desktop style config:
 }
 ```
 
-No TokenLab API key is required for the public catalog tools. Set `TOKENLAB_API_KEY` only when you want the inference helper tools to call paid TokenLab APIs. `create_chat_completion` supports OpenAI-compatible messages, multimodal content parts, function calling, and common generation controls. MCP tools return a normal JSON result, so streaming is intentionally disabled.
+No TokenLab API key is required for the public catalog tools. Set `TOKENLAB_API_KEY` only when you want the inference tools to call paid TokenLab APIs. `create_chat_completion` supports OpenAI-compatible messages, multimodal content parts, function calling, and common generation controls. The native tools preserve structured Responses input, Anthropic message blocks and tools, and Gemini contents, multimodal parts, tools, and generation config. The `prompt` shortcuts remain available for simple Anthropic and Gemini calls. MCP tools return a normal JSON result, so streaming is intentionally disabled.
 
 ## Environment
 
 - `TOKENLAB_API_BASE`: optional, defaults to `https://api.tokenlab.sh`
 - `TOKENLAB_API_KEY`: optional; required only for `create_chat_completion`, `create_response`, `create_anthropic_message`, and `create_gemini_content`
+- `TOKENLAB_REQUEST_TIMEOUT_MS`: optional request timeout in milliseconds, defaults to `30000`
 
 ## MCP Registry Metadata
 
@@ -58,7 +59,7 @@ This repository includes `server.json` for the official MCP Registry.
 
 Current publication:
 
-- npm package: `@tokenlabai/mcp-server@0.2.2`
+- npm package: `@tokenlabai/mcp-server@0.3.0`
 - MCP registry name: `io.github.hedging8563/tokenlab`
 - Official MCP Registry status: active
 - `package.json.mcpName`: `io.github.hedging8563/tokenlab`

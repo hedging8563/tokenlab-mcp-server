@@ -1,8 +1,11 @@
 {
   "name": "@tokenlabai/mcp-server",
-  "version": "0.2.2",
-  "description": "MCP server for TokenLab model discovery, pricing, OpenAI-compatible Chat Completions, native endpoint guidance, and optional inference helpers.",
+  "version": "0.3.0",
+  "description": "MCP server for TokenLab model discovery, pricing, OpenAI-compatible Chat Completions, and native Responses, Anthropic Messages, and Gemini inference.",
   "type": "module",
+  "engines": {
+    "node": ">=18.17"
+  },
   "mcpName": "io.github.hedging8563/tokenlab",
   "bin": {
     "tokenlab-mcp-server": "src/index.js"

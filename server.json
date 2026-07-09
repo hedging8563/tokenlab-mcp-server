@@ -7,12 +7,12 @@
     "url": "https://github.com/hedging8563/tokenlab-mcp-server",
     "source": "github"
   },
-  "version": "0.2.2",
+  "version": "0.3.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@tokenlabai/mcp-server",
-      "version": "0.2.2",
+      "version": "0.3.0",
       "transport": {
         "type": "stdio"
       },
@@ -29,6 +29,12 @@
           "isRequired": false,
           "format": "string",
           "isSecret": true
+        },
+        {
+          "name": "TOKENLAB_REQUEST_TIMEOUT_MS",
+          "description": "Optional request timeout in milliseconds. Defaults to 30000.",
+          "isRequired": false,
+          "format": "number"
         }
       ]
     }

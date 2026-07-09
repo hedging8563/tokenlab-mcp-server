@@ -4,9 +4,13 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
-const VERSION = "0.2.2";
-const API_BASE = (process.env.TOKENLAB_API_BASE || "https://api.tokenlab.sh").replace(/\/$/, "");
+const VERSION = "0.3.0";
+const API_BASE = (process.env.TOKENLAB_API_BASE || "https://api.tokenlab.sh").replace(/\/+$/, "");
 const API_KEY = process.env.TOKENLAB_API_KEY || "";
+const configuredTimeoutMs = Number.parseInt(process.env.TOKENLAB_REQUEST_TIMEOUT_MS || "30000", 10);
+const REQUEST_TIMEOUT_MS = Number.isFinite(configuredTimeoutMs) && configuredTimeoutMs > 0
+  ? configuredTimeoutMs
+  : 30_000;
 
 const scenes = [
   "image",
@@ -42,6 +46,21 @@ const chatCompletionToolSchema = z.object({
   }).passthrough()
 }).passthrough();
 
+const openObjectSchema = z.object({}).passthrough();
+
+const anthropicMessageSchema = z.object({
+  role: z.enum(["user", "assistant"]),
+  content: z.union([
+    z.string(),
+    z.array(openObjectSchema).min(1)
+  ])
+});
+
+const geminiContentSchema = z.object({
+  role: z.enum(["user", "model"]).optional(),
+  parts: z.array(openObjectSchema).min(1)
+}).passthrough();
+
 const server = new McpServer({
   name: "tokenlab",
   version: VERSION
@@ -65,16 +84,22 @@ async function fetchJson(path, options = {}) {
   const response = await fetch(`${API_BASE}${path}`, {
     method: options.method || "GET",
     headers,
-    body: options.body ? JSON.stringify(options.body) : undefined
+    body: options.body ? JSON.stringify(options.body) : undefined,
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS)
   });
 
   const text = await response.text();
 
   if (!response.ok) {
-    throw new Error(`TokenLab request failed: ${response.status} ${response.statusText}\n${text}`);
+    const detail = text.length > 2_000 ? `${text.slice(0, 2_000)}...` : text;
+    throw new Error(`TokenLab request failed: ${response.status} ${response.statusText}\n${detail}`);
   }
 
-  return JSON.parse(text);
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error("TokenLab returned a successful response that was not valid JSON.");
+  }
 }
 
 function textResult(value) {
@@ -225,50 +250,73 @@ server.tool(
 
 server.tool(
   "create_response",
-  "Create a TokenLab Responses API call. Requires TOKENLAB_API_KEY.",
+  "Create a non-streaming TokenLab Responses API call with text or native structured input. Requires TOKENLAB_API_KEY.",
   {
     model: z.string().min(1).describe("Public TokenLab model ID."),
-    input: z.string().min(1).describe("Responses API input text."),
+    input: z.union([
+      z.string().min(1),
+      z.array(openObjectSchema).min(1)
+    ]).describe("Responses API input as text or native structured input items."),
     instructions: z.string().optional().describe("Optional system/developer instructions."),
-    max_output_tokens: z.number().int().min(1).max(8192).optional().describe("Optional output token cap.")
+    max_output_tokens: z.number().int().min(1).optional().describe("Optional output token cap."),
+    temperature: z.number().optional().describe("Optional sampling temperature."),
+    tools: z.array(openObjectSchema).optional().describe("Native Responses API tool definitions."),
+    tool_choice: z.union([z.string(), openObjectSchema]).optional().describe("Tool choice policy or explicit tool selection."),
+    reasoning_effort: z.string().optional().describe("Reasoning-effort hint for compatible models."),
+    include: z.array(z.string()).optional().describe("Additional response sections to include."),
+    service_tier: z.string().nullable().optional().describe("Optional service-tier hint."),
+    truncation_strategy: z.string().optional().describe("Optional truncation strategy."),
+    seed: z.number().int().optional().describe("Optional deterministic seed."),
+    user: z.string().optional().describe("Optional end-user identifier."),
+    parallel_tool_calls: z.boolean().optional().describe("Whether the model may issue parallel tool calls."),
+    metadata: openObjectSchema.optional().describe("Optional request metadata."),
+    text: openObjectSchema.optional().describe("Optional native text formatting configuration.")
   },
-  async ({ model, input, instructions, max_output_tokens }) => {
+  async (input) => {
     return textResult(await fetchJson("/v1/responses", {
       method: "POST",
       auth: true,
-      body: {
-        model,
-        input,
-        ...(instructions ? { instructions } : {}),
-        ...(max_output_tokens ? { max_output_tokens } : {})
-      }
+      body: Object.fromEntries(
+        Object.entries({ ...input, stream: false }).filter(([, value]) => value !== undefined)
+      )
     }));
   }
 );
 
 server.tool(
   "create_anthropic_message",
-  "Create a TokenLab Anthropic Messages call. Requires TOKENLAB_API_KEY.",
+  "Create a non-streaming TokenLab Anthropic Messages call with native messages, multimodal blocks, and tools. A prompt shortcut remains available for simple calls. Requires TOKENLAB_API_KEY.",
   {
     model: z.string().min(1).describe("Public TokenLab Claude-compatible model ID."),
-    prompt: z.string().min(1).describe("User prompt text."),
+    messages: z.array(anthropicMessageSchema).min(1).optional().describe("Native Anthropic conversation messages."),
+    prompt: z.string().min(1).optional().describe("Convenience shortcut for one user text message; do not combine with messages."),
     system: z.string().optional().describe("Optional system prompt."),
-    max_tokens: z.number().int().min(1).max(8192).default(512).describe("Maximum output tokens.")
+    max_tokens: z.number().int().min(1).default(512).describe("Maximum output tokens."),
+    temperature: z.number().min(0).max(1).optional().describe("Optional sampling temperature."),
+    top_p: z.number().min(0).max(1).optional().describe("Optional nucleus sampling probability."),
+    top_k: z.number().int().min(1).optional().describe("Optional top-k sampling cutoff."),
+    stop_sequences: z.array(z.string()).optional().describe("Optional stop sequences."),
+    tools: z.array(openObjectSchema).optional().describe("Native Anthropic tool definitions."),
+    tool_choice: z.union([z.string(), openObjectSchema]).optional().describe("Tool choice policy or explicit tool selection."),
+    metadata: openObjectSchema.optional().describe("Optional request metadata."),
+    thinking: openObjectSchema.optional().describe("Thinking configuration for compatible models."),
+    service_tier: z.string().optional().describe("Optional service-tier hint.")
   },
-  async ({ model, prompt, system, max_tokens }) => {
+  async ({ prompt, messages, ...input }) => {
+    if (prompt && messages) {
+      throw new Error("Provide either prompt or messages, not both.");
+    }
+    if (!prompt && !messages) {
+      throw new Error("Provide prompt or at least one native Anthropic message.");
+    }
+
     return textResult(await fetchJson("/v1/messages", {
       method: "POST",
       auth: true,
       body: {
-        model,
-        max_tokens,
-        ...(system ? { system } : {}),
-        messages: [
-          {
-            role: "user",
-            content: prompt
-          }
-        ]
+        ...input,
+        messages: messages || [{ role: "user", content: prompt }],
+        stream: false
       }
     }));
   }
@@ -276,32 +324,42 @@ server.tool(
 
 server.tool(
   "create_gemini_content",
-  "Create a TokenLab Gemini generateContent call. Requires TOKENLAB_API_KEY.",
+  "Create a TokenLab Gemini generateContent call with native contents, multimodal parts, generation config, and tools. A prompt shortcut remains available for simple calls. Requires TOKENLAB_API_KEY.",
   {
     model: z.string().min(1).describe("Public TokenLab Gemini-compatible model ID."),
-    prompt: z.string().min(1).describe("User prompt text."),
-    temperature: z.number().min(0).max(2).optional().describe("Optional Gemini generation temperature.")
+    contents: z.array(geminiContentSchema).min(1).optional().describe("Native Gemini conversation contents."),
+    prompt: z.string().min(1).optional().describe("Convenience shortcut for one user text part; do not combine with contents."),
+    temperature: z.number().min(0).optional().describe("Convenience temperature setting; do not combine with generationConfig.temperature."),
+    systemInstruction: openObjectSchema.optional().describe("Native Gemini system instruction."),
+    generationConfig: openObjectSchema.optional().describe("Native Gemini generation configuration."),
+    safetySettings: z.array(openObjectSchema).optional().describe("Native Gemini safety settings."),
+    tools: z.array(openObjectSchema).optional().describe("Native Gemini tools."),
+    toolConfig: openObjectSchema.optional().describe("Native Gemini tool configuration."),
+    cachedContent: z.string().optional().describe("Optional cached content resource name.")
   },
-  async ({ model, prompt, temperature }) => {
+  async ({ model, prompt, contents, temperature, generationConfig, ...input }) => {
+    if (prompt && contents) {
+      throw new Error("Provide either prompt or contents, not both.");
+    }
+    if (!prompt && !contents) {
+      throw new Error("Provide prompt or at least one native Gemini content item.");
+    }
+    if (temperature !== undefined && generationConfig?.temperature !== undefined) {
+      throw new Error("Set temperature either directly or in generationConfig, not both.");
+    }
+
     return textResult(await fetchJson(`/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
       method: "POST",
       auth: true,
       body: {
-        contents: [
-          {
-            role: "user",
-            parts: [
-              {
-                text: prompt
-              }
-            ]
-          }
-        ],
-        ...(temperature === undefined ? {} : {
+        ...input,
+        contents: contents || [{ role: "user", parts: [{ text: prompt }] }],
+        ...(generationConfig || temperature !== undefined ? {
           generationConfig: {
-            temperature
+            ...generationConfig,
+            ...(temperature === undefined ? {} : { temperature })
           }
-        })
+        } : {})
       }
     }));
   }
