@@ -6,7 +6,7 @@
     "openapi": "3.0.3",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "4e6b3e44d0ccce20e4459d98a4ea81f777286f30d9a1af35bceeb3f84e518e64"
+    "sha256": "a907542f726d1cd6fdee3c0bc369848b500edbb6a23d1014d13781d722e2da60"
   },
   "default_profile": "core",
   "profiles": [
@@ -2239,16 +2239,6 @@
             ],
             "description": "Moderation strictness for compatible image models such as gpt-image-2"
           },
-          "partial_images": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 3,
-            "description": "Number of partial image events requested from compatible streaming-capable models."
-          },
-          "input_fidelity": {
-            "type": "string",
-            "description": "Input fidelity hint for compatible reference-image models."
-          },
           "stream": {
             "type": "boolean",
             "description": "Image streaming is not exposed through MCP tool calls; omit stream or set it to false.",
@@ -2299,8 +2289,6 @@
           "output_compression",
           "compression",
           "moderation",
-          "partial_images",
-          "input_fidelity",
           "stream",
           "aspect_ratio",
           "resolution",
@@ -2444,14 +2432,6 @@
               "low"
             ]
           },
-          "partial_images": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 3
-          },
-          "input_fidelity": {
-            "type": "string"
-          },
           "stream": {
             "type": "boolean",
             "const": false,
@@ -2503,8 +2483,6 @@
           "output_compression",
           "compression",
           "moderation",
-          "partial_images",
-          "input_fidelity",
           "stream",
           "size",
           "aspect_ratio",
@@ -4712,9 +4690,6 @@
               "low"
             ]
           },
-          "input_fidelity": {
-            "type": "string"
-          },
           "async": {
             "type": "boolean",
             "description": "Return a task before the edited image is ready for models that support public async execution."
@@ -4723,11 +4698,6 @@
             "type": "boolean",
             "description": "Image streaming is not exposed through MCP tool calls; omit stream or set it to false.",
             "const": false
-          },
-          "partial_images": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 3
           },
           "user": {
             "type": "string"
@@ -4828,10 +4798,8 @@
           "output_compression",
           "compression",
           "moderation",
-          "input_fidelity",
           "async",
           "stream",
-          "partial_images",
           "user",
           "image_urls",
           "images",
@@ -4960,9 +4928,6 @@
               "low"
             ]
           },
-          "input_fidelity": {
-            "type": "string"
-          },
           "async": {
             "type": "boolean"
           },
@@ -4970,11 +4935,6 @@
             "type": "boolean",
             "const": false,
             "description": "Image streaming is not exposed through MCP tool calls; omit stream or set it to false."
-          },
-          "partial_images": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 3
           },
           "user": {
             "type": "string"
@@ -5015,10 +4975,8 @@
           "output_compression",
           "compression",
           "moderation",
-          "input_fidelity",
           "async",
           "stream",
-          "partial_images",
           "user",
           "image[]"
         ],

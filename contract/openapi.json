@@ -4136,9 +4136,6 @@
                       "low"
                     ]
                   },
-                  "input_fidelity": {
-                    "type": "string"
-                  },
                   "async": {
                     "type": "boolean",
                     "description": "Return a task before the edited image is ready for models that support public async execution."
@@ -4146,11 +4143,6 @@
                   "stream": {
                     "type": "boolean",
                     "description": "Reserved image streaming flag. The public edit route currently rejects true."
-                  },
-                  "partial_images": {
-                    "type": "integer",
-                    "minimum": 0,
-                    "maximum": 3
                   },
                   "user": {
                     "type": "string"
@@ -4335,19 +4327,11 @@
                       "low"
                     ]
                   },
-                  "input_fidelity": {
-                    "type": "string"
-                  },
                   "async": {
                     "type": "boolean"
                   },
                   "stream": {
                     "type": "boolean"
-                  },
-                  "partial_images": {
-                    "type": "integer",
-                    "minimum": 0,
-                    "maximum": 3
                   },
                   "user": {
                     "type": "string"
@@ -7168,16 +7152,6 @@
             ],
             "description": "Moderation strictness for compatible image models such as gpt-image-2"
           },
-          "partial_images": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 3,
-            "description": "Number of partial image events requested from compatible streaming-capable models."
-          },
-          "input_fidelity": {
-            "type": "string",
-            "description": "Input fidelity hint for compatible reference-image models."
-          },
           "stream": {
             "type": "boolean",
             "description": "Reserved image streaming flag. The public generation route currently rejects true."
@@ -7297,14 +7271,6 @@
               "auto",
               "low"
             ]
-          },
-          "partial_images": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 3
-          },
-          "input_fidelity": {
-            "type": "string"
           },
           "stream": {
             "type": "boolean"

@@ -111,6 +111,10 @@ test("advertises exactly the generated profile plus composite discovery tools", 
   for (const name of ["create_chat_completion", "create_response", "create_anthropic_message", "create_image", "edit_image"]) {
     assert.equal(byName[name].input_schema.properties.stream.const, false, `${name} must remain non-streaming in MCP`);
   }
+  for (const name of ["create_image", "create_image_file", "edit_image", "edit_image_file"]) {
+    assert.equal(byName[name].input_schema.properties.partial_images, undefined, `${name} must not expose partial_images`);
+    assert.equal(byName[name].input_schema.properties.input_fidelity, undefined, `${name} must not expose input_fidelity`);
+  }
   for (const tool of manifest.tools) {
     const exposedSecret = Object.keys(tool.input_schema.properties).find((name) => /api.?key|authorization|password|secret/i.test(name));
     assert.equal(exposedSecret, undefined, `${tool.name} must not expose credential arguments`);
