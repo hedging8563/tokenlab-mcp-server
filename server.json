@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.hedging8563/tokenlab",
   "title": "TokenLab",
-  "description": "TokenLab MCP server for model discovery, native LLM endpoints, multimodal generation, async tasks, embeddings, rerank, and translation.",
+  "description": "OpenAPI-generated TokenLab MCP server for native AI endpoints, multimodal media, tasks, and files.",
   "repository": {
     "url": "https://github.com/hedging8563/tokenlab-mcp-server",
     "source": "github"
