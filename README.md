@@ -4,21 +4,22 @@
 [![npm](https://img.shields.io/npm/v/%40tokenlabai%2Fmcp-server)](https://www.npmjs.com/package/@tokenlabai/mcp-server)
 [![npm downloads](https://img.shields.io/npm/dm/%40tokenlabai%2Fmcp-server)](https://www.npmjs.com/package/@tokenlabai/mcp-server)
 
-Model Context Protocol server for TokenLab public model discovery, pricing, OpenAI-compatible Chat Completions, and native Responses, Anthropic Messages, and Gemini inference.
+OpenAPI-generated Model Context Protocol server for TokenLab public model discovery, pricing, native LLM endpoints, multimodal generation, async tasks, files, embeddings, rerank, translation, and the broader developer API.
 
-It exposes public catalog tools for agents that need to choose models, inspect supported request formats, or compare pricing before calling TokenLab APIs. Optional inference tools require `TOKENLAB_API_KEY`.
+It exposes public catalog tools for agents that need to choose models, inspect supported request formats, or compare pricing before calling TokenLab APIs. Credentialed tools cover text inference, image generation and editing, video, music, 3D, async task polling, embeddings, rerank, and text translation.
 
-## Tools
+## Generated Tool Profiles
 
-- `list_models` - List public TokenLab models, optionally filtered by `recommended_for`.
-- `get_model` - Fetch public model details for one model ID.
-- `get_model_pricing` - Fetch pricing details for one model ID.
-- `compare_models` - Compare details and pricing for several model IDs.
-- `get_api_overview` - Fetch the agent-readable `llms.txt` overview.
-- `create_chat_completion` - Call TokenLab's OpenAI-compatible non-streaming Chat Completions API. Requires `TOKENLAB_API_KEY`.
-- `create_response` - Call TokenLab Responses API. Requires `TOKENLAB_API_KEY`.
-- `create_anthropic_message` - Call TokenLab Anthropic Messages API. Requires `TOKENLAB_API_KEY`.
-- `create_gemini_content` - Call TokenLab Gemini generateContent API. Requires `TOKENLAB_API_KEY`.
+The checked-in `generated/tools.json` manifest is generated from TokenLab's public OpenAPI document plus the small MCP-only overlay in `contract/mcp-overlay.json`. Version 0.4.0 generates 76 endpoint tools; two composite discovery tools are registered at runtime.
+
+| Profile | Endpoint tools | Coverage |
+| --- | ---: | --- |
+| `core` (default) | 29 | Catalog and pricing; Chat Completions, Responses, Anthropic Messages, Gemini generateContent; images, video, music, 3D, speech and transcription; async tasks; files; embeddings, rerank, and translation |
+| `full` | 76 | Every allowlisted developer API operation in the checked-in OpenAPI snapshot, including core plus response lifecycle, batches, worlds, and native model discovery |
+
+Both profiles also include `compare_models` and `get_api_overview`. Realtime and streaming-only operations are excluded because stdio MCP tool calls return one final result. API operations that accept `stream` constrain it to `false` in the MCP overlay, and the Gemini query-string API key is intentionally hidden from tool arguments.
+
+Set `TOKENLAB_MCP_TOOL_PROFILE=full` to expose the full profile. Tool names, descriptions, input JSON Schemas, HTTP bindings, content types, auth requirements, and task behavior can be inspected in [`generated/tools.json`](./generated/tools.json).
 
 ## Run
 
@@ -33,7 +34,7 @@ Install from npm:
 npx -y @tokenlabai/mcp-server
 ```
 
-Agent-assisted installers can follow [`llms-install.md`](./llms-install.md) for a minimal, credential-safe setup and verification flow.
+Agent-assisted installers can follow [`llms-install.md`](./llms-install.md) for a credential-safe setup and verification flow.
 
 Run in Docker:
 
@@ -42,7 +43,7 @@ docker build -t tokenlab-mcp-server .
 docker run --rm -i tokenlab-mcp-server
 ```
 
-Add `-e TOKENLAB_API_KEY` when using inference tools. Public catalog tools do not require a key.
+Add `-e TOKENLAB_API_KEY` when using credentialed API tools. Public catalog tools do not require a key.
 
 Claude Desktop style config:
 
@@ -60,29 +61,68 @@ Claude Desktop style config:
 }
 ```
 
-No TokenLab API key is required for the public catalog tools. Set `TOKENLAB_API_KEY` only when you want the inference tools to call paid TokenLab APIs. `create_chat_completion` supports OpenAI-compatible messages, multimodal content parts, function calling, and common generation controls. The native tools preserve structured Responses input, Anthropic message blocks and tools, and Gemini contents, multimodal parts, tools, and generation config. The `prompt` shortcuts remain available for simple Anthropic and Gemini calls. MCP tools return a normal JSON result, so streaming is intentionally disabled.
+No TokenLab API key is required for public catalog and pricing operations. Set `TOKENLAB_API_KEY` when credentialed tools should call TokenLab APIs. Generated tools preserve the OpenAPI request shape for OpenAI-compatible and native endpoints instead of flattening them into a shared prompt format.
+
+Multipart operations accept local file paths. Small image and audio responses are returned as native MCP content; larger or other binary responses are written to `TOKENLAB_ARTIFACT_DIR` and returned as a path with MIME type and byte count.
+
+## Sync and Async Media Results
+
+Video, music, and 3D creation tools always return an async task. Image generation and editing may return a completed result or an async task depending on the selected model and request.
+
+Media tools preserve the complete TokenLab API response under `response` and add a normalized `delivery` summary:
+
+```json
+{
+  "delivery": {
+    "mode": "async",
+    "task_id": "ldtask_...",
+    "status": "pending",
+    "poll_url": "/v1/tasks/ldtask_...",
+    "terminal": false,
+    "next_tool": "get_task_status"
+  },
+  "response": {}
+}
+```
+
+Use `delivery.mode` instead of assuming all image requests are synchronous. For async tasks, call `get_task_status` with `{ "id": delivery.task_id }` until `delivery.terminal` is `true`. Completion is determined from `status`, not from an optional progress field.
 
 ## Environment
 
 - `TOKENLAB_API_BASE`: optional, defaults to `https://api.tokenlab.sh`
-- `TOKENLAB_API_KEY`: optional; required only for `create_chat_completion`, `create_response`, `create_anthropic_message`, and `create_gemini_content`
-- `TOKENLAB_REQUEST_TIMEOUT_MS`: optional request timeout in milliseconds, defaults to `30000`
+- `TOKENLAB_API_KEY`: optional; required for text inference, multimodal generation, async task, embedding, rerank, and translation tools
+- `TOKENLAB_MCP_TOOL_PROFILE`: optional, `core` (default) or `full`
+- `TOKENLAB_REQUEST_TIMEOUT_MS`: optional request timeout in milliseconds, defaults to `120000`
+- `TOKENLAB_MCP_MAX_FILE_BYTES`: optional maximum local upload size per file, defaults to `104857600` (100 MiB)
+- `TOKENLAB_MCP_INLINE_BYTES`: optional maximum binary/JSON response size returned inline, defaults to `2097152` (2 MiB)
+- `TOKENLAB_ARTIFACT_DIR`: optional output directory for non-inline response artifacts, defaults to the OS temp directory under `tokenlab-mcp`
+
+## Contract Sync
+
+The public OpenAPI document is the API contract source. The overlay contains only MCP-specific choices: profile exposure, stable tool aliases, secret omission, non-streaming constraints, content-type variants, and async task semantics.
+
+```bash
+npm run contract:sync      # fetch OpenAPI and regenerate the manifest
+npm run contract:check     # fail when generated output is stale
+npm test                   # compile both profiles and test routing, tasks, files, and binary output
+```
+
+The scheduled `Sync TokenLab OpenAPI contract` workflow runs this full sequence and commits only the verified OpenAPI snapshot and generated manifest to `main`. A failed fetch, generation, schema compilation, or test leaves `main` unchanged.
 
 ## MCP Registry Metadata
 
 This repository includes `server.json` for the official MCP Registry.
 
-Current publication:
+Release metadata:
 
-- npm package: `@tokenlabai/mcp-server@0.3.0`
+- npm package: `@tokenlabai/mcp-server@0.4.0`
 - MCP registry name: `io.github.hedging8563/tokenlab`
-- Official MCP Registry status: active
 - `package.json.mcpName`: `io.github.hedging8563/tokenlab`
 
 For a new release:
 
 1. Bump the matching versions in `package.json`, `package-lock.json`, and `server.json`.
-2. Push a matching tag such as `v0.3.0`.
+2. Push a matching tag such as `v0.4.0`.
 3. The publish workflow tests and publishes npm through trusted publishing, then publishes the MCP Registry entry through GitHub Actions OIDC.
 
 The same workflow can be run manually from `main` to republish only the current MCP Registry metadata. No npm or MCP Registry token is stored in GitHub.

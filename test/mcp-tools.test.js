@@ -1,36 +1,53 @@
 import assert from "node:assert/strict";
-import { stat } from "node:fs/promises";
+import { mkdtemp, readFile, stat, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
 
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
-async function startMockApi(t) {
+const manifest = JSON.parse(await readFile(new URL("../generated/tools.json", import.meta.url), "utf8"));
+
+async function startMockApi(t, respond = () => ({ ok: true })) {
   const requests = [];
   const server = createServer(async (request, response) => {
-    let body = "";
-    for await (const chunk of request) body += chunk;
-
-    requests.push({
+    const chunks = [];
+    for await (const chunk of request) chunks.push(chunk);
+    const rawBody = Buffer.concat(chunks);
+    const contentType = request.headers["content-type"] || "";
+    const body = rawBody.length > 0 && contentType.startsWith("application/json")
+      ? JSON.parse(rawBody.toString("utf8"))
+      : undefined;
+    const received = {
       method: request.method,
       url: request.url,
+      headers: request.headers,
       authorization: request.headers.authorization,
-      body: body ? JSON.parse(body) : undefined
-    });
+      contentType,
+      body,
+      rawBody
+    };
+    requests.push(received);
 
-    response.writeHead(200, { "Content-Type": "application/json" });
-    response.end(JSON.stringify({ ok: true }));
+    const result = await respond(received);
+    const status = typeof result?.status === "number" ? result.status : 200;
+    if (Buffer.isBuffer(result?.rawBody)) {
+      response.writeHead(status, result.headers || { "Content-Type": "application/octet-stream" });
+      response.end(result.rawBody);
+      return;
+    }
+    response.writeHead(status, { "Content-Type": "application/json", ...(result?.headers || {}) });
+    response.end(JSON.stringify(result?.json ?? result));
   });
 
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
-  t.after(() => new Promise((resolve) => server.close(resolve)));
-
-  const address = server.address();
-  return {
-    baseUrl: `http://127.0.0.1:${address.port}`,
-    requests
-  };
+  t.after(() => {
+    server.closeAllConnections();
+    return new Promise((resolve) => server.close(resolve));
+  });
+  return { baseUrl: `http://127.0.0.1:${server.address().port}`, requests };
 }
 
 async function startMcpClient(t, env = {}) {
@@ -48,107 +65,202 @@ async function startMcpClient(t, env = {}) {
   return client;
 }
 
-test("advertises all catalog, OpenAI-compatible, and native endpoint tools", async (t) => {
-  const client = await startMcpClient(t);
-  const { tools } = await client.listTools();
-  const byName = Object.fromEntries(tools.map((tool) => [tool.name, tool]));
+function parseTextResult(result) {
+  assert.equal(result.isError, undefined);
+  assert.equal(result.content[0].type, "text");
+  return JSON.parse(result.content[0].text);
+}
 
-  assert.deepEqual(Object.keys(byName).sort(), [
-    "compare_models",
-    "create_anthropic_message",
+test("advertises exactly the generated profile plus composite discovery tools", async (t) => {
+  for (const profile of manifest.profiles) {
+    await t.test(profile, async (t) => {
+      const client = await startMcpClient(t, { TOKENLAB_MCP_TOOL_PROFILE: profile });
+      const { tools } = await client.listTools();
+      const actual = tools.map((tool) => tool.name).sort();
+      const expected = manifest.tools
+        .filter((tool) => tool.profiles.includes(profile))
+        .map((tool) => tool.name)
+        .concat("compare_models", "get_api_overview")
+        .sort();
+      assert.deepEqual(actual, expected);
+    });
+  }
+
+  const requiredCoreFamilies = [
     "create_chat_completion",
-    "create_gemini_content",
     "create_response",
-    "get_api_overview",
-    "get_model",
-    "get_model_pricing",
-    "list_models"
-  ]);
-  assert.equal(byName.create_chat_completion.inputSchema.properties.messages.type, "array");
-  assert.equal(byName.create_chat_completion.inputSchema.properties.stream, undefined);
-  assert.ok(byName.create_response.inputSchema.properties.input.anyOf);
-  assert.equal(byName.create_anthropic_message.inputSchema.properties.messages.type, "array");
-  assert.equal(byName.create_gemini_content.inputSchema.properties.contents.type, "array");
+    "create_anthropic_message",
+    "create_gemini_content",
+    "create_image",
+    "edit_image_file",
+    "create_video",
+    "create_music",
+    "create_3d_model",
+    "create_speech",
+    "transcribe_audio",
+    "create_embedding",
+    "rerank_documents",
+    "upload_file",
+    "get_task_status"
+  ];
+  const core = new Set(manifest.tools.filter((tool) => tool.profiles.includes("core")).map((tool) => tool.name));
+  for (const tool of requiredCoreFamilies) assert.equal(core.has(tool), true, `${tool} must remain in core`);
+
+  const byName = Object.fromEntries(manifest.tools.map((tool) => [tool.name, tool]));
+  assert.equal(byName.create_gemini_content.input_schema.properties.key, undefined);
+  for (const name of ["create_chat_completion", "create_response", "create_anthropic_message", "create_image", "edit_image"]) {
+    assert.equal(byName[name].input_schema.properties.stream.const, false, `${name} must remain non-streaming in MCP`);
+  }
+  for (const tool of manifest.tools) {
+    const exposedSecret = Object.keys(tool.input_schema.properties).find((name) => /api.?key|authorization|password|secret/i.test(name));
+    assert.equal(exposedSecret, undefined, `${tool.name} must not expose credential arguments`);
+  }
 });
 
-test("forwards native endpoint payloads without flattening their semantics", async (t) => {
+test("forwards generated JSON tools to their canonical public endpoints", async (t) => {
   const api = await startMockApi(t);
   const client = await startMcpClient(t, {
     TOKENLAB_API_BASE: api.baseUrl,
     TOKENLAB_API_KEY: "test-key"
   });
 
-  await client.callTool({
-    name: "create_response",
-    arguments: {
-      model: "gpt-5.5",
-      input: [{ role: "user", content: [{ type: "input_text", text: "Hello" }] }],
-      tools: [{ type: "function", name: "lookup" }]
-    }
-  });
-  await client.callTool({
-    name: "create_anthropic_message",
-    arguments: {
+  const calls = [
+    ["create_response", { model: "gpt-5.5", input: "Hello", stream: false }],
+    ["create_anthropic_message", {
       model: "claude-sonnet-5",
-      max_tokens: 1024,
-      messages: [{ role: "user", content: [{ type: "text", text: "Hello" }] }],
-      tools: [{ name: "lookup", input_schema: { type: "object" } }]
-    }
-  });
-  await client.callTool({
-    name: "create_gemini_content",
-    arguments: {
+      max_tokens: 128,
+      messages: [{ role: "user", content: "Hello" }]
+    }],
+    ["create_gemini_content", {
       model: "gemini-3.5-flash",
-      contents: [{ role: "user", parts: [{ text: "Hello" }] }],
-      generationConfig: { responseMimeType: "application/json" },
-      tools: [{ functionDeclarations: [{ name: "lookup" }] }]
-    }
-  });
-
-  assert.equal(api.requests.length, 3);
-  for (const request of api.requests) {
-    assert.equal(request.method, "POST");
-    assert.equal(request.authorization, "Bearer test-key");
+      contents: [{ role: "user", parts: [{ text: "Hello" }] }]
+    }],
+    ["create_video", { model: "video-model", prompt: "Orbit a cube" }],
+    ["create_music", { model: "music-model", prompt: "Ambient synth" }],
+    ["create_3d_model", { model: "3d-model", prompt: "A red cube" }],
+    ["create_embedding", { model: "embedding-model", input: ["red", "blue"] }],
+    ["rerank_documents", { model: "rerank-model", query: "cube", documents: ["sphere", "cube"] }],
+    ["translate_text", { model: "translation-model", text: "Hello", target_language: "zh" }]
+  ];
+  for (const [name, arguments_] of calls) {
+    const result = await client.callTool({ name, arguments: arguments_ });
+    assert.equal(result.isError, undefined, `${name}: ${result.content?.[0]?.text}`);
   }
 
-  assert.equal(api.requests[0].url, "/v1/responses");
+  assert.deepEqual(api.requests.map((request) => [request.method, request.url]), [
+    ["POST", "/v1/responses"],
+    ["POST", "/v1/messages"],
+    ["POST", "/v1beta/models/gemini-3.5-flash:generateContent"],
+    ["POST", "/v1/videos/generations"],
+    ["POST", "/v1/music/generations"],
+    ["POST", "/v1/3d/generations"],
+    ["POST", "/v1/embeddings"],
+    ["POST", "/v1/rerank"],
+    ["POST", "/v1/translations"]
+  ]);
+  assert.equal(api.requests.every((request) => request.authorization === "Bearer test-key"), true);
   assert.equal(api.requests[0].body.stream, false);
-  assert.deepEqual(api.requests[0].body.input[0].content[0], { type: "input_text", text: "Hello" });
-  assert.equal(api.requests[1].url, "/v1/messages");
-  assert.equal(api.requests[1].body.stream, false);
-  assert.equal(api.requests[1].body.messages[0].content[0].type, "text");
-  assert.equal(api.requests[2].url, "/v1beta/models/gemini-3.5-flash:generateContent");
-  assert.equal(api.requests[2].body.generationConfig.responseMimeType, "application/json");
-  assert.equal(api.requests[2].body.tools[0].functionDeclarations[0].name, "lookup");
+  assert.equal(api.requests[1].body.messages[0].content, "Hello");
+  assert.equal(api.requests[2].body.contents[0].parts[0].text, "Hello");
 });
 
-test("keeps simple prompt shortcuts and requires auth for inference", async (t) => {
-  const api = await startMockApi(t);
-  const authenticated = await startMcpClient(t, {
+test("uses overlay task semantics for hybrid, async, status, and cancellation responses", async (t) => {
+  const api = await startMockApi(t, ({ method, url }) => {
+    if (url === "/v1/images/generations") {
+      return { created: 123, data: [{ url: "https://example.com/image.png" }] };
+    }
+    if (url === "/v1/videos/generations") {
+      return { id: "video-task", status: "pending", poll_url: "/v1/tasks/video-task" };
+    }
+    if (url === "/v1/tasks/video-task" && method === "GET") {
+      return { id: "video-task", status: "completed", video_url: "https://example.com/video.mp4" };
+    }
+    if (url === "/v1/tasks/video-task" && method === "DELETE") {
+      return { id: "video-task", status: "cancelled" };
+    }
+    return { ok: true };
+  });
+  const client = await startMcpClient(t, {
     TOKENLAB_API_BASE: api.baseUrl,
     TOKENLAB_API_KEY: "test-key"
   });
 
-  await authenticated.callTool({
-    name: "create_anthropic_message",
-    arguments: { model: "claude-sonnet-5", prompt: "Hello", max_tokens: 32 }
+  const image = parseTextResult(await client.callTool({
+    name: "create_image",
+    arguments: { model: "image-model", prompt: "A red cube" }
+  }));
+  const video = parseTextResult(await client.callTool({
+    name: "create_video",
+    arguments: { model: "video-model", prompt: "Orbit the cube" }
+  }));
+  const completed = parseTextResult(await client.callTool({ name: "get_task_status", arguments: { id: "video-task" } }));
+  const cancelled = parseTextResult(await client.callTool({ name: "cancel_task", arguments: { id: "video-task" } }));
+
+  assert.deepEqual(image.delivery, { mode: "complete", terminal: true });
+  assert.deepEqual(video.delivery, {
+    mode: "async",
+    task_id: "video-task",
+    status: "pending",
+    poll_url: "/v1/tasks/video-task",
+    terminal: false,
+    next_tool: "get_task_status"
   });
-  await authenticated.callTool({
-    name: "create_gemini_content",
-    arguments: { model: "gemini-3.5-flash", prompt: "Hello", temperature: 0.2 }
+  assert.equal(completed.delivery.terminal, true);
+  assert.equal(cancelled.delivery.status, "cancelled");
+  assert.equal(cancelled.delivery.next_tool, undefined);
+});
+
+test("turns OpenAPI binary fields into bounded local-file multipart uploads", async (t) => {
+  const temp = await mkdtemp(join(tmpdir(), "tokenlab-mcp-test-"));
+  const imagePath = join(temp, "source.png");
+  await writeFile(imagePath, Buffer.from("fake-png-content"));
+
+  const api = await startMockApi(t);
+  const client = await startMcpClient(t, {
+    TOKENLAB_API_BASE: api.baseUrl,
+    TOKENLAB_API_KEY: "test-key"
+  });
+  await client.callTool({
+    name: "edit_image_file",
+    arguments: { model: "gpt-image-2", prompt: "Make it blue", image: imagePath }
   });
 
-  assert.equal(api.requests[0].body.messages[0].content, "Hello");
-  assert.equal(api.requests[1].body.contents[0].parts[0].text, "Hello");
-  assert.equal(api.requests[1].body.generationConfig.temperature, 0.2);
+  assert.equal(api.requests.length, 1);
+  assert.equal(api.requests[0].url, "/v1/images/edits");
+  assert.match(api.requests[0].contentType, /^multipart\/form-data; boundary=/);
+  const multipart = api.requests[0].rawBody.toString("utf8");
+  assert.match(multipart, /filename="source.png"/);
+  assert.match(multipart, /fake-png-content/);
+  assert.match(multipart, /name="model"\r\n\r\ngpt-image-2/);
+});
 
-  const unauthenticated = await startMcpClient(t, { TOKENLAB_API_BASE: api.baseUrl });
-  const result = await unauthenticated.callTool({
+test("returns small binary image responses as native MCP image content", async (t) => {
+  const bytes = Buffer.from([0x89, 0x50, 0x4e, 0x47]);
+  const api = await startMockApi(t, ({ url }) => url === "/v1/files/file-1/content"
+    ? { rawBody: bytes, headers: { "Content-Type": "image/png" } }
+    : { ok: true });
+  const client = await startMcpClient(t, {
+    TOKENLAB_API_BASE: api.baseUrl,
+    TOKENLAB_API_KEY: "test-key"
+  });
+
+  const result = await client.callTool({ name: "retrieve_file_content", arguments: { file_id: "file-1" } });
+  assert.deepEqual(result.content, [{ type: "image", data: bytes.toString("base64"), mimeType: "image/png" }]);
+});
+
+test("requires auth only for protected generated operations", async (t) => {
+  const api = await startMockApi(t, () => ({ data: [] }));
+  const client = await startMcpClient(t, { TOKENLAB_API_BASE: api.baseUrl });
+
+  const publicResult = await client.callTool({ name: "list_models", arguments: {} });
+  assert.equal(publicResult.isError, undefined);
+  const protectedResult = await client.callTool({
     name: "create_response",
     arguments: { model: "gpt-5.5", input: "Hello" }
   });
-  assert.equal(result.isError, true);
-  assert.match(result.content[0].text, /TOKENLAB_API_KEY is required/);
+  assert.equal(protectedResult.isError, true);
+  assert.match(protectedResult.content[0].text, /TOKENLAB_API_KEY is required/);
+  assert.equal(api.requests.length, 1);
 });
 
 test("ships an executable npm binary", async () => {

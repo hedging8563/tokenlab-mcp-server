@@ -1,7 +1,7 @@
 {
   "name": "@tokenlabai/mcp-server",
-  "version": "0.3.0",
-  "description": "MCP server for TokenLab model discovery, pricing, OpenAI-compatible Chat Completions, and native Responses, Anthropic Messages, and Gemini inference.",
+  "version": "0.4.0",
+  "description": "MCP server for TokenLab model discovery, native LLM endpoints, multimodal generation, async tasks, embeddings, rerank, and translation.",
   "type": "module",
   "engines": {
     "node": ">=18.17"
@@ -10,9 +10,21 @@
   "bin": {
     "tokenlab-mcp-server": "src/index.js"
   },
+  "files": [
+    "contract/mcp-overlay.json",
+    "contract/openapi.json",
+    "generated/tools.json",
+    "llms-install.md",
+    "scripts/generate-contract.mjs",
+    "scripts/sync-contract.mjs",
+    "src/index.js"
+  ],
   "scripts": {
     "start": "node ./src/index.js",
-    "test": "node --check ./src/index.js && node --test"
+    "contract:generate": "node ./scripts/generate-contract.mjs",
+    "contract:check": "node ./scripts/generate-contract.mjs --check",
+    "contract:sync": "node ./scripts/sync-contract.mjs",
+    "test": "node --check ./src/index.js && node --check ./scripts/generate-contract.mjs && npm run contract:check && node --test"
   },
   "keywords": [
     "mcp",

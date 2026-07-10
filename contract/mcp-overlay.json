@@ -1,0 +1,212 @@
+{
+  "schema_version": 1,
+  "openapi_url": "https://docs.tokenlab.sh/openapi.json",
+  "default_profile": "core",
+  "profiles": {
+    "core": {
+      "operations": [
+        "listModels",
+        "getModel",
+        "getModelPricing",
+        "getPricing",
+        "createChatCompletion",
+        "createResponse",
+        "createAnthropicMessage",
+        "geminiGenerateContent",
+        "createEmbedding",
+        "createMultimodalEmbedding",
+        "rerankDocuments",
+        "createTranslation",
+        "createImage",
+        "editImage",
+        "createVideo",
+        "createMusic",
+        "create3D",
+        "getAsyncTask",
+        "cancelAsyncTask",
+        "createSpeech",
+        "createTranscription",
+        "createAudioTranslation",
+        "uploadFile",
+        "listFiles",
+        "retrieveFile",
+        "retrieveFileContent",
+        "deleteFile"
+      ]
+    },
+    "full": {
+      "include_tags": [
+        "Chat",
+        "Embeddings",
+        "Images",
+        "Audio",
+        "Video",
+        "Tasks",
+        "Models",
+        "Anthropic",
+        "Gemini",
+        "Files",
+        "Batches",
+        "Text",
+        "Worlds",
+        "Seedance Volc Compatible"
+      ],
+      "exclude_operations": [
+        "geminiStreamGenerateContent",
+        "connectRealtime"
+      ]
+    }
+  },
+  "public_auth_operations": [
+    "listModels",
+    "getModel",
+    "getModelPricing",
+    "getPricing"
+  ],
+  "operation_overrides": {
+    "createAnthropicMessage": {
+      "tool_name": "create_anthropic_message",
+      "input_property_overrides": {
+        "stream": {
+          "const": false,
+          "description": "MCP tool calls return one final result; omit stream or set it to false."
+        }
+      }
+    },
+    "geminiGenerateContent": {
+      "tool_name": "create_gemini_content",
+      "omit_arguments": ["key"]
+    },
+    "createChatCompletion": {
+      "input_property_overrides": {
+        "stream": {
+          "const": false,
+          "description": "MCP tool calls return one final result; omit stream or set it to false."
+        }
+      }
+    },
+    "createResponse": {
+      "input_property_overrides": {
+        "stream": {
+          "const": false,
+          "description": "MCP tool calls return one final result; omit stream or set it to false."
+        }
+      }
+    },
+    "getAsyncTask": {
+      "tool_name": "get_task_status",
+      "task": {
+        "mode": "status",
+        "id_fields": ["task_id", "id"],
+        "status_field": "status",
+        "poll_url_field": "poll_url",
+        "terminal_statuses": ["completed", "succeeded", "failed", "cancelled", "canceled", "expired"]
+      }
+    },
+    "cancelAsyncTask": {
+      "tool_name": "cancel_task",
+      "task": {
+        "mode": "status",
+        "id_fields": ["task_id", "id"],
+        "status_field": "status",
+        "poll_url_field": "poll_url",
+        "terminal_statuses": ["completed", "succeeded", "failed", "cancelled", "canceled", "expired"]
+      }
+    },
+    "createTranslation": {
+      "tool_name": "translate_text"
+    },
+    "createAudioTranslation": {
+      "tool_name": "translate_audio"
+    },
+    "createTranscription": {
+      "tool_name": "transcribe_audio"
+    },
+    "createImage": {
+      "all_content_types": true,
+      "tool_names_by_content_type": {
+        "application/json": "create_image",
+        "multipart/form-data": "create_image_file"
+      },
+      "input_property_overrides": {
+        "stream": {
+          "const": false,
+          "description": "Image streaming is not exposed through MCP tool calls; omit stream or set it to false."
+        }
+      },
+      "task": {
+        "mode": "hybrid",
+        "id_fields": ["task_id", "id"],
+        "status_field": "status",
+        "poll_url_field": "poll_url",
+        "terminal_statuses": ["completed", "succeeded", "failed", "cancelled", "canceled", "expired"]
+      }
+    },
+    "editImage": {
+      "all_content_types": true,
+      "tool_names_by_content_type": {
+        "application/json": "edit_image",
+        "multipart/form-data": "edit_image_file"
+      },
+      "input_property_overrides": {
+        "stream": {
+          "const": false,
+          "description": "Image streaming is not exposed through MCP tool calls; omit stream or set it to false."
+        }
+      },
+      "task": {
+        "mode": "hybrid",
+        "id_fields": ["task_id", "id"],
+        "status_field": "status",
+        "poll_url_field": "poll_url",
+        "terminal_statuses": ["completed", "succeeded", "failed", "cancelled", "canceled", "expired"]
+      }
+    },
+    "createVideo": {
+      "task": {
+        "mode": "async",
+        "id_fields": ["task_id", "id"],
+        "status_field": "status",
+        "poll_url_field": "poll_url",
+        "terminal_statuses": ["completed", "succeeded", "failed", "cancelled", "canceled", "expired"]
+      }
+    },
+    "createMusic": {
+      "task": {
+        "mode": "async",
+        "id_fields": ["task_id", "id"],
+        "status_field": "status",
+        "poll_url_field": "poll_url",
+        "terminal_statuses": ["completed", "succeeded", "failed", "cancelled", "canceled", "expired"]
+      }
+    },
+    "create3D": {
+      "tool_name": "create_3d_model",
+      "task": {
+        "mode": "async",
+        "id_fields": ["task_id", "id"],
+        "status_field": "status",
+        "poll_url_field": "poll_url",
+        "terminal_statuses": ["completed", "succeeded", "failed", "cancelled", "canceled", "expired"]
+      }
+    },
+    "createWorld": {
+      "task": {
+        "mode": "async",
+        "id_fields": ["task_id", "id"],
+        "status_field": "status",
+        "poll_url_field": "poll_url",
+        "terminal_statuses": ["completed", "succeeded", "failed", "cancelled", "canceled", "expired"]
+      }
+    },
+    "getWorldStatus": {
+      "task": {
+        "mode": "status",
+        "id_fields": ["task_id", "id"],
+        "status_field": "status",
+        "poll_url_field": "poll_url",
+        "terminal_statuses": ["completed", "succeeded", "failed", "cancelled", "canceled", "expired"]
+      }
+    }
+  }
+}
