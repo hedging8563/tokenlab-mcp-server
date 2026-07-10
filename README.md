@@ -10,7 +10,7 @@ It exposes public catalog tools for agents that need to choose models, inspect s
 
 ## Generated Tool Profiles
 
-The checked-in `generated/tools.json` manifest is generated from TokenLab's public OpenAPI document plus the small MCP-only overlay in `contract/mcp-overlay.json`. Version 0.4.1 generates 76 endpoint tools; two composite discovery tools are registered at runtime.
+The checked-in `generated/tools.json` manifest is generated from TokenLab's public OpenAPI document plus the small MCP-only overlay in `contract/mcp-overlay.json`. Version 0.4.2 generates 76 endpoint tools; two composite discovery tools are registered at runtime.
 
 | Profile | Endpoint tools | Coverage |
 | --- | ---: | --- |
@@ -115,20 +115,21 @@ This repository includes `server.json` for the official MCP Registry.
 
 Release metadata:
 
-- npm package: `@tokenlabai/mcp-server@0.4.1`
+- npm package: `@tokenlabai/mcp-server@0.4.2`
 - MCP registry name: `io.github.hedging8563/tokenlab`
 - `package.json.mcpName`: `io.github.hedging8563/tokenlab`
 
 For a new release:
 
 1. Bump the matching versions in `package.json`, `package-lock.json`, and `server.json`.
-2. Push a matching tag such as `v0.4.1`.
+2. Push a matching tag such as `v0.4.2`.
 3. The publish workflow tests and publishes npm through trusted publishing, then publishes the MCP Registry entry through GitHub Actions OIDC.
 
 The same workflow can be run manually from `main` to republish only the current MCP Registry metadata. No npm or MCP Registry token is stored in GitHub.
 
 ## Links
 
+- Website: https://tokenlab.sh
 - Docs: https://docs.tokenlab.sh
 - OpenAPI: https://docs.tokenlab.sh/openapi.json
 - Model catalog: https://api.tokenlab.sh/v1/models

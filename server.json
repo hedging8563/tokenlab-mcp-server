@@ -7,12 +7,13 @@
     "url": "https://github.com/hedging8563/tokenlab-mcp-server",
     "source": "github"
   },
-  "version": "0.4.1",
+  "version": "0.4.2",
+  "websiteUrl": "https://tokenlab.sh",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@tokenlabai/mcp-server",
-      "version": "0.4.1",
+      "version": "0.4.2",
       "transport": {
         "type": "stdio"
       },

@@ -1,6 +1,6 @@
 {
   "name": "@tokenlabai/mcp-server",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "MCP server for TokenLab model discovery, native LLM endpoints, multimodal generation, async tasks, embeddings, rerank, and translation.",
   "type": "module",
   "engines": {
@@ -47,5 +47,8 @@
     "type": "git",
     "url": "git+https://github.com/hedging8563/tokenlab-mcp-server.git"
   },
-  "homepage": "https://docs.tokenlab.sh"
+  "homepage": "https://tokenlab.sh",
+  "bugs": {
+    "url": "https://github.com/hedging8563/tokenlab-mcp-server/issues"
+  }
 }
