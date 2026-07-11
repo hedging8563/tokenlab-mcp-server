@@ -157,7 +157,13 @@ test("publishes resources, prompts, and a self-consistent public contract", asyn
   assert.deepEqual(JSON.parse(contractResource.contents[0].text), publicContract);
 
   const openApiResource = await client.readResource({ uri: "tokenlab://contract/openapi" });
-  assert.equal(JSON.parse(openApiResource.contents[0].text).openapi, manifest.source.openapi);
+  const openApi = JSON.parse(openApiResource.contents[0].text);
+  assert.equal(openApi.openapi, manifest.source.openapi);
+  assert.doesNotMatch(
+    JSON.stringify({ openApi, manifest, publicContract }),
+    /lemondata/i,
+    "published MCP contracts must not expose the retired LemonData compatibility surface"
+  );
 
   const prompt = await client.getPrompt({
     name: "choose_tokenlab_model",

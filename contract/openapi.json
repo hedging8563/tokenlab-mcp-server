@@ -1597,7 +1597,7 @@
           "Models"
         ],
         "summary": "List models",
-        "description": "Lists the currently available models. Default responses are trimmed for discovery. Non-chat models may include lightweight request-format metadata; `agent_preferences` appears only when `recommended_for` is present. Deprecated `lemondata` is still returned as a compatibility alias during the migration.",
+        "description": "Lists the currently available models. Default responses are trimmed for discovery. Non-chat models may include lightweight request-format metadata; `agent_preferences` appears only when `recommended_for` is present.",
         "operationId": "listModels",
         "responses": {
           "200": {
@@ -8383,15 +8383,6 @@
           },
           "tokenlab": {
             "$ref": "#/components/schemas/ModelTokenLabExtension"
-          },
-          "lemondata": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ModelLemondataExtension"
-              }
-            ],
-            "deprecated": true,
-            "description": "Deprecated alias for tokenlab. Retained for compatibility during the TokenLab migration."
           }
         },
         "required": [
@@ -9857,87 +9848,6 @@
           }
         }
       },
-      "ModelListLemondataExtension": {
-        "type": "object",
-        "description": "TokenLab discovery fields for the list route. Detail-only metadata such as capability flags, pricing provenance, full model details, and empty recommendation snapshots are omitted.",
-        "properties": {
-          "aliases": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "pricing": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "capabilities": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "providers": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "max_input_tokens": {
-            "type": [
-              "number",
-              "null"
-            ]
-          },
-          "max_output_tokens": {
-            "type": [
-              "number",
-              "null"
-            ]
-          },
-          "category": {
-            "type": "string"
-          },
-          "pricing_unit": {
-            "type": "string"
-          },
-          "cache_pricing": {
-            "type": [
-              "object",
-              "null"
-            ],
-            "additionalProperties": true
-          },
-          "has_complex_pricing": {
-            "type": "boolean"
-          },
-          "pricing_summary": {
-            "type": [
-              "object",
-              "null"
-            ],
-            "additionalProperties": true
-          },
-          "agent_preferences": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "request_format_summary": {
-            "$ref": "#/components/schemas/ModelListRequestFormatSummary"
-          }
-        },
-        "required": [
-          "aliases",
-          "pricing",
-          "capabilities",
-          "max_input_tokens",
-          "max_output_tokens",
-          "category",
-          "pricing_unit",
-          "has_complex_pricing"
-        ],
-        "additionalProperties": false
-      },
       "ModelListItem": {
         "type": "object",
         "properties": {
@@ -9961,15 +9871,6 @@
             "description": "Model provider",
             "example": "openai"
           },
-          "lemondata": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ModelListLemondataExtension"
-              }
-            ],
-            "deprecated": true,
-            "description": "Deprecated alias for tokenlab. Retained for compatibility during the TokenLab migration."
-          },
           "tokenlab": {
             "$ref": "#/components/schemas/ModelListTokenLabExtension"
           }
@@ -9982,89 +9883,6 @@
           "tokenlab"
         ],
         "additionalProperties": false
-      },
-      "ModelLemondataExtension": {
-        "type": "object",
-        "description": "TokenLab extension fields for the detail route, including pricing, capabilities, recommendation metadata, and detailed non-chat request metadata.",
-        "properties": {
-          "aliases": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "pricing": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "capabilities": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "providers": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "max_input_tokens": {
-            "type": [
-              "number",
-              "null"
-            ]
-          },
-          "max_output_tokens": {
-            "type": [
-              "number",
-              "null"
-            ]
-          },
-          "category": {
-            "type": "string"
-          },
-          "pricing_unit": {
-            "type": "string"
-          },
-          "cache_pricing": {
-            "type": [
-              "object",
-              "null"
-            ],
-            "additionalProperties": true
-          },
-          "has_complex_pricing": {
-            "type": "boolean"
-          },
-          "supported_operations": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "pricing_summary": {
-            "type": [
-              "object",
-              "null"
-            ],
-            "additionalProperties": true
-          },
-          "pricing_provenance": {
-            "type": [
-              "object",
-              "null"
-            ],
-            "additionalProperties": true
-          },
-          "request_format_summary": {
-            "$ref": "#/components/schemas/NonChatRequestFormatSummary"
-          },
-          "request_format_details": {
-            "$ref": "#/components/schemas/NonChatRequestFormatDetails"
-          }
-        },
-        "additionalProperties": true
       },
       "ModelPricingResponse": {
         "type": "object",

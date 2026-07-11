@@ -6,7 +6,7 @@
     "openapi": "3.0.3",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "f494fcfb2b4d67aaddc88a2ec164739c807bb59331a7e5270fd9d9fa282745e0"
+    "sha256": "71d786914871d4cb584c526d26ee84833eb790534c65ced4adf8af212b365094"
   },
   "default_profile": "core",
   "profiles": [
@@ -6054,7 +6054,7 @@
         "core",
         "full"
       ],
-      "description": "List models Lists the currently available models. Default responses are trimmed for discovery. Non-chat models may include lightweight request-format metadata; `agent_preferences` appears only when `recommended_for` is present. Deprecated `lemondata` is still returned as a compatibility alias during the migration.",
+      "description": "List models Lists the currently available models. Default responses are trimmed for discovery. Non-chat models may include lightweight request-format metadata; `agent_preferences` appears only when `recommended_for` is present.",
       "input_schema": {
         "type": "object",
         "properties": {},
