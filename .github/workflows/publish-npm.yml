@@ -35,16 +35,19 @@ jobs:
         if: github.event_name == 'push'
         run: npm test
 
-      - name: Publish npm package
-        if: github.event_name == 'push'
-        run: npm publish
-
       - name: Install MCP Registry publisher
         run: |
           curl -fsSLo mcp-publisher.tar.gz \
             https://github.com/modelcontextprotocol/registry/releases/download/v1.7.9/mcp-publisher_linux_amd64.tar.gz
           echo "ab128162b0616090b47cf245afe0a23f3ef08936fdce19074f5ba0a4469281ac  mcp-publisher.tar.gz" | sha256sum --check
           tar -xzf mcp-publisher.tar.gz mcp-publisher
+
+      - name: Validate MCP Registry metadata
+        run: ./mcp-publisher validate
+
+      - name: Publish npm package
+        if: github.event_name == 'push'
+        run: npm publish
 
       - name: Authenticate to MCP Registry
         run: ./mcp-publisher login github-oidc
