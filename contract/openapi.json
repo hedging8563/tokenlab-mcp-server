@@ -117,6 +117,34 @@
                     "stream": true
                   }
                 },
+                "live_translation": {
+                  "summary": "Stream audio translation",
+                  "value": {
+                    "model": "qwen3-livetranslate-flash",
+                    "messages": [
+                      {
+                        "role": "user",
+                        "content": [
+                          {
+                            "type": "input_audio",
+                            "input_audio": {
+                              "data": "https://example.com/sample.wav",
+                              "format": "wav"
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "translation_options": {
+                      "source_lang": "zh",
+                      "target_lang": "en"
+                    },
+                    "modalities": [
+                      "text"
+                    ],
+                    "stream": true
+                  }
+                },
                 "function_calling": {
                   "summary": "Function calling",
                   "value": {
@@ -6520,7 +6548,7 @@
           },
           "top_k": {
             "type": "integer",
-            "minimum": 1,
+            "minimum": 0,
             "description": "Top-k sampling cutoff for compatible providers."
           },
           "logit_bias": {
@@ -6541,6 +6569,35 @@
             "type": "object",
             "additionalProperties": true,
             "description": "Audio output configuration when requesting audio modality."
+          },
+          "translation_options": {
+            "type": "object",
+            "required": [
+              "target_lang"
+            ],
+            "properties": {
+              "source_lang": {
+                "type": "string",
+                "description": "Source language code. Omit when the model supports automatic detection."
+              },
+              "target_lang": {
+                "type": "string",
+                "description": "Target language code."
+              }
+            },
+            "description": "Language settings for models that translate audio or video through Chat Completions."
+          },
+          "speech_rate": {
+            "type": "number",
+            "minimum": 0.5,
+            "maximum": 2,
+            "description": "Speech rate for compatible translated audio output."
+          },
+          "repetition_penalty": {
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Repetition penalty for compatible models."
           },
           "prediction": {
             "type": "object",
@@ -6633,6 +6690,62 @@
                       "required": [
                         "type",
                         "image_url"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "video_url"
+                          ]
+                        },
+                        "video_url": {
+                          "type": "object",
+                          "properties": {
+                            "url": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "url"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "video_url"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "input_audio"
+                          ]
+                        },
+                        "input_audio": {
+                          "type": "object",
+                          "properties": {
+                            "data": {
+                              "type": "string",
+                              "description": "Public audio URL or Base64 data URL."
+                            },
+                            "format": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "data"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "input_audio"
                       ]
                     }
                   ]
