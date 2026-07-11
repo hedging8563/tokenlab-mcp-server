@@ -17,14 +17,28 @@ for (let index = 0; index < argv.length; index += 1) {
 const sourcePath = resolve(root, args.get("--source") || "contract/openapi.json");
 const overlayPath = resolve(root, args.get("--overlay") || "contract/mcp-overlay.json");
 const outputPath = resolve(root, args.get("--output") || "generated/tools.json");
+const publicOutputPath = resolve(root, args.get("--public-output") || "generated/public-contract.json");
 const check = argv.includes("--check");
 
-const [sourceText, overlayText] = await Promise.all([
+const [sourceText, overlayText, packageText, serverText] = await Promise.all([
   readFile(sourcePath, "utf8"),
-  readFile(overlayPath, "utf8")
+  readFile(overlayPath, "utf8"),
+  readFile(resolve(root, "package.json"), "utf8"),
+  readFile(resolve(root, "server.json"), "utf8")
 ]);
 const spec = JSON.parse(sourceText);
 const overlay = JSON.parse(overlayText);
+const packageJson = JSON.parse(packageText);
+const serverJson = JSON.parse(serverText);
+
+if (packageJson.version !== serverJson.version) {
+  throw new Error(`Package version ${packageJson.version} does not match server.json ${serverJson.version}`);
+}
+for (const registryPackage of serverJson.packages || []) {
+  if (registryPackage.identifier === packageJson.name && registryPackage.version !== packageJson.version) {
+    throw new Error(`Registry package version ${registryPackage.version} does not match package ${packageJson.version}`);
+  }
+}
 
 function snakeCase(value) {
   return value
@@ -88,13 +102,25 @@ function operationIndex() {
 }
 
 const operations = operationIndex();
-const coreOperations = new Set(overlay.profiles.core.operations);
-const fullTags = new Set(overlay.profiles.full.include_tags);
-const fullExclusions = new Set(overlay.profiles.full.exclude_operations || []);
+const profileEntries = Object.entries(overlay.profiles);
 const publicAuth = new Set(overlay.public_auth_operations || []);
 
-for (const operationId of coreOperations) {
-  if (!operations.has(operationId)) throw new Error(`Core MCP operation is missing from OpenAPI: ${operationId}`);
+for (const [profileName, profile] of profileEntries) {
+  for (const operationId of profile.operations || []) {
+    if (!operations.has(operationId)) {
+      throw new Error(`${profileName} MCP operation is missing from OpenAPI: ${operationId}`);
+    }
+  }
+}
+
+function operationProfiles(operationId, tags) {
+  return profileEntries
+    .filter(([, profile]) => {
+      if ((profile.exclude_operations || []).includes(operationId)) return false;
+      if ((profile.operations || []).includes(operationId)) return true;
+      return tags.some((tag) => (profile.include_tags || []).includes(tag));
+    })
+    .map(([profileName]) => profileName);
 }
 
 function chooseContentTypes(operationId, operation, override) {
@@ -204,9 +230,8 @@ function annotations(method) {
 const tools = [];
 for (const [operationId, indexed] of operations) {
   const tags = indexed.operation.tags || [];
-  const inCore = coreOperations.has(operationId);
-  const inFull = !fullExclusions.has(operationId) && tags.some((tag) => fullTags.has(tag));
-  if (!inCore && !inFull) continue;
+  const profiles = operationProfiles(operationId, tags);
+  if (profiles.length === 0) continue;
 
   const override = overlay.operation_overrides[operationId] || {};
   const contentTypes = chooseContentTypes(operationId, indexed.operation, override);
@@ -226,17 +251,18 @@ for (const [operationId, indexed] of operations) {
 
     tools.push({
       name: toolName,
+      title: indexed.operation.summary?.replace(/\s+/g, " ").trim() || toolName,
       operation_id: operationId,
       method: indexed.method,
       path: indexed.path,
       content_type: contentType,
       auth: publicAuth.has(operationId) ? "optional" : "required",
       tags,
-      profiles: [...(inCore ? ["core"] : []), ...(inFull ? ["full"] : [])],
+      profiles,
       description,
       input_schema: schema,
       bindings,
-      annotations: annotations(indexed.method),
+      annotations: { ...annotations(indexed.method), ...(override.annotations || {}) },
       ...(override.task ? { task: override.task } : {})
     });
   }
@@ -263,14 +289,100 @@ const manifest = {
 };
 const output = `${JSON.stringify(manifest, null, 2)}\n`;
 
+const publicConfig = overlay.public_contract;
+if (!publicConfig) throw new Error("MCP overlay is missing public_contract");
+
+const profileNames = new Set(manifest.profiles);
+const generatedToolNames = new Set(tools.map((tool) => tool.name));
+const compositeTools = publicConfig.composite_tools || [];
+for (const tool of compositeTools) {
+  if (generatedToolNames.has(tool.name)) throw new Error(`Composite tool duplicates generated tool: ${tool.name}`);
+  for (const profile of tool.profiles || []) {
+    if (!profileNames.has(profile)) throw new Error(`Composite tool ${tool.name} references unknown profile ${profile}`);
+  }
+}
+
+const profiles = Object.fromEntries(profileEntries.map(([profileName]) => {
+  const endpointTools = tools.filter((tool) => tool.profiles.includes(profileName)).map((tool) => tool.name);
+  const composite = compositeTools.filter((tool) => tool.profiles.includes(profileName)).map((tool) => tool.name);
+  return [profileName, {
+    is_default: profileName === overlay.default_profile,
+    endpoint_tools: endpointTools.length,
+    composite_tools: composite.length,
+    total_tools: endpointTools.length + composite.length,
+    tool_names: [...endpointTools, ...composite].sort()
+  }];
+}));
+
+const coreToolNames = new Set(profiles.core?.tool_names || []);
+const layerToolNames = [];
+const coreToolLayers = (publicConfig.core_tool_layers || []).map((layer) => {
+  const toolNames = layer.tool_rows.flat();
+  for (const toolName of toolNames) {
+    if (!coreToolNames.has(toolName)) throw new Error(`Core layer ${layer.id} references unknown tool ${toolName}`);
+    if (layerToolNames.includes(toolName)) throw new Error(`Core tool ${toolName} appears in more than one public layer`);
+    layerToolNames.push(toolName);
+  }
+  return { ...layer, tool_count: toolNames.length };
+});
+const missingLayerTools = [...coreToolNames].filter((toolName) => !layerToolNames.includes(toolName));
+if (missingLayerTools.length > 0) {
+  throw new Error(`Core public layers are missing tools: ${missingLayerTools.join(", ")}`);
+}
+
+const repositoryUrl = packageJson.repository?.url
+  ?.replace(/^git\+/, "")
+  .replace(/\.git$/, "");
+const publicContract = {
+  schema_version: 1,
+  generated_at: null,
+  asset: {
+    id: "tokenlab-mcp-server",
+    name: packageJson.name,
+    title: serverJson.title,
+    version: packageJson.version,
+    registry_name: packageJson.mcpName,
+    source_url: repositoryUrl,
+    landing_url: publicConfig.landing_url,
+    docs_url: publicConfig.docs_url,
+    recommended_client_name: publicConfig.recommended_client_name,
+    transport: "stdio",
+    command: "npx",
+    args: ["-y", packageJson.name],
+    api_key_environment_variable: "TOKENLAB_API_KEY",
+    tool_profile_environment_variable: "TOKENLAB_MCP_TOOL_PROFILE"
+  },
+  source: {
+    ...manifest.source,
+    tool_manifest_sha256: createHash("sha256").update(output).digest("hex")
+  },
+  profiles,
+  core_tool_layers: coreToolLayers,
+  features: {
+    structured_content: true,
+    tool_annotations: true,
+    composite_tools: compositeTools,
+    async_delivery_tools: tools.filter((tool) => tool.task).map((tool) => tool.name),
+    resources: publicConfig.resources || [],
+    prompts: publicConfig.prompts || []
+  }
+};
+const publicOutput = `${JSON.stringify(publicContract, null, 2)}\n`;
+
 if (check) {
-  const existing = await readFile(outputPath, "utf8");
-  if (existing !== output) {
+  const [existing, existingPublic] = await Promise.all([
+    readFile(outputPath, "utf8"),
+    readFile(publicOutputPath, "utf8")
+  ]);
+  if (existing !== output || existingPublic !== publicOutput) {
     console.error("Generated MCP contract is stale. Run npm run contract:generate.");
     process.exit(1);
   }
-  console.log(`[contract] PASS (${tools.length} generated tools)`);
+  console.log(`[contract] PASS (${tools.length} generated tools, ${Object.keys(profiles).length} profiles)`);
 } else {
-  await writeFile(outputPath, output);
-  console.log(`[contract] generated ${tools.length} tools at ${outputPath}`);
+  await Promise.all([
+    writeFile(outputPath, output),
+    writeFile(publicOutputPath, publicOutput)
+  ]);
+  console.log(`[contract] generated ${tools.length} tools and public projection`);
 }

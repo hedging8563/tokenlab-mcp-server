@@ -3,6 +3,14 @@
   "openapi_url": "https://docs.tokenlab.sh/openapi.json",
   "default_profile": "core",
   "profiles": {
+    "catalog": {
+      "operations": [
+        "listModels",
+        "getModel",
+        "getModelPricing",
+        "getPricing"
+      ]
+    },
     "core": {
       "operations": [
         "listModels",
@@ -57,6 +65,96 @@
       ]
     }
   },
+  "public_contract": {
+    "landing_url": "https://tokenlab.sh/mcp",
+    "docs_url": "https://docs.tokenlab.sh/integrations/tokenlab-mcp-server",
+    "recommended_client_name": "tokenlab",
+    "composite_tools": [
+      {
+        "name": "compare_models",
+        "profiles": ["catalog", "core", "full"],
+        "auth": "optional",
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true
+        }
+      },
+      {
+        "name": "get_api_overview",
+        "profiles": ["catalog", "core", "full"],
+        "auth": "optional",
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true
+        }
+      }
+    ],
+    "core_tool_layers": [
+      {
+        "id": "discover",
+        "authentication": "none",
+        "tool_rows": [
+          ["list_models", "get_model", "get_pricing"],
+          ["get_model_pricing", "compare_models", "get_api_overview"]
+        ]
+      },
+      {
+        "id": "create",
+        "authentication": "api_key",
+        "tool_rows": [
+          ["create_chat_completion", "create_response", "create_anthropic_message", "create_gemini_content"],
+          ["create_image", "create_image_file", "edit_image", "edit_image_file"],
+          ["create_video", "create_music", "create_3d_model", "create_speech", "transcribe_audio", "translate_audio"]
+        ]
+      },
+      {
+        "id": "operate",
+        "authentication": "api_key",
+        "tool_rows": [
+          ["upload_file", "list_files", "retrieve_file"],
+          ["retrieve_file_content", "delete_file", "get_task_status", "cancel_task"],
+          ["create_embedding", "create_multimodal_embedding", "rerank_documents", "translate_text"]
+        ]
+      }
+    ],
+    "resources": [
+      {
+        "name": "tokenlab-api-overview",
+        "title": "TokenLab API Overview",
+        "uri": "tokenlab://api/overview",
+        "mime_type": "text/plain",
+        "freshness": "live"
+      },
+      {
+        "name": "tokenlab-openapi-contract",
+        "title": "TokenLab OpenAPI Contract",
+        "uri": "tokenlab://contract/openapi",
+        "mime_type": "application/json",
+        "freshness": "package_snapshot"
+      },
+      {
+        "name": "tokenlab-mcp-public-contract",
+        "title": "TokenLab MCP Public Contract",
+        "uri": "tokenlab://contract/mcp",
+        "mime_type": "application/json",
+        "freshness": "package_snapshot"
+      }
+    ],
+    "prompts": [
+      {
+        "name": "choose_tokenlab_model",
+        "title": "Choose a TokenLab Model"
+      },
+      {
+        "name": "build_tokenlab_request",
+        "title": "Build a TokenLab Request"
+      }
+    ]
+  },
   "public_auth_operations": [
     "listModels",
     "getModel",
@@ -64,6 +162,22 @@
     "getPricing"
   ],
   "operation_overrides": {
+    "cancelAnthropicMessageBatch": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    "cancelBatch": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
     "createAnthropicMessage": {
       "tool_name": "create_anthropic_message",
       "input_property_overrides": {

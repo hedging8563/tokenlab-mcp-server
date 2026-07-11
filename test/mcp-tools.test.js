@@ -9,6 +9,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
 const manifest = JSON.parse(await readFile(new URL("../generated/tools.json", import.meta.url), "utf8"));
+const publicContract = JSON.parse(await readFile(new URL("../generated/public-contract.json", import.meta.url), "utf8"));
 
 async function startMockApi(t, respond = () => ({ ok: true })) {
   const requests = [];
@@ -68,7 +69,9 @@ async function startMcpClient(t, env = {}) {
 function parseTextResult(result) {
   assert.equal(result.isError, undefined);
   assert.equal(result.content[0].type, "text");
-  return JSON.parse(result.content[0].text);
+  const parsed = JSON.parse(result.content[0].text);
+  assert.deepEqual(result.structuredContent, parsed);
+  return parsed;
 }
 
 test("advertises exactly the generated profile plus composite discovery tools", async (t) => {
@@ -83,8 +86,22 @@ test("advertises exactly the generated profile plus composite discovery tools", 
         .concat("compare_models", "get_api_overview")
         .sort();
       assert.deepEqual(actual, expected);
+
+      for (const tool of tools) {
+        assert.equal(typeof tool.title, "string", `${tool.name} must expose a title`);
+        assert.equal(typeof tool.annotations?.readOnlyHint, "boolean", `${tool.name} must expose risk annotations`);
+      }
     });
   }
+
+  assert.deepEqual(publicContract.profiles.catalog.tool_names, [
+    "compare_models",
+    "get_api_overview",
+    "get_model",
+    "get_model_pricing",
+    "get_pricing",
+    "list_models"
+  ]);
 
   const requiredCoreFamilies = [
     "create_chat_completion",
@@ -118,6 +135,41 @@ test("advertises exactly the generated profile plus composite discovery tools", 
   for (const tool of manifest.tools) {
     const exposedSecret = Object.keys(tool.input_schema.properties).find((name) => /api.?key|authorization|password|secret/i.test(name));
     assert.equal(exposedSecret, undefined, `${tool.name} must not expose credential arguments`);
+  }
+});
+
+test("publishes resources, prompts, and a self-consistent public contract", async (t) => {
+  const client = await startMcpClient(t, { TOKENLAB_MCP_TOOL_PROFILE: "catalog" });
+  const { resources } = await client.listResources();
+  const { prompts } = await client.listPrompts();
+
+  assert.deepEqual(
+    resources.map((resource) => resource.name).sort(),
+    publicContract.features.resources.map((resource) => resource.name).sort()
+  );
+  assert.deepEqual(
+    prompts.map((prompt) => prompt.name).sort(),
+    publicContract.features.prompts.map((prompt) => prompt.name).sort()
+  );
+
+  const contractResource = await client.readResource({ uri: "tokenlab://contract/mcp" });
+  assert.equal(contractResource.contents[0].mimeType, "application/json");
+  assert.deepEqual(JSON.parse(contractResource.contents[0].text), publicContract);
+
+  const openApiResource = await client.readResource({ uri: "tokenlab://contract/openapi" });
+  assert.equal(JSON.parse(openApiResource.contents[0].text).openapi, manifest.source.openapi);
+
+  const prompt = await client.getPrompt({
+    name: "choose_tokenlab_model",
+    arguments: { task: "Generate a product image", priorities: "quality and price" }
+  });
+  assert.match(prompt.messages[0].content.text, /live MCP catalog tools/);
+  assert.match(prompt.messages[0].content.text, /quality and price/);
+
+  for (const [profile, summary] of Object.entries(publicContract.profiles)) {
+    const endpointCount = manifest.tools.filter((tool) => tool.profiles.includes(profile)).length;
+    assert.equal(summary.endpoint_tools, endpointCount);
+    assert.equal(summary.total_tools, summary.endpoint_tools + summary.composite_tools);
   }
 });
 
@@ -166,6 +218,25 @@ test("forwards generated JSON tools to their canonical public endpoints", async 
   assert.equal(api.requests[0].body.stream, false);
   assert.equal(api.requests[1].body.messages[0].content, "Hello");
   assert.equal(api.requests[2].body.contents[0].parts[0].text, "Hello");
+});
+
+test("returns structured JSON and response request metadata", async (t) => {
+  const api = await startMockApi(t, () => ({
+    json: { id: "resp_1", output_text: "Hello" },
+    headers: { "X-Request-ID": "req_mcp_1" }
+  }));
+  const client = await startMcpClient(t, {
+    TOKENLAB_API_BASE: api.baseUrl,
+    TOKENLAB_API_KEY: "test-key"
+  });
+
+  const result = await client.callTool({
+    name: "create_response",
+    arguments: { model: "gpt-5.5", input: "Hello", stream: false }
+  });
+  assert.deepEqual(result.structuredContent, { id: "resp_1", output_text: "Hello" });
+  assert.equal(result._meta["tokenlab/httpStatus"], 200);
+  assert.equal(result._meta["tokenlab/requestId"], "req_mcp_1");
 });
 
 test("uses overlay task semantics for hybrid, async, status, and cancellation responses", async (t) => {
@@ -250,6 +321,7 @@ test("returns small binary image responses as native MCP image content", async (
 
   const result = await client.callTool({ name: "retrieve_file_content", arguments: { file_id: "file-1" } });
   assert.deepEqual(result.content, [{ type: "image", data: bytes.toString("base64"), mimeType: "image/png" }]);
+  assert.equal(result._meta["tokenlab/httpStatus"], 200);
 });
 
 test("requires auth only for protected generated operations", async (t) => {

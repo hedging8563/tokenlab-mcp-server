@@ -1,0 +1,324 @@
+{
+  "schema_version": 1,
+  "generated_at": null,
+  "asset": {
+    "id": "tokenlab-mcp-server",
+    "name": "@tokenlabai/mcp-server",
+    "title": "TokenLab MCP Server",
+    "version": "0.5.0",
+    "registry_name": "io.github.hedging8563/tokenlab",
+    "source_url": "https://github.com/hedging8563/tokenlab-mcp-server",
+    "landing_url": "https://tokenlab.sh/mcp",
+    "docs_url": "https://docs.tokenlab.sh/integrations/tokenlab-mcp-server",
+    "recommended_client_name": "tokenlab",
+    "transport": "stdio",
+    "command": "npx",
+    "args": [
+      "-y",
+      "@tokenlabai/mcp-server"
+    ],
+    "api_key_environment_variable": "TOKENLAB_API_KEY",
+    "tool_profile_environment_variable": "TOKENLAB_MCP_TOOL_PROFILE"
+  },
+  "source": {
+    "url": "https://docs.tokenlab.sh/openapi.json",
+    "openapi": "3.0.3",
+    "title": "TokenLab AI Gateway",
+    "version": "1.0.0",
+    "sha256": "f494fcfb2b4d67aaddc88a2ec164739c807bb59331a7e5270fd9d9fa282745e0",
+    "tool_manifest_sha256": "a2690dd92f5e7dbc47ce4fe25b327eaafd4848224f0e329bee0f1c2797c4521d"
+  },
+  "profiles": {
+    "catalog": {
+      "is_default": false,
+      "endpoint_tools": 4,
+      "composite_tools": 2,
+      "total_tools": 6,
+      "tool_names": [
+        "compare_models",
+        "get_api_overview",
+        "get_model",
+        "get_model_pricing",
+        "get_pricing",
+        "list_models"
+      ]
+    },
+    "core": {
+      "is_default": true,
+      "endpoint_tools": 29,
+      "composite_tools": 2,
+      "total_tools": 31,
+      "tool_names": [
+        "cancel_task",
+        "compare_models",
+        "create_3d_model",
+        "create_anthropic_message",
+        "create_chat_completion",
+        "create_embedding",
+        "create_gemini_content",
+        "create_image",
+        "create_image_file",
+        "create_multimodal_embedding",
+        "create_music",
+        "create_response",
+        "create_speech",
+        "create_video",
+        "delete_file",
+        "edit_image",
+        "edit_image_file",
+        "get_api_overview",
+        "get_model",
+        "get_model_pricing",
+        "get_pricing",
+        "get_task_status",
+        "list_files",
+        "list_models",
+        "rerank_documents",
+        "retrieve_file",
+        "retrieve_file_content",
+        "transcribe_audio",
+        "translate_audio",
+        "translate_text",
+        "upload_file"
+      ]
+    },
+    "full": {
+      "is_default": false,
+      "endpoint_tools": 76,
+      "composite_tools": 2,
+      "total_tools": 78,
+      "tool_names": [
+        "bind_seedance_visual_validation_result",
+        "cancel_anthropic_message_batch",
+        "cancel_batch",
+        "cancel_task",
+        "compact_response",
+        "compare_models",
+        "count_anthropic_message_tokens",
+        "create_3d_model",
+        "create_anthropic_message",
+        "create_anthropic_message_batch",
+        "create_batch",
+        "create_chat_completion",
+        "create_embedding",
+        "create_gemini_content",
+        "create_image",
+        "create_image_file",
+        "create_image_variation",
+        "create_multimodal_embedding",
+        "create_music",
+        "create_response",
+        "create_seedance_material_asset",
+        "create_seedance_material_asset_group",
+        "create_seedance_visual_validation_session",
+        "create_speech",
+        "create_video",
+        "create_volc_compatible_seedance_task",
+        "create_world",
+        "delete_anthropic_message_batch",
+        "delete_file",
+        "delete_response",
+        "delete_seedance_material_asset",
+        "delete_seedance_material_asset_group",
+        "delete_volc_compatible_seedance_task",
+        "delete_world",
+        "dispatch_volc_compatible_seedance_action_get",
+        "dispatch_volc_compatible_seedance_action_post",
+        "edit_image",
+        "edit_image_file",
+        "get_3_dtask",
+        "get_api_overview",
+        "get_gemini_model",
+        "get_image_task_status_alias",
+        "get_model",
+        "get_model_pricing",
+        "get_music_task",
+        "get_pricing",
+        "get_seedance_material_asset",
+        "get_seedance_material_asset_group",
+        "get_task_status",
+        "get_video_task",
+        "get_volc_compatible_seedance_task",
+        "get_world",
+        "get_world_media_asset",
+        "get_world_status",
+        "list_anthropic_message_batches",
+        "list_batches",
+        "list_files",
+        "list_gemini_models",
+        "list_models",
+        "list_seedance_material_asset_groups",
+        "list_seedance_material_assets",
+        "list_seedance_visual_validation_history",
+        "list_volc_compatible_seedance_tasks",
+        "list_worlds",
+        "prepare_world_media_asset_upload",
+        "rerank_documents",
+        "retrieve_anthropic_message_batch",
+        "retrieve_anthropic_message_batch_results",
+        "retrieve_batch",
+        "retrieve_file",
+        "retrieve_file_content",
+        "retrieve_response",
+        "transcribe_audio",
+        "translate_audio",
+        "translate_text",
+        "update_seedance_material_asset",
+        "update_seedance_material_asset_group",
+        "upload_file"
+      ]
+    }
+  },
+  "core_tool_layers": [
+    {
+      "id": "discover",
+      "authentication": "none",
+      "tool_rows": [
+        [
+          "list_models",
+          "get_model",
+          "get_pricing"
+        ],
+        [
+          "get_model_pricing",
+          "compare_models",
+          "get_api_overview"
+        ]
+      ],
+      "tool_count": 6
+    },
+    {
+      "id": "create",
+      "authentication": "api_key",
+      "tool_rows": [
+        [
+          "create_chat_completion",
+          "create_response",
+          "create_anthropic_message",
+          "create_gemini_content"
+        ],
+        [
+          "create_image",
+          "create_image_file",
+          "edit_image",
+          "edit_image_file"
+        ],
+        [
+          "create_video",
+          "create_music",
+          "create_3d_model",
+          "create_speech",
+          "transcribe_audio",
+          "translate_audio"
+        ]
+      ],
+      "tool_count": 14
+    },
+    {
+      "id": "operate",
+      "authentication": "api_key",
+      "tool_rows": [
+        [
+          "upload_file",
+          "list_files",
+          "retrieve_file"
+        ],
+        [
+          "retrieve_file_content",
+          "delete_file",
+          "get_task_status",
+          "cancel_task"
+        ],
+        [
+          "create_embedding",
+          "create_multimodal_embedding",
+          "rerank_documents",
+          "translate_text"
+        ]
+      ],
+      "tool_count": 11
+    }
+  ],
+  "features": {
+    "structured_content": true,
+    "tool_annotations": true,
+    "composite_tools": [
+      {
+        "name": "compare_models",
+        "profiles": [
+          "catalog",
+          "core",
+          "full"
+        ],
+        "auth": "optional",
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true
+        }
+      },
+      {
+        "name": "get_api_overview",
+        "profiles": [
+          "catalog",
+          "core",
+          "full"
+        ],
+        "auth": "optional",
+        "annotations": {
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true
+        }
+      }
+    ],
+    "async_delivery_tools": [
+      "cancel_task",
+      "create_3d_model",
+      "create_image",
+      "create_image_file",
+      "create_music",
+      "create_video",
+      "create_world",
+      "edit_image",
+      "edit_image_file",
+      "get_task_status",
+      "get_world_status"
+    ],
+    "resources": [
+      {
+        "name": "tokenlab-api-overview",
+        "title": "TokenLab API Overview",
+        "uri": "tokenlab://api/overview",
+        "mime_type": "text/plain",
+        "freshness": "live"
+      },
+      {
+        "name": "tokenlab-openapi-contract",
+        "title": "TokenLab OpenAPI Contract",
+        "uri": "tokenlab://contract/openapi",
+        "mime_type": "application/json",
+        "freshness": "package_snapshot"
+      },
+      {
+        "name": "tokenlab-mcp-public-contract",
+        "title": "TokenLab MCP Public Contract",
+        "uri": "tokenlab://contract/mcp",
+        "mime_type": "application/json",
+        "freshness": "package_snapshot"
+      }
+    ],
+    "prompts": [
+      {
+        "name": "choose_tokenlab_model",
+        "title": "Choose a TokenLab Model"
+      },
+      {
+        "name": "build_tokenlab_request",
+        "title": "Build a TokenLab Request"
+      }
+    ]
+  }
+}

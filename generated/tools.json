@@ -10,6 +10,7 @@
   },
   "default_profile": "core",
   "profiles": [
+    "catalog",
     "core",
     "full"
   ],
@@ -17,6 +18,7 @@
   "tools": [
     {
       "name": "bind_seedance_visual_validation_result",
+      "title": "Bind Seedance real-person verification result",
       "operation_id": "bindSeedanceVisualValidationResult",
       "method": "POST",
       "path": "/v1/videos/assets/visual-validation-results",
@@ -97,6 +99,7 @@
     },
     {
       "name": "cancel_anthropic_message_batch",
+      "title": "Cancel message batch (Anthropic-compatible)",
       "operation_id": "cancelAnthropicMessageBatch",
       "method": "POST",
       "path": "/v1/messages/batches/{message_batch_id}/cancel",
@@ -133,13 +136,14 @@
       },
       "annotations": {
         "readOnlyHint": false,
-        "destructiveHint": false,
-        "idempotentHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
         "openWorldHint": true
       }
     },
     {
       "name": "cancel_batch",
+      "title": "Cancel batch",
       "operation_id": "cancelBatch",
       "method": "POST",
       "path": "/v1/batches/{batch_id}/cancel",
@@ -175,13 +179,14 @@
       },
       "annotations": {
         "readOnlyHint": false,
-        "destructiveHint": false,
-        "idempotentHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
         "openWorldHint": true
       }
     },
     {
       "name": "cancel_task",
+      "title": "Cancel async task",
       "operation_id": "cancelAsyncTask",
       "method": "DELETE",
       "path": "/v1/tasks/{id}",
@@ -243,6 +248,7 @@
     },
     {
       "name": "compact_response",
+      "title": "Compact response context (OpenAI Responses API)",
       "operation_id": "compactResponse",
       "method": "POST",
       "path": "/v1/responses/compact",
@@ -316,6 +322,7 @@
     },
     {
       "name": "count_anthropic_message_tokens",
+      "title": "Count message tokens (Anthropic-compatible)",
       "operation_id": "countAnthropicMessageTokens",
       "method": "POST",
       "path": "/v1/messages/count_tokens",
@@ -484,6 +491,7 @@
     },
     {
       "name": "create_3d_model",
+      "title": "Create 3D model generation task",
       "operation_id": "create3D",
       "method": "POST",
       "path": "/v1/3d/generations",
@@ -593,6 +601,7 @@
     },
     {
       "name": "create_anthropic_message",
+      "title": "Create message (Anthropic-compatible)",
       "operation_id": "createAnthropicMessage",
       "method": "POST",
       "path": "/v1/messages",
@@ -793,6 +802,7 @@
     },
     {
       "name": "create_anthropic_message_batch",
+      "title": "Create message batch (Anthropic-compatible)",
       "operation_id": "createAnthropicMessageBatch",
       "method": "POST",
       "path": "/v1/messages/batches",
@@ -1003,6 +1013,7 @@
     },
     {
       "name": "create_batch",
+      "title": "Create batch",
       "operation_id": "createBatch",
       "method": "POST",
       "path": "/v1/batches",
@@ -1088,6 +1099,7 @@
     },
     {
       "name": "create_chat_completion",
+      "title": "Create chat completion",
       "operation_id": "createChatCompletion",
       "method": "POST",
       "path": "/v1/chat/completions",
@@ -1615,6 +1627,7 @@
     },
     {
       "name": "create_embedding",
+      "title": "Create embeddings",
       "operation_id": "createEmbedding",
       "method": "POST",
       "path": "/v1/embeddings",
@@ -1711,6 +1724,7 @@
     },
     {
       "name": "create_gemini_content",
+      "title": "Generate content (Gemini-compatible)",
       "operation_id": "geminiGenerateContent",
       "method": "POST",
       "path": "/v1beta/models/{model}:generateContent",
@@ -2167,6 +2181,7 @@
     },
     {
       "name": "create_image",
+      "title": "Create image",
       "operation_id": "createImage",
       "method": "POST",
       "path": "/v1/images/generations",
@@ -2410,6 +2425,7 @@
     },
     {
       "name": "create_image_file",
+      "title": "Create image",
       "operation_id": "createImage",
       "method": "POST",
       "path": "/v1/images/generations",
@@ -2608,6 +2624,7 @@
     },
     {
       "name": "create_image_variation",
+      "title": "Create image variation",
       "operation_id": "createImageVariation",
       "method": "POST",
       "path": "/v1/images/variations",
@@ -2676,6 +2693,7 @@
     },
     {
       "name": "create_multimodal_embedding",
+      "title": "Create multimodal embeddings",
       "operation_id": "createMultimodalEmbedding",
       "method": "POST",
       "path": "/v1/multimodal/embeddings",
@@ -2782,6 +2800,7 @@
     },
     {
       "name": "create_music",
+      "title": "Create music generation task",
       "operation_id": "createMusic",
       "method": "POST",
       "path": "/v1/music/generations",
@@ -2915,6 +2934,7 @@
     },
     {
       "name": "create_response",
+      "title": "Create response (OpenAI Responses API)",
       "operation_id": "createResponse",
       "method": "POST",
       "path": "/v1/responses",
@@ -3081,6 +3101,7 @@
     },
     {
       "name": "create_seedance_material_asset",
+      "title": "Create Seedance material asset",
       "operation_id": "createSeedanceMaterialAsset",
       "method": "POST",
       "path": "/v1/videos/assets",
@@ -3170,6 +3191,7 @@
     },
     {
       "name": "create_seedance_material_asset_group",
+      "title": "Create Seedance material asset group",
       "operation_id": "createSeedanceMaterialAssetGroup",
       "method": "POST",
       "path": "/v1/videos/assets/groups",
@@ -3246,6 +3268,7 @@
     },
     {
       "name": "create_seedance_visual_validation_session",
+      "title": "Create Seedance real-person verification session",
       "operation_id": "createSeedanceVisualValidationSession",
       "method": "POST",
       "path": "/v1/videos/assets/visual-validation-sessions",
@@ -3301,6 +3324,7 @@
     },
     {
       "name": "create_speech",
+      "title": "Create speech",
       "operation_id": "createSpeech",
       "method": "POST",
       "path": "/v1/audio/speech",
@@ -3424,6 +3448,7 @@
     },
     {
       "name": "create_video",
+      "title": "Create video generation task",
       "operation_id": "createVideo",
       "method": "POST",
       "path": "/v1/videos/generations",
@@ -3837,6 +3862,7 @@
     },
     {
       "name": "create_volc_compatible_seedance_task",
+      "title": "Create Seedance task (Volc-compatible)",
       "operation_id": "createVolcCompatibleSeedanceTask",
       "method": "POST",
       "path": "/api/v3/contents/generations/tasks",
@@ -4124,6 +4150,7 @@
     },
     {
       "name": "create_world",
+      "title": "Create world generation task",
       "operation_id": "createWorld",
       "method": "POST",
       "path": "/v1/worlds/generations",
@@ -4295,6 +4322,7 @@
     },
     {
       "name": "delete_anthropic_message_batch",
+      "title": "Delete message batch (Anthropic-compatible)",
       "operation_id": "deleteAnthropicMessageBatch",
       "method": "DELETE",
       "path": "/v1/messages/batches/{message_batch_id}",
@@ -4338,6 +4366,7 @@
     },
     {
       "name": "delete_file",
+      "title": "Delete file",
       "operation_id": "deleteFile",
       "method": "DELETE",
       "path": "/v1/files/{file_id}",
@@ -4382,6 +4411,7 @@
     },
     {
       "name": "delete_response",
+      "title": "Delete response",
       "operation_id": "deleteResponse",
       "method": "DELETE",
       "path": "/v1/responses/{id}",
@@ -4425,6 +4455,7 @@
     },
     {
       "name": "delete_seedance_material_asset",
+      "title": "Delete Seedance material asset",
       "operation_id": "deleteSeedanceMaterialAsset",
       "method": "DELETE",
       "path": "/v1/videos/assets/{assetId}",
@@ -4467,6 +4498,7 @@
     },
     {
       "name": "delete_seedance_material_asset_group",
+      "title": "Delete Seedance material asset group",
       "operation_id": "deleteSeedanceMaterialAssetGroup",
       "method": "DELETE",
       "path": "/v1/videos/assets/groups/{groupId}",
@@ -4509,6 +4541,7 @@
     },
     {
       "name": "delete_volc_compatible_seedance_task",
+      "title": "Cancel Seedance task (Volc-compatible)",
       "operation_id": "deleteVolcCompatibleSeedanceTask",
       "method": "DELETE",
       "path": "/api/v3/contents/generations/tasks/{id}",
@@ -4552,6 +4585,7 @@
     },
     {
       "name": "delete_world",
+      "title": "Delete World Labs world",
       "operation_id": "deleteWorld",
       "method": "DELETE",
       "path": "/v1/worlds/{id}",
@@ -4595,6 +4629,7 @@
     },
     {
       "name": "dispatch_volc_compatible_seedance_action_get",
+      "title": "Seedance Action dispatcher (GET)",
       "operation_id": "dispatchVolcCompatibleSeedanceActionGet",
       "method": "GET",
       "path": "/api/v3",
@@ -4648,6 +4683,7 @@
     },
     {
       "name": "dispatch_volc_compatible_seedance_action_post",
+      "title": "Seedance Action dispatcher (POST)",
       "operation_id": "dispatchVolcCompatibleSeedanceActionPost",
       "method": "POST",
       "path": "/api/v3",
@@ -4698,6 +4734,7 @@
     },
     {
       "name": "edit_image",
+      "title": "Edit image",
       "operation_id": "editImage",
       "method": "POST",
       "path": "/v1/images/edits",
@@ -4921,6 +4958,7 @@
     },
     {
       "name": "edit_image_file",
+      "title": "Edit image",
       "operation_id": "editImage",
       "method": "POST",
       "path": "/v1/images/edits",
@@ -5100,6 +5138,7 @@
     },
     {
       "name": "get_3_dtask",
+      "title": "Get 3D task status",
       "operation_id": "get3DTask",
       "method": "GET",
       "path": "/v1/3d/generations/{id}",
@@ -5142,6 +5181,7 @@
     },
     {
       "name": "get_gemini_model",
+      "title": "Get Gemini-native model",
       "operation_id": "getGeminiModel",
       "method": "GET",
       "path": "/v1beta/models/{model}",
@@ -5184,6 +5224,7 @@
     },
     {
       "name": "get_image_task_status_alias",
+      "title": "Get image task status",
       "operation_id": "getImageTaskStatusAlias",
       "method": "GET",
       "path": "/v1/images/{id}",
@@ -5228,6 +5269,7 @@
     },
     {
       "name": "get_model",
+      "title": "Get model",
       "operation_id": "getModel",
       "method": "GET",
       "path": "/v1/models/{model}",
@@ -5237,6 +5279,7 @@
         "Models"
       ],
       "profiles": [
+        "catalog",
         "core",
         "full"
       ],
@@ -5272,6 +5315,7 @@
     },
     {
       "name": "get_model_pricing",
+      "title": "Get model pricing",
       "operation_id": "getModelPricing",
       "method": "GET",
       "path": "/v1/models/{model}/pricing",
@@ -5281,6 +5325,7 @@
         "Models"
       ],
       "profiles": [
+        "catalog",
         "core",
         "full"
       ],
@@ -5316,6 +5361,7 @@
     },
     {
       "name": "get_music_task",
+      "title": "Get music task status",
       "operation_id": "getMusicTask",
       "method": "GET",
       "path": "/v1/music/generations/{id}",
@@ -5358,6 +5404,7 @@
     },
     {
       "name": "get_pricing",
+      "title": "List model pricing",
       "operation_id": "getPricing",
       "method": "GET",
       "path": "/v1/pricing",
@@ -5367,6 +5414,7 @@
         "Models"
       ],
       "profiles": [
+        "catalog",
         "core",
         "full"
       ],
@@ -5404,6 +5452,7 @@
     },
     {
       "name": "get_seedance_material_asset",
+      "title": "Get Seedance material asset",
       "operation_id": "getSeedanceMaterialAsset",
       "method": "GET",
       "path": "/v1/videos/assets/{assetId}",
@@ -5446,6 +5495,7 @@
     },
     {
       "name": "get_seedance_material_asset_group",
+      "title": "Get Seedance material asset group",
       "operation_id": "getSeedanceMaterialAssetGroup",
       "method": "GET",
       "path": "/v1/videos/assets/groups/{groupId}",
@@ -5488,6 +5538,7 @@
     },
     {
       "name": "get_task_status",
+      "title": "Get async task status",
       "operation_id": "getAsyncTask",
       "method": "GET",
       "path": "/v1/tasks/{id}",
@@ -5549,6 +5600,7 @@
     },
     {
       "name": "get_video_task",
+      "title": "Get video task status",
       "operation_id": "getVideoTask",
       "method": "GET",
       "path": "/v1/videos/generations/{id}",
@@ -5592,6 +5644,7 @@
     },
     {
       "name": "get_volc_compatible_seedance_task",
+      "title": "Get Seedance task (Volc-compatible)",
       "operation_id": "getVolcCompatibleSeedanceTask",
       "method": "GET",
       "path": "/api/v3/contents/generations/tasks/{id}",
@@ -5635,6 +5688,7 @@
     },
     {
       "name": "get_world",
+      "title": "Get World Labs world",
       "operation_id": "getWorld",
       "method": "GET",
       "path": "/v1/worlds/{id}",
@@ -5678,6 +5732,7 @@
     },
     {
       "name": "get_world_media_asset",
+      "title": "Get World Labs media asset",
       "operation_id": "getWorldMediaAsset",
       "method": "GET",
       "path": "/v1/worlds/media-assets/{id}",
@@ -5721,6 +5776,7 @@
     },
     {
       "name": "get_world_status",
+      "title": "Get world generation status",
       "operation_id": "getWorldStatus",
       "method": "GET",
       "path": "/v1/worlds/generations/{id}",
@@ -5781,6 +5837,7 @@
     },
     {
       "name": "list_anthropic_message_batches",
+      "title": "List message batches (Anthropic-compatible)",
       "operation_id": "listAnthropicMessageBatches",
       "method": "GET",
       "path": "/v1/messages/batches",
@@ -5833,6 +5890,7 @@
     },
     {
       "name": "list_batches",
+      "title": "List batches",
       "operation_id": "listBatches",
       "method": "GET",
       "path": "/v1/batches",
@@ -5878,6 +5936,7 @@
     },
     {
       "name": "list_files",
+      "title": "List files",
       "operation_id": "listFiles",
       "method": "GET",
       "path": "/v1/files",
@@ -5935,6 +5994,7 @@
     },
     {
       "name": "list_gemini_models",
+      "title": "List Gemini-native models",
       "operation_id": "listGeminiModels",
       "method": "GET",
       "path": "/v1beta/models",
@@ -5980,6 +6040,7 @@
     },
     {
       "name": "list_models",
+      "title": "List models",
       "operation_id": "listModels",
       "method": "GET",
       "path": "/v1/models",
@@ -5989,6 +6050,7 @@
         "Models"
       ],
       "profiles": [
+        "catalog",
         "core",
         "full"
       ],
@@ -6014,6 +6076,7 @@
     },
     {
       "name": "list_seedance_material_asset_groups",
+      "title": "List Seedance material asset groups",
       "operation_id": "listSeedanceMaterialAssetGroups",
       "method": "GET",
       "path": "/v1/videos/assets/groups",
@@ -6077,6 +6140,7 @@
     },
     {
       "name": "list_seedance_material_assets",
+      "title": "List Seedance material assets",
       "operation_id": "listSeedanceMaterialAssets",
       "method": "GET",
       "path": "/v1/videos/assets",
@@ -6147,6 +6211,7 @@
     },
     {
       "name": "list_seedance_visual_validation_history",
+      "title": "List Seedance real-person verification history",
       "operation_id": "listSeedanceVisualValidationHistory",
       "method": "GET",
       "path": "/v1/videos/assets/visual-validation-sessions",
@@ -6195,6 +6260,7 @@
     },
     {
       "name": "list_volc_compatible_seedance_tasks",
+      "title": "List Seedance tasks (Volc-compatible)",
       "operation_id": "listVolcCompatibleSeedanceTasks",
       "method": "GET",
       "path": "/api/v3/contents/generations/tasks",
@@ -6273,6 +6339,7 @@
     },
     {
       "name": "list_worlds",
+      "title": "List World Labs worlds",
       "operation_id": "listWorlds",
       "method": "POST",
       "path": "/v1/worlds/list",
@@ -6428,6 +6495,7 @@
     },
     {
       "name": "prepare_world_media_asset_upload",
+      "title": "Prepare World Labs media asset upload",
       "operation_id": "prepareWorldMediaAssetUpload",
       "method": "POST",
       "path": "/v1/worlds/media-assets/prepare-upload",
@@ -6507,6 +6575,7 @@
     },
     {
       "name": "rerank_documents",
+      "title": "Rerank documents",
       "operation_id": "rerankDocuments",
       "method": "POST",
       "path": "/v1/rerank",
@@ -6575,6 +6644,7 @@
     },
     {
       "name": "retrieve_anthropic_message_batch",
+      "title": "Retrieve message batch (Anthropic-compatible)",
       "operation_id": "retrieveAnthropicMessageBatch",
       "method": "GET",
       "path": "/v1/messages/batches/{message_batch_id}",
@@ -6618,6 +6688,7 @@
     },
     {
       "name": "retrieve_anthropic_message_batch_results",
+      "title": "Retrieve message batch results (Anthropic-compatible)",
       "operation_id": "retrieveAnthropicMessageBatchResults",
       "method": "GET",
       "path": "/v1/messages/batches/{message_batch_id}/results",
@@ -6661,6 +6732,7 @@
     },
     {
       "name": "retrieve_batch",
+      "title": "Retrieve batch",
       "operation_id": "retrieveBatch",
       "method": "GET",
       "path": "/v1/batches/{batch_id}",
@@ -6703,6 +6775,7 @@
     },
     {
       "name": "retrieve_file",
+      "title": "Retrieve file",
       "operation_id": "retrieveFile",
       "method": "GET",
       "path": "/v1/files/{file_id}",
@@ -6746,6 +6819,7 @@
     },
     {
       "name": "retrieve_file_content",
+      "title": "Retrieve file content",
       "operation_id": "retrieveFileContent",
       "method": "GET",
       "path": "/v1/files/{file_id}/content",
@@ -6789,6 +6863,7 @@
     },
     {
       "name": "retrieve_response",
+      "title": "Retrieve response",
       "operation_id": "retrieveResponse",
       "method": "GET",
       "path": "/v1/responses/{id}",
@@ -6832,6 +6907,7 @@
     },
     {
       "name": "transcribe_audio",
+      "title": "Create transcription",
       "operation_id": "createTranscription",
       "method": "POST",
       "path": "/v1/audio/transcriptions",
@@ -6926,6 +7002,7 @@
     },
     {
       "name": "translate_audio",
+      "title": "Translate audio",
       "operation_id": "createAudioTranslation",
       "method": "POST",
       "path": "/v1/audio/translations",
@@ -6991,6 +7068,7 @@
     },
     {
       "name": "translate_text",
+      "title": "Translate text",
       "operation_id": "createTranslation",
       "method": "POST",
       "path": "/v1/translations",
@@ -7060,6 +7138,7 @@
     },
     {
       "name": "update_seedance_material_asset",
+      "title": "Update Seedance material asset",
       "operation_id": "updateSeedanceMaterialAsset",
       "method": "PUT",
       "path": "/v1/videos/assets/{assetId}",
@@ -7139,6 +7218,7 @@
     },
     {
       "name": "update_seedance_material_asset_group",
+      "title": "Update Seedance material asset group",
       "operation_id": "updateSeedanceMaterialAssetGroup",
       "method": "PUT",
       "path": "/v1/videos/assets/groups/{groupId}",
@@ -7212,6 +7292,7 @@
     },
     {
       "name": "upload_file",
+      "title": "Upload file",
       "operation_id": "uploadFile",
       "method": "POST",
       "path": "/v1/files",

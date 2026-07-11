@@ -34,6 +34,8 @@ Public model catalog and pricing tools work without credentials. When inference 
 }
 ```
 
+Set `TOKENLAB_MCP_TOOL_PROFILE=catalog` when the client should expose only the six public discovery tools. The default `core` profile exposes 31 tools, and `full` exposes 78.
+
 ## Verification
 
 Start or reload the MCP client, then confirm these public tools are available without an API key:
@@ -53,7 +55,7 @@ The default `core` profile also exposes generated credentialed tools for:
 - task polling/cancellation and file operations
 - embeddings, multimodal embeddings, rerank, and text translation
 
-Set `TOKENLAB_MCP_TOOL_PROFILE=full` to expose every allowlisted developer operation generated from the public OpenAPI contract. Realtime and streaming-only operations remain excluded.
+Set `TOKENLAB_MCP_TOOL_PROFILE=full` to expose every allowlisted developer operation generated from the public OpenAPI contract. Realtime and streaming-only operations remain excluded. Compatible clients can also discover three resources and two prompts for contract inspection, model selection, and request construction.
 
 Video, music, and 3D tools return async task summaries. Image tools may return a completed result or an async task summary. When `delivery.mode` is `async`, call `get_task_status` with `{ "id": delivery.task_id }` until `delivery.terminal` is `true`.
 

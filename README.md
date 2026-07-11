@@ -4,22 +4,33 @@
 [![npm](https://img.shields.io/npm/v/%40tokenlabai%2Fmcp-server)](https://www.npmjs.com/package/@tokenlabai/mcp-server)
 [![npm downloads](https://img.shields.io/npm/dm/%40tokenlabai%2Fmcp-server)](https://www.npmjs.com/package/@tokenlabai/mcp-server)
 
-OpenAPI-generated Model Context Protocol server for TokenLab public model discovery, pricing, native LLM endpoints, multimodal generation, async tasks, files, embeddings, rerank, translation, and the broader developer API.
+OpenAPI-generated Model Context Protocol server for TokenLab public model discovery, pricing, native LLM endpoints, multimodal generation, async tasks, files, embeddings, rerank, translation, resources, prompts, and the broader developer API.
 
 It exposes public catalog tools for agents that need to choose models, inspect supported request formats, or compare pricing before calling TokenLab APIs. Credentialed tools cover text inference, image generation and editing, video, music, 3D, async task polling, embeddings, rerank, and text translation.
 
 ## Generated Tool Profiles
 
-The checked-in `generated/tools.json` manifest is generated from TokenLab's public OpenAPI document plus the small MCP-only overlay in `contract/mcp-overlay.json`. Version 0.4.2 generates 76 endpoint tools; two composite discovery tools are registered at runtime.
+The checked-in `generated/tools.json` manifest is generated from TokenLab's public OpenAPI document plus the small MCP-only overlay in `contract/mcp-overlay.json`. Version 0.5.0 generates 76 endpoint tools; two composite discovery tools are registered at runtime.
 
 | Profile | Endpoint tools | Coverage |
 | --- | ---: | --- |
+| `catalog` | 4 | Public model discovery and pricing only; no API key required |
 | `core` (default) | 29 | Catalog and pricing; Chat Completions, Responses, Anthropic Messages, Gemini generateContent; images, video, music, 3D, speech and transcription; async tasks; files; embeddings, rerank, and translation |
 | `full` | 76 | Every allowlisted developer API operation in the checked-in OpenAPI snapshot, including core plus response lifecycle, batches, worlds, and native model discovery |
 
-Both profiles also include `compare_models` and `get_api_overview`. Realtime and streaming-only operations are excluded because stdio MCP tool calls return one final result. API operations that accept `stream` constrain it to `false` in the MCP overlay, and the Gemini query-string API key is intentionally hidden from tool arguments.
+All profiles also include `compare_models` and `get_api_overview`, producing totals of 6, 31, and 78 tools. Realtime and streaming-only operations are excluded because stdio MCP tool calls return one final result. API operations that accept `stream` constrain it to `false` in the MCP overlay, and the Gemini query-string API key is intentionally hidden from tool arguments.
 
-Set `TOKENLAB_MCP_TOOL_PROFILE=full` to expose the full profile. Tool names, descriptions, input JSON Schemas, HTTP bindings, content types, auth requirements, and task behavior can be inspected in [`generated/tools.json`](./generated/tools.json).
+Set `TOKENLAB_MCP_TOOL_PROFILE=catalog` for the smallest public-only tool list or `TOKENLAB_MCP_TOOL_PROFILE=full` for the broad developer API. Tool names, descriptions, input JSON Schemas, HTTP bindings, content types, auth requirements, and task behavior can be inspected in [`generated/tools.json`](./generated/tools.json).
+
+The smaller [`generated/public-contract.json`](./generated/public-contract.json) is the machine-readable projection used by TokenLab's website and other public consumers. It contains package identity, profile counts, core tool layers, resources, prompts, and source hashes without copying all endpoint schemas.
+
+## Native MCP Features
+
+- JSON tool responses include `structuredContent` while retaining serialized text for older clients.
+- Generated tools expose human-readable titles, standard read-only/destructive/idempotent/open-world annotations, auth/profile metadata, and response request IDs when available.
+- Three resources expose the live API overview, the package's OpenAPI snapshot, and the compact MCP public contract.
+- `choose_tokenlab_model` and `build_tokenlab_request` prompts guide agents to use live model truth and preserve native endpoint shapes.
+- Server instructions tell clients to confirm billable or destructive operations and treat external model/API output as untrusted content.
 
 ## Run
 
@@ -91,7 +102,7 @@ Use `delivery.mode` instead of assuming all image requests are synchronous. For 
 
 - `TOKENLAB_API_BASE`: optional, defaults to `https://api.tokenlab.sh`
 - `TOKENLAB_API_KEY`: optional; required for text inference, multimodal generation, async task, embedding, rerank, and translation tools
-- `TOKENLAB_MCP_TOOL_PROFILE`: optional, `core` (default) or `full`
+- `TOKENLAB_MCP_TOOL_PROFILE`: optional, `catalog`, `core` (default), or `full`
 - `TOKENLAB_REQUEST_TIMEOUT_MS`: optional request timeout in milliseconds, defaults to `120000`
 - `TOKENLAB_MCP_MAX_FILE_BYTES`: optional maximum local upload size per file, defaults to `104857600` (100 MiB)
 - `TOKENLAB_MCP_INLINE_BYTES`: optional maximum binary/JSON response size returned inline, defaults to `2097152` (2 MiB)
@@ -99,7 +110,7 @@ Use `delivery.mode` instead of assuming all image requests are synchronous. For 
 
 ## Contract Sync
 
-The public OpenAPI document is the API contract source. The overlay contains only MCP-specific choices: profile exposure, stable tool aliases, secret omission, non-streaming constraints, content-type variants, and async task semantics.
+The public OpenAPI document is the API contract source. The overlay contains only MCP-specific choices: profile exposure, stable tool aliases, secret omission, non-streaming constraints, content-type variants, async task semantics, and the compact public projection consumed by the website and docs gates.
 
 ```bash
 npm run contract:sync      # fetch OpenAPI and regenerate the manifest
@@ -115,21 +126,25 @@ This repository includes `server.json` for the official MCP Registry.
 
 Release metadata:
 
-- npm package: `@tokenlabai/mcp-server@0.4.2`
+- npm package: `@tokenlabai/mcp-server@0.5.0`
 - MCP registry name: `io.github.hedging8563/tokenlab`
 - `package.json.mcpName`: `io.github.hedging8563/tokenlab`
 
 For a new release:
 
 1. Bump the matching versions in `package.json`, `package-lock.json`, and `server.json`.
-2. Push a matching tag such as `v0.4.2`.
+2. Push a matching tag such as `v0.5.0`.
 3. The publish workflow tests and publishes npm through trusted publishing, then publishes the MCP Registry entry through GitHub Actions OIDC.
 
 The same workflow can be run manually from `main` to republish only the current MCP Registry metadata. No npm or MCP Registry token is stored in GitHub.
 
+## Security
+
+Use the `catalog` profile when no credentialed tools are needed. Keep `TOKENLAB_API_KEY` in the local MCP client's secret environment, enable human confirmation for billable and destructive calls, and review tool annotations before granting persistent approval. Do not send a TokenLab API key to an untrusted hosted MCP server.
+
 ## Links
 
-- Website: https://tokenlab.sh
+- Website: https://tokenlab.sh/mcp
 - Docs: https://docs.tokenlab.sh
 - OpenAPI: https://docs.tokenlab.sh/openapi.json
 - Model catalog: https://api.tokenlab.sh/v1/models
