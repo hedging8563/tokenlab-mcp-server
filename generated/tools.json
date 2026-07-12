@@ -6,7 +6,7 @@
     "openapi": "3.0.3",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "586c32a9e47c4557977b92d73183518e986e70666f6530e2718ef5b7293a1706"
+    "sha256": "1b60d2976d994b4007a17984d9aa4ad4c11d791fb4e8096e1f86144bcee366f1"
   },
   "default_profile": "core",
   "profiles": [
@@ -2255,21 +2255,11 @@
           },
           "size": {
             "type": "string",
-            "default": "1024x1024",
-            "description": "Image size. For gpt-image-2, use auto or WIDTHxHEIGHT; custom dimensions must both be multiples of 16, longest edge <= 3840px, long/short ratio <= 3:1, and total pixels between 655,360 and 8,294,400."
+            "description": "Image size. Defaults are model-specific. For gpt-image-2, omit this field or use auto for automatic sizing, or send WIDTHxHEIGHT; custom dimensions must both be multiples of 16, longest edge <= 3840px, long/short ratio <= 3:1, and total pixels between 655,360 and 8,294,400."
           },
           "quality": {
             "type": "string",
-            "enum": [
-              "standard",
-              "hd",
-              "auto",
-              "low",
-              "medium",
-              "high"
-            ],
-            "default": "standard",
-            "description": "Image quality. GPT Image models such as gpt-image-2 use auto/low/medium/high. Other image families may use provider-specific values."
+            "description": "Image quality. Defaults and accepted values are model-specific. For gpt-image-2, omit this field or use auto for automatic quality, or send low, medium, or high. Other image families may use provider-specific values."
           },
           "style": {
             "type": "string",
@@ -5283,7 +5273,7 @@
         "core",
         "full"
       ],
-      "description": "Get model Retrieves a model instance, providing basic information about the model.",
+      "description": "Get model Retrieves current model details, including supported operations, request parameters, request endpoints, selector limits, and pricing when available. Non-chat integrations should read these current model-specific request details before creating a request.",
       "input_schema": {
         "type": "object",
         "properties": {

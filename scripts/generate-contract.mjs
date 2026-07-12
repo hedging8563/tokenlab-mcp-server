@@ -314,6 +314,17 @@ for (const tool of compositeTools) {
   }
 }
 
+const liveModelContract = publicConfig.live_model_contract;
+if (!liveModelContract || liveModelContract.tool !== "get_model" || liveModelContract.endpoint !== "/v1/models/{model}") {
+  throw new Error("MCP public contract must use get_model as its live model-contract source");
+}
+if (!Array.isArray(liveModelContract.fields) || liveModelContract.fields.length === 0) {
+  throw new Error("MCP live model contract must list its public fields");
+}
+if (new Set(liveModelContract.fields).size !== liveModelContract.fields.length) {
+  throw new Error("MCP live model contract fields contain duplicates");
+}
+
 const profiles = Object.fromEntries(profileEntries.map(([profileName]) => {
   const endpointTools = tools.filter((tool) => tool.profiles.includes(profileName)).map((tool) => tool.name);
   const composite = compositeTools.filter((tool) => tool.profiles.includes(profileName)).map((tool) => tool.name);
@@ -373,6 +384,7 @@ const publicContract = {
   features: {
     structured_content: true,
     tool_annotations: true,
+    live_model_contract: liveModelContract,
     composite_tools: compositeTools,
     async_delivery_tools: tools.filter((tool) => tool.task).map((tool) => tool.name),
     resources: publicConfig.resources || [],

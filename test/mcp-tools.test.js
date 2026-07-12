@@ -139,6 +139,81 @@ test("advertises exactly the generated profile plus composite discovery tools", 
     const exposedSecret = Object.keys(tool.input_schema.properties).find((name) => /api.?key|authorization|password|secret/i.test(name));
     assert.equal(exposedSecret, undefined, `${tool.name} must not expose credential arguments`);
   }
+
+  assert.deepEqual(publicContract.features.live_model_contract, {
+    tool: "get_model",
+    endpoint: "/v1/models/{model}",
+    fields: [
+      "supported_operations",
+      "supported_parameters",
+      "request_endpoint",
+      "request_endpoint_by_operation",
+      "request_shape_mode",
+      "operation_constraints",
+      "recommended_request"
+    ]
+  });
+});
+
+test("compare_models reads the live nested model request contract", async (t) => {
+  const api = await startMockApi(t, ({ url }) => {
+    if (url === "/v1/models/pixverse-v6") {
+      return {
+        id: "pixverse-v6",
+        tokenlab: {
+          supported_operations: ["text-to-video", "image-to-video"],
+          request_format_details: {
+            request_endpoint: "/v1/videos/generations",
+            request_endpoint_by_operation: {
+              "text-to-video": "/v1/videos/generations",
+              "image-to-video": "/v1/videos/generations"
+            },
+            request_shape_mode: "json_url",
+            supported_parameters: ["prompt", "image_url", "operation"],
+            operation_constraints: [{ operation: "image-to-video", allowed_resolutions: ["720p"] }],
+            recommended_request: { operation: "text-to-video", resolution: "720p" }
+          }
+        }
+      };
+    }
+    if (url === "/v1/models/happyhorse-1.0") {
+      return {
+        id: "happyhorse-1.0",
+        tokenlab: {
+          request_format_summary: {
+            public_operations: ["video-to-video"],
+            request_endpoint: "/v1/videos/generations",
+            supported_parameters: ["video_url", "operation"]
+          }
+        }
+      };
+    }
+    if (url.endsWith("/pricing")) return { model: url.split("/").at(-2), pricing_unit: "per_second" };
+    return { status: 404 };
+  });
+  const client = await startMcpClient(t, { TOKENLAB_API_BASE: api.baseUrl });
+
+  const compared = parseTextResult(await client.callTool({
+    name: "compare_models",
+    arguments: { models: ["pixverse-v6", "happyhorse-1.0"] }
+  }));
+
+  assert.deepEqual(compared.compared[0], {
+    id: "pixverse-v6",
+    request_endpoint: "/v1/videos/generations",
+    request_endpoint_by_operation: {
+      "text-to-video": "/v1/videos/generations",
+      "image-to-video": "/v1/videos/generations"
+    },
+    request_shape_mode: "json_url",
+    supported_operations: ["text-to-video", "image-to-video"],
+    supported_parameters: ["prompt", "image_url", "operation"],
+    operation_constraints: [{ operation: "image-to-video", allowed_resolutions: ["720p"] }],
+    recommended_request: { operation: "text-to-video", resolution: "720p" },
+    pricing: { model: "pixverse-v6", pricing_unit: "per_second" }
+  });
+  assert.deepEqual(compared.compared[1].supported_operations, ["video-to-video"]);
+  assert.deepEqual(compared.compared[1].supported_parameters, ["video_url", "operation"]);
 });
 
 test("publishes resources, prompts, and a self-consistent public contract", async (t) => {

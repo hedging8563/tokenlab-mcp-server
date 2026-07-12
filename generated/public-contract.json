@@ -5,7 +5,7 @@
     "id": "tokenlab-mcp-server",
     "name": "@tokenlabai/mcp-server",
     "title": "TokenLab MCP Server",
-    "version": "0.6.0",
+    "version": "0.6.1",
     "registry_name": "io.github.hedging8563/tokenlab",
     "source_url": "https://github.com/hedging8563/tokenlab-mcp-server",
     "landing_url": "https://tokenlab.sh/mcp",
@@ -25,8 +25,8 @@
     "openapi": "3.0.3",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "586c32a9e47c4557977b92d73183518e986e70666f6530e2718ef5b7293a1706",
-    "tool_manifest_sha256": "e38134c2fa2489313f79dbefae73808ff8222d7009f1eb81c0c958f09d2c8677"
+    "sha256": "1b60d2976d994b4007a17984d9aa4ad4c11d791fb4e8096e1f86144bcee366f1",
+    "tool_manifest_sha256": "6647f8fbec7a80e4588640d9582a2931ba5fd675b3c01589ae6e833c0fdf6d69"
   },
   "profiles": {
     "catalog": {
@@ -242,6 +242,19 @@
   "features": {
     "structured_content": true,
     "tool_annotations": true,
+    "live_model_contract": {
+      "tool": "get_model",
+      "endpoint": "/v1/models/{model}",
+      "fields": [
+        "supported_operations",
+        "supported_parameters",
+        "request_endpoint",
+        "request_endpoint_by_operation",
+        "request_shape_mode",
+        "operation_constraints",
+        "recommended_request"
+      ]
+    },
     "composite_tools": [
       {
         "name": "compare_models",

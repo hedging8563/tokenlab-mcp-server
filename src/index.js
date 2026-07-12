@@ -293,13 +293,21 @@ server.registerTool(
         executePublicJson(`/v1/models/${encoded}/pricing`).catch((error) => ({ error: error.message }))
       ]);
       if (include_raw) return { model, details, pricing };
+      const tokenlab = details?.tokenlab && typeof details.tokenlab === "object" ? details.tokenlab : {};
+      const requestContract = tokenlab.request_format_details
+        || tokenlab.request_format_summary
+        || tokenlab.public_contract
+        || tokenlab.public_contract_summary
+        || {};
       return {
         id: details.id || details.model || model,
-        request_endpoint: details.request_endpoint,
-        request_shape_mode: details.request_shape_mode,
-        supported_operations: details.supported_operations,
-        supported_parameters: details.supported_parameters,
-        recommended_request: details.recommended_request,
+        request_endpoint: requestContract.request_endpoint,
+        request_endpoint_by_operation: requestContract.request_endpoint_by_operation,
+        request_shape_mode: requestContract.request_shape_mode,
+        supported_operations: tokenlab.supported_operations || requestContract.public_operations,
+        supported_parameters: requestContract.supported_parameters,
+        operation_constraints: requestContract.operation_constraints,
+        recommended_request: requestContract.recommended_request || requestContract.recommended_request_summary,
         pricing
       };
     }));

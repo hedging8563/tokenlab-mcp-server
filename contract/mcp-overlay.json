@@ -69,6 +69,19 @@
     "landing_url": "https://tokenlab.sh/mcp",
     "docs_url": "https://docs.tokenlab.sh/integrations/tokenlab-mcp-server",
     "recommended_client_name": "tokenlab",
+    "live_model_contract": {
+      "tool": "get_model",
+      "endpoint": "/v1/models/{model}",
+      "fields": [
+        "supported_operations",
+        "supported_parameters",
+        "request_endpoint",
+        "request_endpoint_by_operation",
+        "request_shape_mode",
+        "operation_constraints",
+        "recommended_request"
+      ]
+    },
     "composite_tools": [
       {
         "name": "compare_models",
