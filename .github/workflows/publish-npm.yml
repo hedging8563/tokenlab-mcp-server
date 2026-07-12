@@ -5,35 +5,60 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      version_ref:
+        description: "Optional immutable version tag to publish"
+        required: false
+        type: string
 
 permissions:
   contents: read
   id-token: write
+
+concurrency:
+  group: publish-tokenlab-mcp-${{ inputs.version_ref || github.ref }}
+  cancel-in-progress: false
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.version_ref || github.ref }}
 
       - uses: actions/setup-node@v6
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || inputs.version_ref != ''
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
           package-manager-cache: false
 
       - name: Verify tag matches package version
-        if: github.event_name == 'push'
-        run: node --eval 'if (process.env.GITHUB_REF_NAME !== `v${require("./package.json").version}`) process.exit(1)'
+        if: github.event_name == 'push' || inputs.version_ref != ''
+        env:
+          VERSION_REF: ${{ inputs.version_ref || github.ref_name }}
+        run: node --eval 'if (process.env.VERSION_REF !== `v${require("./package.json").version}`) process.exit(1)'
 
       - name: Install dependencies
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || inputs.version_ref != ''
         run: npm ci
 
       - name: Test package
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || inputs.version_ref != ''
         run: npm test
+
+      - name: Check npm publication state
+        id: npm_state
+        if: github.event_name == 'push' || inputs.version_ref != ''
+        run: |
+          package_name="$(node -p 'require("./package.json").name')"
+          package_version="$(node -p 'require("./package.json").version')"
+          if npm view "${package_name}@${package_version}" version >/dev/null 2>&1; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Install MCP Registry publisher
         run: |
@@ -46,7 +71,7 @@ jobs:
         run: ./mcp-publisher validate
 
       - name: Publish npm package
-        if: github.event_name == 'push'
+        if: (github.event_name == 'push' || inputs.version_ref != '') && steps.npm_state.outputs.published != 'true'
         run: npm publish
 
       - name: Authenticate to MCP Registry
