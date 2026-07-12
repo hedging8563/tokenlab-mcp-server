@@ -6,7 +6,7 @@
     "openapi": "3.0.3",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "1b60d2976d994b4007a17984d9aa4ad4c11d791fb4e8096e1f86144bcee366f1"
+    "sha256": "45f249430146044e32ab8c51faa72d3c63eedcb760f4769b4b75dd3b85910302"
   },
   "default_profile": "core",
   "profiles": [
@@ -2255,11 +2255,21 @@
           },
           "size": {
             "type": "string",
-            "description": "Image size. Defaults are model-specific. For gpt-image-2, omit this field or use auto for automatic sizing, or send WIDTHxHEIGHT; custom dimensions must both be multiples of 16, longest edge <= 3840px, long/short ratio <= 3:1, and total pixels between 655,360 and 8,294,400."
+            "default": "1024x1024",
+            "description": "Image size. For gpt-image-2, use auto or WIDTHxHEIGHT; custom dimensions must both be multiples of 16, longest edge <= 3840px, long/short ratio <= 3:1, and total pixels between 655,360 and 8,294,400."
           },
           "quality": {
             "type": "string",
-            "description": "Image quality. Defaults and accepted values are model-specific. For gpt-image-2, omit this field or use auto for automatic quality, or send low, medium, or high. Other image families may use provider-specific values."
+            "enum": [
+              "standard",
+              "hd",
+              "auto",
+              "low",
+              "medium",
+              "high"
+            ],
+            "default": "standard",
+            "description": "Image quality. GPT Image models such as gpt-image-2 use auto/low/medium/high. Other image families may use provider-specific values."
           },
           "style": {
             "type": "string",
