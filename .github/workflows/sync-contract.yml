@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write
 
 concurrency:
   group: sync-tokenlab-openapi-main
@@ -24,25 +25,73 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: "24"
+          registry-url: "https://registry.npmjs.org"
           package-manager-cache: false
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Synchronize and verify generated contract
+      - name: Synchronize generated contract
         run: |
           npm run contract:sync
+
+      - name: Prepare a recoverable contract release
+        id: release
+        run: node scripts/prepare-contract-release.mjs --prepare
+
+      - name: Verify synchronized package
+        run: |
           npm test
 
-      - name: Commit verified contract drift
+      - name: Commit and tag verified contract drift
         run: |
-          if git diff --quiet -- contract/openapi.json generated/public-contract.json generated/tools.json; then
+          if [[ "${{ steps.release.outputs.needs_commit }}" != "true" && "${{ steps.release.outputs.needs_release }}" != "true" ]]; then
             echo "TokenLab OpenAPI contract is already current."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- contract/openapi.json generated/public-contract.json generated/tools.json
-          git diff --cached --check
-          git commit -m "chore(contract): sync TokenLab OpenAPI"
-          git push origin HEAD:main
+          if [[ "${{ steps.release.outputs.needs_commit }}" == "true" ]]; then
+            git add -- \
+              README.md \
+              contract/openapi.json \
+              generated/public-contract.json \
+              generated/tools.json \
+              package-lock.json \
+              package.json \
+              server.json
+            git diff --cached --check
+            if [[ "${{ steps.release.outputs.needs_release }}" == "true" ]]; then
+              git commit -m "chore(contract): sync TokenLab OpenAPI for ${{ steps.release.outputs.tag }}"
+            else
+              git commit -m "chore(contract): sync TokenLab OpenAPI"
+            fi
+            git push origin HEAD:main
+          fi
+          if [[ "${{ steps.release.outputs.needs_release }}" == "true" ]]; then
+            if git rev-parse "${{ steps.release.outputs.tag }}" >/dev/null 2>&1; then
+              test "$(git rev-list -n 1 "${{ steps.release.outputs.tag }}")" = "$(git rev-parse HEAD)"
+            else
+              git tag "${{ steps.release.outputs.tag }}"
+              git push origin "${{ steps.release.outputs.tag }}"
+            fi
+          fi
+
+      - name: Publish npm package
+        if: steps.release.outputs.needs_npm_publish == 'true'
+        run: npm publish
+
+      - name: Install MCP Registry publisher
+        if: steps.release.outputs.needs_registry_publish == 'true'
+        run: |
+          curl -fsSLo mcp-publisher.tar.gz \
+            https://github.com/modelcontextprotocol/registry/releases/download/v1.7.9/mcp-publisher_linux_amd64.tar.gz
+          echo "ab128162b0616090b47cf245afe0a23f3ef08936fdce19074f5ba0a4469281ac  mcp-publisher.tar.gz" | sha256sum --check
+          tar -xzf mcp-publisher.tar.gz mcp-publisher
+
+      - name: Publish MCP Registry package
+        if: steps.release.outputs.needs_registry_publish == 'true'
+        run: |
+          ./mcp-publisher validate
+          ./mcp-publisher login github-oidc
+          ./mcp-publisher publish
