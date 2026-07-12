@@ -25,8 +25,8 @@
     "openapi": "3.0.3",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "f494fcfb2b4d67aaddc88a2ec164739c807bb59331a7e5270fd9d9fa282745e0",
-    "tool_manifest_sha256": "a2690dd92f5e7dbc47ce4fe25b327eaafd4848224f0e329bee0f1c2797c4521d"
+    "sha256": "71d786914871d4cb584c526d26ee84833eb790534c65ced4adf8af212b365094",
+    "tool_manifest_sha256": "721c3ecbc53ce550bc6c40cc53c47155765029622eefc5a953387396d95954a4"
   },
   "profiles": {
     "catalog": {
