@@ -6,7 +6,7 @@
     "openapi": "3.0.3",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "71d786914871d4cb584c526d26ee84833eb790534c65ced4adf8af212b365094"
+    "sha256": "586c32a9e47c4557977b92d73183518e986e70666f6530e2718ef5b7293a1706"
   },
   "default_profile": "core",
   "profiles": [
@@ -6054,18 +6054,77 @@
         "core",
         "full"
       ],
-      "description": "List models Lists the currently available models. Default responses are trimmed for discovery. Non-chat models may include lightweight request-format metadata; `agent_preferences` appears only when `recommended_for` is present.",
+      "description": "List models Lists the currently available models. Use `view=compact` for model selection and `view=full` for the existing OpenAI-compatible discovery shape. Native API calls default to `full`; integrations may choose `compact` as their default. Non-chat recommendations are available through `recommended_for`.",
       "input_schema": {
         "type": "object",
-        "properties": {},
+        "properties": {
+          "provider": {
+            "type": "string",
+            "description": "Filter by public model provider, for example openai, anthropic, google, or minimax."
+          },
+          "tag": {
+            "type": "string",
+            "description": "Filter by a public capability tag."
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "chat",
+              "embedding",
+              "translation",
+              "image",
+              "video",
+              "audio",
+              "tts",
+              "stt",
+              "rerank",
+              "3d",
+              "music"
+            ],
+            "description": "Filter by model category."
+          },
+          "recommended_for": {
+            "type": "string",
+            "enum": [
+              "image",
+              "video",
+              "music",
+              "3d",
+              "tts",
+              "stt",
+              "embedding",
+              "rerank",
+              "translation"
+            ],
+            "description": "Sort supported non-chat models for a task category and include recommendation evidence."
+          },
+          "view": {
+            "type": "string",
+            "enum": [
+              "compact",
+              "full"
+            ],
+            "default": "compact",
+            "description": "Compact model-selection output is the MCP default. Set view to full only when the complete OpenAI-compatible list shape is required."
+          }
+        },
         "additionalProperties": false
       },
       "bindings": {
         "path": [],
-        "query": [],
+        "query": [
+          "provider",
+          "tag",
+          "category",
+          "recommended_for",
+          "view"
+        ],
         "header": [],
         "body": [],
         "files": []
+      },
+      "default_arguments": {
+        "view": "compact"
       },
       "annotations": {
         "readOnlyHint": true,

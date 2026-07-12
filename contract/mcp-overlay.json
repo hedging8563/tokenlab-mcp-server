@@ -162,6 +162,16 @@
     "getPricing"
   ],
   "operation_overrides": {
+    "listModels": {
+      "default_arguments": {
+        "view": "compact"
+      },
+      "input_property_overrides": {
+        "view": {
+          "description": "Compact model-selection output is the MCP default. Set view to full only when the complete OpenAI-compatible list shape is required."
+        }
+      }
+    },
     "cancelAnthropicMessageBatch": {
       "annotations": {
         "readOnlyHint": false,

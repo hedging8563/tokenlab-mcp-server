@@ -109,12 +109,14 @@ async function appendMultipart(form, name, value, isFile) {
 }
 
 function collectArguments(tool, input) {
-  const pathArguments = Object.fromEntries(tool.bindings.path.map((name) => [name, input[name]]));
-  const queryArguments = Object.fromEntries(tool.bindings.query.map((name) => [name, input[name]]));
-  const headerArguments = Object.fromEntries(tool.bindings.header.map((name) => [name, input[name]]));
+  const resolvedInput = { ...(tool.default_arguments || {}), ...input };
+
+  const pathArguments = Object.fromEntries(tool.bindings.path.map((name) => [name, resolvedInput[name]]));
+  const queryArguments = Object.fromEntries(tool.bindings.query.map((name) => [name, resolvedInput[name]]));
+  const headerArguments = Object.fromEntries(tool.bindings.header.map((name) => [name, resolvedInput[name]]));
   const bodyArguments = tool.bindings.body.includes("body")
-    ? input.body
-    : Object.fromEntries(tool.bindings.body.map((name) => [name, input[name]]));
+    ? resolvedInput.body
+    : Object.fromEntries(tool.bindings.body.map((name) => [name, resolvedInput[name]]));
   return { pathArguments, queryArguments, headerArguments, bodyArguments };
 }
 

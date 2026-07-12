@@ -216,6 +216,17 @@ function applyInputOverrides(schema, bindings, override) {
     if (!schema.properties[name]) throw new Error(`Cannot override unknown MCP argument: ${name}`);
     schema.properties[name] = { ...schema.properties[name], ...patch };
   }
+  for (const [name, value] of Object.entries(override.default_arguments || {})) {
+    if (!schema.properties[name]) throw new Error(`Cannot default unknown MCP argument: ${name}`);
+    const property = schema.properties[name];
+    if (Array.isArray(property.enum) && !property.enum.includes(value)) {
+      throw new Error(`Default MCP argument ${name} is outside its enum`);
+    }
+    if (Object.hasOwn(property, "const") && property.const !== value) {
+      throw new Error(`Default MCP argument ${name} does not match its const value`);
+    }
+    schema.properties[name] = { ...schema.properties[name], default: value };
+  }
 }
 
 function annotations(method) {
@@ -262,6 +273,7 @@ for (const [operationId, indexed] of operations) {
       description,
       input_schema: schema,
       bindings,
+      ...(override.default_arguments ? { default_arguments: override.default_arguments } : {}),
       annotations: { ...annotations(indexed.method), ...(override.annotations || {}) },
       ...(override.task ? { task: override.task } : {})
     });

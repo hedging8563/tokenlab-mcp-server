@@ -1597,21 +1597,110 @@
           "Models"
         ],
         "summary": "List models",
-        "description": "Lists the currently available models. Default responses are trimmed for discovery. Non-chat models may include lightweight request-format metadata; `agent_preferences` appears only when `recommended_for` is present.",
+        "description": "Lists the currently available models. Use `view=compact` for model selection and `view=full` for the existing OpenAI-compatible discovery shape. Native API calls default to `full`; integrations may choose `compact` as their default. Non-chat recommendations are available through `recommended_for`.",
         "operationId": "listModels",
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "query",
+            "required": false,
+            "description": "Filter by public model provider, for example openai, anthropic, google, or minimax.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "required": false,
+            "description": "Filter by a public capability tag.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "description": "Filter by model category.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "chat",
+                "embedding",
+                "translation",
+                "image",
+                "video",
+                "audio",
+                "tts",
+                "stt",
+                "rerank",
+                "3d",
+                "music"
+              ]
+            }
+          },
+          {
+            "name": "recommended_for",
+            "in": "query",
+            "required": false,
+            "description": "Sort supported non-chat models for a task category and include recommendation evidence.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "image",
+                "video",
+                "music",
+                "3d",
+                "tts",
+                "stt",
+                "embedding",
+                "rerank",
+                "translation"
+              ]
+            }
+          },
+          {
+            "name": "view",
+            "in": "query",
+            "required": false,
+            "description": "Choose compact model-selection fields or the full OpenAI-compatible list shape.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "compact",
+                "full"
+              ],
+              "default": "full"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "List of models",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ModelsResponse"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/ModelsResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/CompactModelsResponse"
+                    }
+                  ]
                 }
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitExceeded"
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
@@ -8356,7 +8445,180 @@
         "required": [
           "object",
           "data"
-        ]
+        ],
+        "additionalProperties": false
+      },
+      "CompactModelsResponse": {
+        "type": "object",
+        "description": "Compact model-selection response used by TokenLab MCP and other agent integrations.",
+        "properties": {
+          "object": {
+            "type": "string",
+            "enum": [
+              "list"
+            ]
+          },
+          "view": {
+            "type": "string",
+            "enum": [
+              "compact"
+            ]
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompactModelListItem"
+            }
+          }
+        },
+        "required": [
+          "object",
+          "view",
+          "count",
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "CompactModelListItem": {
+        "type": "object",
+        "description": "Fields needed to shortlist a model before calling get_model or get_model_pricing.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Model identifier"
+          },
+          "provider": {
+            "type": "string",
+            "description": "Public model provider"
+          },
+          "category": {
+            "type": "string"
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "max_input_tokens": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "max_output_tokens": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "pricing": {
+            "type": "object",
+            "properties": {
+              "unit": {
+                "type": "string"
+              },
+              "currency": {
+                "type": "string",
+                "enum": [
+                  "USD"
+                ]
+              },
+              "input_per_1m": {
+                "type": "string"
+              },
+              "output_per_1m": {
+                "type": "string"
+              },
+              "per_request": {
+                "type": "string"
+              },
+              "min_price": {
+                "type": "string",
+                "description": "Minimum TokenLab price for a structured pricing model."
+              },
+              "max_price": {
+                "type": "string",
+                "description": "Maximum TokenLab price for a structured pricing model."
+              },
+              "has_complex_pricing": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "unit",
+              "currency",
+              "has_complex_pricing"
+            ],
+            "additionalProperties": false
+          },
+          "status": {
+            "type": "string",
+            "description": "Public model lifecycle stage."
+          },
+          "latest": {
+            "type": "boolean"
+          },
+          "supported_operations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "request_endpoint": {
+            "type": "string"
+          },
+          "recommendation": {
+            "type": "object",
+            "properties": {
+              "preferred_rank": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "success_rate_24h": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "sample_count_24h": {
+                "type": "integer"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ready",
+                  "insufficient_samples"
+                ]
+              }
+            },
+            "required": [
+              "preferred_rank",
+              "success_rate_24h",
+              "sample_count_24h",
+              "status"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "provider",
+          "category",
+          "capabilities",
+          "max_input_tokens",
+          "max_output_tokens",
+          "pricing",
+          "status",
+          "latest"
+        ],
+        "additionalProperties": false
       },
       "Model": {
         "type": "object",

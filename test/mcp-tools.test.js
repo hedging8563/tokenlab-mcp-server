@@ -124,6 +124,9 @@ test("advertises exactly the generated profile plus composite discovery tools", 
   for (const tool of requiredCoreFamilies) assert.equal(core.has(tool), true, `${tool} must remain in core`);
 
   const byName = Object.fromEntries(manifest.tools.map((tool) => [tool.name, tool]));
+  assert.equal(byName.list_models.input_schema.properties.view.default, "compact");
+  assert.deepEqual(byName.list_models.default_arguments, { view: "compact" });
+  assert.deepEqual(byName.list_models.bindings.query, ["provider", "tag", "category", "recommended_for", "view"]);
   assert.equal(byName.create_gemini_content.input_schema.properties.key, undefined);
   for (const name of ["create_chat_completion", "create_response", "create_anthropic_message", "create_image", "edit_image"]) {
     assert.equal(byName[name].input_schema.properties.stream.const, false, `${name} must remain non-streaming in MCP`);
@@ -336,6 +339,7 @@ test("requires auth only for protected generated operations", async (t) => {
 
   const publicResult = await client.callTool({ name: "list_models", arguments: {} });
   assert.equal(publicResult.isError, undefined);
+  assert.equal(api.requests[0].url, "/v1/models?view=compact");
   const protectedResult = await client.callTool({
     name: "create_response",
     arguments: { model: "gpt-5.5", input: "Hello" }
