@@ -69,7 +69,8 @@ jobs:
           fi
           if [[ "${{ steps.release.outputs.needs_release }}" == "true" ]]; then
             if git rev-parse "${{ steps.release.outputs.tag }}" >/dev/null 2>&1; then
-              test "$(git rev-list -n 1 "${{ steps.release.outputs.tag }}")" = "$(git rev-parse HEAD)"
+              tagged_version="$(git show "${{ steps.release.outputs.tag }}:package.json" | node -e 'let data=""; process.stdin.on("data", chunk => data += chunk); process.stdin.on("end", () => process.stdout.write(JSON.parse(data).version))')"
+              test "v${tagged_version}" = "${{ steps.release.outputs.tag }}"
             else
               git tag "${{ steps.release.outputs.tag }}"
               git push origin "${{ steps.release.outputs.tag }}"
