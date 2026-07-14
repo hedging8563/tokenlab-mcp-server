@@ -7876,7 +7876,7 @@
           },
           "reference_images": {
             "type": "array",
-            "description": "Canonical public reference-image field for reference-to-video conditioning. This endpoint currently allows up to 9 URLs or compatible data URLs; model-specific limits can be lower. xAI grok-imagine-video accepts up to 7 image references with duration capped at 10 seconds, and grok-imagine-video-1.5-preview does not accept reference images. When the selected Seedance model can use the TokenLab material library, TokenLab prepares this image input as reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path.",
+            "description": "Canonical public reference-image field for reference-to-video conditioning. This endpoint currently allows up to 9 URLs or compatible data URLs; model-specific limits can be lower. xAI grok-imagine-video accepts up to 7 image references with duration capped at 10 seconds; grok-imagine-video-1.5 and grok-imagine-video-1.5-preview are image-to-video only and do not accept reference images. When the selected Seedance model can use the TokenLab material library, TokenLab prepares this image input as reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path.",
             "minItems": 1,
             "maxItems": 9,
             "items": {
