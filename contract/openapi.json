@@ -3350,18 +3350,6 @@
             "description": "Filter by public request scene."
           },
           {
-            "name": "accessChannel",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "platform",
-                "byok"
-              ]
-            },
-            "description": "Filter by access channel: platform billing or your own provider key (BYOK)."
-          },
-          {
             "name": "startDate",
             "in": "query",
             "schema": {
@@ -3463,18 +3451,6 @@
               ]
             },
             "description": "Filter by public request scene."
-          },
-          {
-            "name": "accessChannel",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "platform",
-                "byok"
-              ]
-            },
-            "description": "Filter by access channel: platform billing or your own provider key (BYOK)."
           },
           {
             "name": "startDate",
@@ -9745,7 +9721,6 @@
           "logical_model",
           "model_vendor",
           "scene",
-          "access_channel",
           "usage_unit",
           "usage_quantity",
           "usage_quantity_decimal",
@@ -9784,13 +9759,6 @@
             "type": [
               "string",
               "null"
-            ]
-          },
-          "access_channel": {
-            "type": "string",
-            "enum": [
-              "platform",
-              "byok"
             ]
           },
           "usage_unit": {
@@ -9944,30 +9912,6 @@
           }
         }
       },
-      "ManagementAccessChannelBreakdown": {
-        "type": "object",
-        "required": [
-          "access_channel",
-          "requests",
-          "cost"
-        ],
-        "properties": {
-          "access_channel": {
-            "type": "string",
-            "enum": [
-              "platform",
-              "byok"
-            ]
-          },
-          "requests": {
-            "type": "integer"
-          },
-          "cost": {
-            "type": "number",
-            "description": "Cost in USD as a JSON number for display."
-          }
-        }
-      },
       "ManagementDailyCostBreakdown": {
         "type": "object",
         "required": [
@@ -10003,12 +9947,6 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ManagementSceneBreakdown"
-            }
-          },
-          "by_access_channel": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ManagementAccessChannelBreakdown"
             }
           },
           "daily_cost": {
