@@ -6,7 +6,7 @@
     "openapi": "3.0.3",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "b74ba0927ad8a227fe200bca76441345adc5b36649f5a7f6a150c824626d99d6"
+    "sha256": "d80d3da097ea6ba040e1ab85d00d95160f109ded7f2725e002f6dc86081dc812"
   },
   "default_profile": "core",
   "profiles": [
@@ -2301,7 +2301,7 @@
               "opaque",
               "auto"
             ],
-            "description": "Background handling for compatible image generation flows such as gpt-image-2 text-to-image. Not supported for gpt-image-2 image edits."
+            "description": "Background handling for compatible image flows. For gpt-image-2 generation and edits, accepted values are auto and opaque; transparent is not supported. Other models may support different values."
           },
           "output_format": {
             "type": "string",

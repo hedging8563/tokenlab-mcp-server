@@ -7289,7 +7289,7 @@
               "opaque",
               "auto"
             ],
-            "description": "Background handling for compatible image generation flows such as gpt-image-2 text-to-image. Not supported for gpt-image-2 image edits."
+            "description": "Background handling for compatible image flows. For gpt-image-2 generation and edits, accepted values are auto and opaque; transparent is not supported. Other models may support different values."
           },
           "output_format": {
             "type": "string",
