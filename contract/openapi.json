@@ -828,7 +828,7 @@
           "Video"
         ],
         "summary": "Create Seedance material asset",
-        "description": "Uploads one Seedance material asset URL into a TokenLab material group. Real-person assets require the TokenLab group_id returned by the real-person verification bind flow.",
+        "description": "Uploads one Seedance material asset URL into a TokenLab material group. Real-person assets require the group_id mapped from Result.GroupId returned by GetVisualValidateResult.",
         "operationId": "createSeedanceMaterialAsset",
         "requestBody": {
           "required": true,
@@ -1021,232 +1021,6 @@
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
-          }
-        }
-      }
-    },
-    "/v1/videos/assets/visual-validation-sessions": {
-      "post": {
-        "tags": [
-          "Video"
-        ],
-        "summary": "Create Seedance real-person verification session",
-        "description": "Creates a TokenLab real-person material verification H5 session. The response contains only TokenLab session fields. The session and H5 link are valid for 120 seconds; the binding token is delivered through the TokenLab callback redirect after the H5 flow completes.",
-        "operationId": "createSeedanceVisualValidationSession",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SeedanceVisualValidationSessionCreateRequest"
-              },
-              "examples": {
-                "create_session": {
-                  "summary": "Create a verification session",
-                  "value": {
-                    "callback_url": "https://yourapp.example.com/seedance/callback",
-                    "language": "en"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Real-person verification session created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SeedanceVisualValidationSession"
-                },
-                "examples": {
-                  "session_created": {
-                    "summary": "Verification session created",
-                    "value": {
-                      "object": "seedance.visual_validation_session",
-                      "session_id": "svv_abc123",
-                      "h5_link": "https://verify.example.com/h5?lng=en",
-                      "callback_url": "https://yourapp.example.com/seedance/callback",
-                      "expires_in": 120,
-                      "language": "en"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "500": {
-            "$ref": "#/components/responses/ServerError"
-          },
-          "503": {
-            "$ref": "#/components/responses/MaterialLibraryUnavailable"
-          }
-        }
-      },
-      "get": {
-        "tags": [
-          "Video"
-        ],
-        "summary": "List Seedance real-person verification history",
-        "description": "Lists TokenLab real-person material verification history for the authenticated organization. The response contains only TokenLab IDs and session status fields.",
-        "operationId": "listSeedanceVisualValidationHistory",
-        "parameters": [
-          {
-            "name": "page_size",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 20
-            },
-            "description": "Maximum number of history records to return."
-          },
-          {
-            "name": "page_token",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Pagination token from a previous response."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Real-person verification history list",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SeedanceVisualValidationHistoryList"
-                },
-                "examples": {
-                  "verification_history": {
-                    "summary": "Verification session history",
-                    "value": {
-                      "sessions": [
-                        {
-                          "object": "seedance.visual_validation_session_history",
-                          "session_id": "svv_abc123",
-                          "callback_url": "https://yourapp.example.com/seedance/callback",
-                          "language": "en",
-                          "status": "bound",
-                          "verification_status": "succeeded",
-                          "result_code": "10000",
-                          "group_id": "group-20260720123456-real1",
-                          "group_name": "Creator A",
-                          "error_message": null,
-                          "created_at": 1782998400000,
-                          "expires_at": 1782998520000,
-                          "callback_received_at": 1782998450000,
-                          "bound_at": 1782998460000
-                        }
-                      ],
-                      "next_page_token": null
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "500": {
-            "$ref": "#/components/responses/ServerError"
-          },
-          "503": {
-            "$ref": "#/components/responses/MaterialLibraryUnavailable"
-          }
-        }
-      }
-    },
-    "/v1/videos/assets/visual-validation-results": {
-      "post": {
-        "tags": [
-          "Video"
-        ],
-        "summary": "Bind Seedance real-person verification result",
-        "description": "Binds a successful TokenLab real-person verification session to a TokenLab real-person material group. The request must include session_id and verification_token from the TokenLab callback redirect.",
-        "operationId": "bindSeedanceVisualValidationResult",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SeedanceVisualValidationResultBindRequest"
-              },
-              "examples": {
-                "bind_result": {
-                  "summary": "Bind a successful verification result",
-                  "value": {
-                    "session_id": "svv_abc123",
-                    "verification_token": "svvt_def456",
-                    "group_name": "Creator A"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Real-person material group bound",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SeedanceVisualValidationResult"
-                },
-                "examples": {
-                  "bound_group": {
-                    "summary": "Real-person material group bound",
-                    "value": {
-                      "object": "seedance.visual_validation_result",
-                      "group_id": "group-20260720123456-real1",
-                      "material_group": {
-                        "id": "group-20260720123456-real1",
-                        "library_type": "liveness_face",
-                        "status": "ACTIVE",
-                        "group_name": "Creator A"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "409": {
-            "description": "Material group mapping conflict",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "500": {
-            "$ref": "#/components/responses/ServerError"
-          },
-          "503": {
-            "$ref": "#/components/responses/MaterialLibraryUnavailable"
           }
         }
       }
@@ -5550,7 +5324,7 @@
           "Video"
         ],
         "summary": "Create Seedance material asset group",
-        "description": "Creates a TokenLab Seedance virtual-avatar material group. Real-person material groups are created by the real-person verification bind flow.",
+        "description": "Creates a TokenLab Seedance virtual-avatar material group. Real-person material groups are created by GetVisualValidateResult after the H5 validation succeeds.",
         "operationId": "createSeedanceMaterialAssetGroup",
         "requestBody": {
           "required": true,
@@ -5627,7 +5401,7 @@
           "Video"
         ],
         "summary": "List Seedance material asset groups",
-        "description": "Lists Seedance material groups owned by the authenticated organization. Real-person groups are returned after a successful verification bind flow.",
+        "description": "Lists Seedance material groups owned by the authenticated organization. Real-person groups are returned after GetVisualValidateResult succeeds.",
         "operationId": "listSeedanceMaterialAssetGroups",
         "parameters": [
           {
@@ -6327,7 +6101,7 @@
           "Seedance Volc Compatible"
         ],
         "summary": "Seedance Action dispatcher (POST)",
-        "description": "Dispatches Volc-style Action requests. The Action and Version fields may be in the query string or JSON body.",
+        "description": "Dispatches Volc-style Action requests with TokenLab Bearer authentication. Real-person validation uses CreateVisualValidateSession and GetVisualValidateResult with Version=2024-01-01; these actions are POST-only.",
         "operationId": "dispatchVolcCompatibleSeedanceActionPost",
         "parameters": [
           {
@@ -6340,7 +6114,9 @@
                 "CreateContentsGenerationsTasks",
                 "GetContentsGenerationsTask",
                 "ListContentsGenerationsTasks",
-                "DeleteContentsGenerationsTasks"
+                "DeleteContentsGenerationsTasks",
+                "CreateVisualValidateSession",
+                "GetVisualValidateResult"
               ]
             }
           },
@@ -6359,15 +6135,25 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "additionalProperties": true
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/VolcCreateVisualValidateSessionRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/VolcGetVisualValidateResultRequest"
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                ]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Action response. Create/Get/List actions return JSON; DeleteContentsGenerationsTasks returns an empty body.",
+            "description": "Action response. Content-generation actions return task JSON; real-person validation actions return the official ResponseMetadata + Result envelope.",
             "content": {
               "application/json": {
                 "schema": {
@@ -6380,6 +6166,12 @@
                     },
                     {
                       "$ref": "#/components/schemas/VolcSeedanceTaskListResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/VolcCreateVisualValidateSessionResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/VolcGetVisualValidateResultResponse"
                     }
                   ]
                 }
@@ -6391,7 +6183,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VolcSeedanceError"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/VolcSeedanceError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/VolcVisualValidationError"
+                    }
+                  ]
                 }
               }
             }
@@ -6401,7 +6200,99 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VolcSeedanceError"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/VolcSeedanceError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/VolcVisualValidationError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/VolcSeedanceError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/VolcVisualValidationError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Action does not support this HTTP method",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/VolcSeedanceError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/VolcVisualValidationError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Material group mapping conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/VolcSeedanceError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/VolcVisualValidationError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Real-person validation is unavailable for the current account configuration",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/VolcSeedanceError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/VolcVisualValidationError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/VolcSeedanceError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/VolcVisualValidationError"
+                    }
+                  ]
                 }
               }
             }
@@ -6411,7 +6302,31 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VolcSeedanceError"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/VolcSeedanceError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/VolcVisualValidationError"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Real-person validation service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/VolcSeedanceError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/VolcVisualValidationError"
+                    }
+                  ]
                 }
               }
             }
@@ -7861,7 +7776,7 @@
           },
           "material_asset_id": {
             "type": "string",
-            "description": "TokenLab Seedance material asset ID returned by /v1/videos/assets, by automatic image preparation, or by a real-person verification bind flow. Use it after the asset is ACTIVE with Seedance models that can use the TokenLab material library. The asset must belong to the current account. This field is a generic reference input; to assign first-frame, last-frame, or reference-image semantics explicitly, put asset://<material_asset_id> in start_image, end_image, or reference_images."
+            "description": "TokenLab Seedance material asset ID returned by /v1/videos/assets, by automatic image preparation, or from a real-person group returned by GetVisualValidateResult. Use it after the asset is ACTIVE with Seedance models that can use the TokenLab material library. The asset must belong to the current account. This field is a generic reference input; to assign first-frame, last-frame, or reference-image semantics explicitly, put asset://<material_asset_id> in start_image, end_image, or reference_images."
           },
           "material_asset_ids": {
             "type": "array",
@@ -11618,7 +11533,7 @@
               "liveness_face"
             ],
             "default": "aigc_avatar",
-            "description": "Material library class. Direct creation supports aigc_avatar. Create liveness_face groups through real-person material verification."
+            "description": "Material library class. Direct creation supports aigc_avatar. Create liveness_face groups through CreateVisualValidateSession followed by GetVisualValidateResult."
           },
           "metadata": {
             "type": "object",
@@ -12097,252 +12012,6 @@
             "additionalProperties": true
           }
         ]
-      },
-      "SeedanceVisualValidationSessionCreateRequest": {
-        "type": "object",
-        "required": [
-          "callback_url"
-        ],
-        "additionalProperties": false,
-        "properties": {
-          "callback_url": {
-            "type": "string",
-            "format": "uri",
-            "description": "Public HTTPS URL that TokenLab redirects to after the H5 verification flow. TokenLab appends session_id, verification_token, verification_status, and result_code."
-          },
-          "language": {
-            "type": "string",
-            "enum": [
-              "zh",
-              "en",
-              "zh-Hant"
-            ],
-            "default": "zh",
-            "description": "Language parameter appended to the returned H5 link."
-          }
-        }
-      },
-      "SeedanceVisualValidationSession": {
-        "type": "object",
-        "required": [
-          "object",
-          "session_id",
-          "h5_link",
-          "callback_url",
-          "expires_in",
-          "language"
-        ],
-        "properties": {
-          "object": {
-            "type": "string",
-            "enum": [
-              "seedance.visual_validation_session"
-            ]
-          },
-          "session_id": {
-            "type": "string",
-            "description": "TokenLab real-person verification session ID."
-          },
-          "h5_link": {
-            "type": "string",
-            "format": "uri",
-            "description": "Short-lived H5 verification link for the end user. Valid for 120 seconds."
-          },
-          "callback_url": {
-            "type": "string",
-            "format": "uri",
-            "description": "Customer callback URL originally supplied in the request."
-          },
-          "language": {
-            "type": "string",
-            "enum": [
-              "zh",
-              "en",
-              "zh-Hant"
-            ]
-          },
-          "expires_in": {
-            "type": "integer",
-            "description": "Validity window in seconds for the session and H5 link."
-          }
-        }
-      },
-      "SeedanceVisualValidationResultBindRequest": {
-        "type": "object",
-        "required": [
-          "session_id",
-          "verification_token"
-        ],
-        "additionalProperties": false,
-        "properties": {
-          "session_id": {
-            "type": "string",
-            "description": "TokenLab real-person verification session ID."
-          },
-          "verification_token": {
-            "type": "string",
-            "description": "TokenLab opaque token from the TokenLab callback redirect."
-          },
-          "group_name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 128,
-            "description": "Optional TokenLab display name for the bound real-person material group."
-          },
-          "description": {
-            "type": "string",
-            "nullable": true,
-            "maxLength": 500
-          },
-          "metadata": {
-            "type": "object",
-            "nullable": true,
-            "additionalProperties": true
-          }
-        }
-      },
-      "SeedanceVisualValidationResult": {
-        "type": "object",
-        "required": [
-          "object",
-          "group_id",
-          "material_group"
-        ],
-        "properties": {
-          "object": {
-            "type": "string",
-            "enum": [
-              "seedance.visual_validation_result"
-            ]
-          },
-          "group_id": {
-            "type": "string",
-            "description": "TokenLab material group ID to pass as group_id when creating real-person material assets."
-          },
-          "material_group": {
-            "$ref": "#/components/schemas/SeedanceMaterialAssetGroup"
-          }
-        }
-      },
-      "SeedanceVisualValidationSessionHistory": {
-        "type": "object",
-        "required": [
-          "object",
-          "session_id",
-          "callback_url",
-          "language",
-          "status",
-          "created_at",
-          "expires_at"
-        ],
-        "properties": {
-          "object": {
-            "type": "string",
-            "enum": [
-              "seedance.visual_validation_session_history"
-            ]
-          },
-          "session_id": {
-            "type": "string",
-            "description": "TokenLab real-person verification session ID."
-          },
-          "callback_url": {
-            "type": "string",
-            "format": "uri",
-            "description": "Customer callback URL originally supplied when the session was created."
-          },
-          "language": {
-            "type": "string",
-            "enum": [
-              "zh",
-              "en",
-              "zh-Hant"
-            ]
-          },
-          "status": {
-            "type": "string",
-            "enum": [
-              "created",
-              "callback_succeeded",
-              "callback_failed",
-              "bound",
-              "expired"
-            ],
-            "description": "TokenLab history status. A created or callback_succeeded session is reported as expired after the 120-second session window if it was not bound."
-          },
-          "result_code": {
-            "type": "string",
-            "nullable": true,
-            "description": "Neutral result code forwarded by TokenLab callback, when available."
-          },
-          "verification_status": {
-            "type": "string",
-            "nullable": true,
-            "enum": [
-              "succeeded",
-              "failed",
-              null
-            ],
-            "description": "Neutral callback status, when TokenLab has received the H5 callback."
-          },
-          "group_id": {
-            "type": "string",
-            "nullable": true,
-            "description": "TokenLab material group ID after the verification result has been bound."
-          },
-          "group_name": {
-            "type": "string",
-            "nullable": true,
-            "description": "TokenLab material group display name after binding, when available."
-          },
-          "error_message": {
-            "type": "string",
-            "nullable": true,
-            "description": "Neutral failure description, when available."
-          },
-          "created_at": {
-            "type": "integer",
-            "format": "int64",
-            "description": "Unix timestamp in milliseconds."
-          },
-          "expires_at": {
-            "type": "integer",
-            "format": "int64",
-            "description": "Unix timestamp in milliseconds for the 120-second binding window."
-          },
-          "callback_received_at": {
-            "type": "integer",
-            "format": "int64",
-            "nullable": true,
-            "description": "Unix timestamp in milliseconds when TokenLab received the callback."
-          },
-          "bound_at": {
-            "type": "integer",
-            "format": "int64",
-            "nullable": true,
-            "description": "Unix timestamp in milliseconds when TokenLab bound the material group."
-          }
-        },
-        "additionalProperties": false
-      },
-      "SeedanceVisualValidationHistoryList": {
-        "type": "object",
-        "required": [
-          "sessions"
-        ],
-        "properties": {
-          "sessions": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SeedanceVisualValidationSessionHistory"
-            }
-          },
-          "next_page_token": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
       },
       "FileDeletedObject": {
         "type": "object",
@@ -12832,6 +12501,220 @@
           }
         },
         "additionalProperties": false
+      },
+      "VolcVisualValidationResponseMetadata": {
+        "type": "object",
+        "required": [
+          "RequestId",
+          "Action",
+          "Version",
+          "Service",
+          "Region"
+        ],
+        "properties": {
+          "RequestId": {
+            "type": "string",
+            "description": "TokenLab request identifier."
+          },
+          "Action": {
+            "type": "string",
+            "enum": [
+              "CreateVisualValidateSession",
+              "GetVisualValidateResult"
+            ]
+          },
+          "Version": {
+            "type": "string",
+            "enum": [
+              "2024-01-01"
+            ]
+          },
+          "Service": {
+            "type": "string",
+            "enum": [
+              "ark"
+            ]
+          },
+          "Region": {
+            "type": "string",
+            "enum": [
+              "cn-beijing"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "VolcCreateVisualValidateSessionRequest": {
+        "type": "object",
+        "required": [
+          "CallbackURL"
+        ],
+        "properties": {
+          "CallbackURL": {
+            "type": "string",
+            "format": "uri",
+            "description": "Public HTTPS URL opened by the H5 flow after validation. Official callback query names are preserved."
+          },
+          "ProjectName": {
+            "type": "string",
+            "default": "default",
+            "description": "Case-sensitive project name. Omit to use default."
+          }
+        },
+        "additionalProperties": false
+      },
+      "VolcGetVisualValidateResultRequest": {
+        "type": "object",
+        "required": [
+          "BytedToken"
+        ],
+        "properties": {
+          "BytedToken": {
+            "type": "string",
+            "description": "Opaque token returned by CreateVisualValidateSession. It is valid for 30 minutes and scoped to the authenticated organization, actor, and ProjectName."
+          },
+          "ProjectName": {
+            "type": "string",
+            "default": "default",
+            "description": "Must match the ProjectName used to create the token."
+          }
+        },
+        "additionalProperties": false
+      },
+      "VolcCreateVisualValidateSessionResponse": {
+        "type": "object",
+        "required": [
+          "ResponseMetadata",
+          "Result"
+        ],
+        "properties": {
+          "ResponseMetadata": {
+            "$ref": "#/components/schemas/VolcVisualValidationResponseMetadata"
+          },
+          "Result": {
+            "type": "object",
+            "required": [
+              "BytedToken",
+              "H5Link",
+              "CallbackURL"
+            ],
+            "properties": {
+              "BytedToken": {
+                "type": "string"
+              },
+              "H5Link": {
+                "type": "string",
+                "format": "uri"
+              },
+              "CallbackURL": {
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "VolcGetVisualValidateResultResponse": {
+        "type": "object",
+        "required": [
+          "ResponseMetadata",
+          "Result"
+        ],
+        "properties": {
+          "ResponseMetadata": {
+            "$ref": "#/components/schemas/VolcVisualValidationResponseMetadata"
+          },
+          "Result": {
+            "type": "object",
+            "required": [
+              "GroupId"
+            ],
+            "properties": {
+              "GroupId": {
+                "type": "string",
+                "pattern": "^group-[0-9]{14}-[a-z0-9]{5}$",
+                "description": "TokenLab-mapped real-person Asset Group ID returned after successful validation."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "VolcVisualValidationError": {
+        "type": "object",
+        "required": [
+          "ResponseMetadata"
+        ],
+        "properties": {
+          "ResponseMetadata": {
+            "type": "object",
+            "required": [
+              "RequestId",
+              "Action",
+              "Version",
+              "Service",
+              "Region",
+              "Error"
+            ],
+            "properties": {
+              "RequestId": {
+                "type": "string"
+              },
+              "Action": {
+                "type": "string"
+              },
+              "Version": {
+                "type": "string"
+              },
+              "Service": {
+                "type": "string",
+                "enum": [
+                  "ark"
+                ]
+              },
+              "Region": {
+                "type": "string",
+                "enum": [
+                  "cn-beijing"
+                ]
+              },
+              "Error": {
+                "type": "object",
+                "required": [
+                  "Code",
+                  "Message"
+                ],
+                "properties": {
+                  "CodeN": {
+                    "type": "integer"
+                  },
+                  "Code": {
+                    "type": "string"
+                  },
+                  "Message": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "VolcSeedanceActionError": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/VolcSeedanceError"
+          },
+          {
+            "$ref": "#/components/schemas/VolcVisualValidationError"
+          }
+        ]
       }
     },
     "responses": {

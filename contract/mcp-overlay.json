@@ -65,6 +65,33 @@
       ]
     }
   },
+  "operation_variants": {
+    "dispatchVolcCompatibleSeedanceActionPost": [
+      {
+        "tool_name": "create_visual_validate_session",
+        "title": "Create visual validation session",
+        "description": "Create a real-person visual validation session through the Volc-compatible Action API. Returns the official ResponseMetadata and Result shape with BytedToken, H5Link, and CallbackURL.",
+        "request_schema": "#/components/schemas/VolcCreateVisualValidateSessionRequest",
+        "fixed_arguments": {
+          "Action": "CreateVisualValidateSession",
+          "Version": "2024-01-01"
+        }
+      },
+      {
+        "tool_name": "get_visual_validate_result",
+        "title": "Get visual validation result",
+        "description": "Get the mapped real-person material GroupId through the Volc-compatible Action API after the H5 validation succeeds. The operation returns the official ResponseMetadata and Result shape.",
+        "request_schema": "#/components/schemas/VolcGetVisualValidateResultRequest",
+        "fixed_arguments": {
+          "Action": "GetVisualValidateResult",
+          "Version": "2024-01-01"
+        },
+        "annotations": {
+          "idempotentHint": true
+        }
+      }
+    ]
+  },
   "public_contract": {
     "landing_url": "https://tokenlab.sh/mcp",
     "docs_url": "https://docs.tokenlab.sh/integrations/tokenlab-mcp-server",

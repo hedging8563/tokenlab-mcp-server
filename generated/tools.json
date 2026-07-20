@@ -6,7 +6,7 @@
     "openapi": "3.0.3",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "b97e2566a0ee162a76bf3036e53e124cc7555d0efe51bd38e17894baf7124152"
+    "sha256": "66bfd771665f51aca0bd8a16cdec7c63712b529c4ff009d2b29cfdbb173e2602"
   },
   "default_profile": "core",
   "profiles": [
@@ -14,89 +14,8 @@
     "core",
     "full"
   ],
-  "tool_count": 76,
+  "tool_count": 75,
   "tools": [
-    {
-      "name": "bind_seedance_visual_validation_result",
-      "title": "Bind Seedance real-person verification result",
-      "operation_id": "bindSeedanceVisualValidationResult",
-      "method": "POST",
-      "path": "/v1/videos/assets/visual-validation-results",
-      "content_type": "application/json",
-      "auth": "required",
-      "tags": [
-        "Video"
-      ],
-      "profiles": [
-        "full"
-      ],
-      "description": "Bind Seedance real-person verification result Binds a successful TokenLab real-person verification session to a TokenLab real-person material group. The request must include session_id and verification_token from the TokenLab callback redirect.",
-      "input_schema": {
-        "type": "object",
-        "properties": {
-          "session_id": {
-            "type": "string",
-            "description": "TokenLab real-person verification session ID."
-          },
-          "verification_token": {
-            "type": "string",
-            "description": "TokenLab opaque token from the TokenLab callback redirect."
-          },
-          "group_name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 128,
-            "description": "Optional TokenLab display name for the bound real-person material group."
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 500
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "metadata": {
-            "anyOf": [
-              {
-                "type": "object",
-                "additionalProperties": true
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "required": [
-          "session_id",
-          "verification_token"
-        ],
-        "additionalProperties": false
-      },
-      "bindings": {
-        "path": [],
-        "query": [],
-        "header": [],
-        "body": [
-          "session_id",
-          "verification_token",
-          "group_name",
-          "description",
-          "metadata"
-        ],
-        "files": []
-      },
-      "annotations": {
-        "readOnlyHint": false,
-        "destructiveHint": false,
-        "idempotentHint": false,
-        "openWorldHint": true
-      }
-    },
     {
       "name": "cancel_anthropic_message_batch",
       "title": "Cancel message batch (Anthropic-compatible)",
@@ -3103,7 +3022,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Create Seedance material asset Uploads one Seedance material asset URL into a TokenLab material group. Real-person assets require the TokenLab group_id returned by the real-person verification bind flow.",
+      "description": "Create Seedance material asset Uploads one Seedance material asset URL into a TokenLab material group. Real-person assets require the group_id mapped from Result.GroupId returned by GetVisualValidateResult.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -3193,7 +3112,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Create Seedance material asset group Creates a TokenLab Seedance virtual-avatar material group. Real-person material groups are created by the real-person verification bind flow.",
+      "description": "Create Seedance material asset group Creates a TokenLab Seedance virtual-avatar material group. Real-person material groups are created by GetVisualValidateResult after the H5 validation succeeds.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -3221,7 +3140,7 @@
               "liveness_face"
             ],
             "default": "aigc_avatar",
-            "description": "Material library class. Direct creation supports aigc_avatar. Create liveness_face groups through real-person material verification."
+            "description": "Material library class. Direct creation supports aigc_avatar. Create liveness_face groups through CreateVisualValidateSession followed by GetVisualValidateResult."
           },
           "metadata": {
             "anyOf": [
@@ -3246,62 +3165,6 @@
           "description",
           "library_type",
           "metadata"
-        ],
-        "files": []
-      },
-      "annotations": {
-        "readOnlyHint": false,
-        "destructiveHint": false,
-        "idempotentHint": false,
-        "openWorldHint": true
-      }
-    },
-    {
-      "name": "create_seedance_visual_validation_session",
-      "title": "Create Seedance real-person verification session",
-      "operation_id": "createSeedanceVisualValidationSession",
-      "method": "POST",
-      "path": "/v1/videos/assets/visual-validation-sessions",
-      "content_type": "application/json",
-      "auth": "required",
-      "tags": [
-        "Video"
-      ],
-      "profiles": [
-        "full"
-      ],
-      "description": "Create Seedance real-person verification session Creates a TokenLab real-person material verification H5 session. The response contains only TokenLab session fields. The session and H5 link are valid for 120 seconds; the binding token is delivered through the TokenLab callback redirect after the H5 flow completes.",
-      "input_schema": {
-        "type": "object",
-        "properties": {
-          "callback_url": {
-            "type": "string",
-            "format": "uri",
-            "description": "Public HTTPS URL that TokenLab redirects to after the H5 verification flow. TokenLab appends session_id, verification_token, verification_status, and result_code."
-          },
-          "language": {
-            "type": "string",
-            "enum": [
-              "zh",
-              "en",
-              "zh-Hant"
-            ],
-            "default": "zh",
-            "description": "Language parameter appended to the returned H5 link."
-          }
-        },
-        "required": [
-          "callback_url"
-        ],
-        "additionalProperties": false
-      },
-      "bindings": {
-        "path": [],
-        "query": [],
-        "header": [],
-        "body": [
-          "callback_url",
-          "language"
         ],
         "files": []
       },
@@ -3623,7 +3486,7 @@
           },
           "material_asset_id": {
             "type": "string",
-            "description": "TokenLab Seedance material asset ID returned by /v1/videos/assets, by automatic image preparation, or by a real-person verification bind flow. Use it after the asset is ACTIVE with Seedance models that can use the TokenLab material library. The asset must belong to the current account. This field is a generic reference input; to assign first-frame, last-frame, or reference-image semantics explicitly, put asset://<material_asset_id> in start_image, end_image, or reference_images."
+            "description": "TokenLab Seedance material asset ID returned by /v1/videos/assets, by automatic image preparation, or from a real-person group returned by GetVisualValidateResult. Use it after the asset is ACTIVE with Seedance models that can use the TokenLab material library. The asset must belong to the current account. This field is a generic reference input; to assign first-frame, last-frame, or reference-image semantics explicitly, put asset://<material_asset_id> in start_image, end_image, or reference_images."
           },
           "material_asset_ids": {
             "type": "array",
@@ -3848,6 +3711,64 @@
           "canceled",
           "expired"
         ]
+      }
+    },
+    {
+      "name": "create_visual_validate_session",
+      "title": "Create visual validation session",
+      "operation_id": "dispatchVolcCompatibleSeedanceActionPost",
+      "method": "POST",
+      "path": "/api/v3",
+      "content_type": "application/json",
+      "auth": "required",
+      "tags": [
+        "Seedance Volc Compatible"
+      ],
+      "profiles": [
+        "full"
+      ],
+      "description": "Create a real-person visual validation session through the Volc-compatible Action API. Returns the official ResponseMetadata and Result shape with BytedToken, H5Link, and CallbackURL.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "CallbackURL": {
+            "type": "string",
+            "format": "uri",
+            "description": "Public HTTPS URL opened by the H5 flow after validation. Official callback query names are preserved."
+          },
+          "ProjectName": {
+            "type": "string",
+            "default": "default",
+            "description": "Case-sensitive project name. Omit to use default."
+          }
+        },
+        "required": [
+          "CallbackURL"
+        ],
+        "additionalProperties": false
+      },
+      "bindings": {
+        "path": [],
+        "query": [
+          "Action",
+          "Version"
+        ],
+        "header": [],
+        "body": [
+          "CallbackURL",
+          "ProjectName"
+        ],
+        "files": []
+      },
+      "default_arguments": {
+        "Action": "CreateVisualValidateSession",
+        "Version": "2024-01-01"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
       }
     },
     {
@@ -4692,7 +4613,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Seedance Action dispatcher (POST) Dispatches Volc-style Action requests. The Action and Version fields may be in the query string or JSON body.",
+      "description": "Seedance Action dispatcher (POST) Dispatches Volc-style Action requests with TokenLab Bearer authentication. Real-person validation uses CreateVisualValidateSession and GetVisualValidateResult with Version=2024-01-01; these actions are POST-only.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -4702,12 +4623,59 @@
               "CreateContentsGenerationsTasks",
               "GetContentsGenerationsTask",
               "ListContentsGenerationsTasks",
-              "DeleteContentsGenerationsTasks"
+              "DeleteContentsGenerationsTasks",
+              "CreateVisualValidateSession",
+              "GetVisualValidateResult"
             ]
           },
           "Version": {
             "type": "string",
             "default": "2024-01-01"
+          },
+          "body": {
+            "anyOf": [
+              {
+                "type": "object",
+                "required": [
+                  "CallbackURL"
+                ],
+                "properties": {
+                  "CallbackURL": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Public HTTPS URL opened by the H5 flow after validation. Official callback query names are preserved."
+                  },
+                  "ProjectName": {
+                    "type": "string",
+                    "default": "default",
+                    "description": "Case-sensitive project name. Omit to use default."
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "required": [
+                  "BytedToken"
+                ],
+                "properties": {
+                  "BytedToken": {
+                    "type": "string",
+                    "description": "Opaque token returned by CreateVisualValidateSession. It is valid for 30 minutes and scoped to the authenticated organization, actor, and ProjectName."
+                  },
+                  "ProjectName": {
+                    "type": "string",
+                    "default": "default",
+                    "description": "Must match the ProjectName used to create the token."
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "additionalProperties": true
+              }
+            ]
           }
         },
         "additionalProperties": false
@@ -4719,7 +4687,9 @@
           "Version"
         ],
         "header": [],
-        "body": [],
+        "body": [
+          "body"
+        ],
         "files": []
       },
       "annotations": {
@@ -5640,6 +5610,63 @@
       }
     },
     {
+      "name": "get_visual_validate_result",
+      "title": "Get visual validation result",
+      "operation_id": "dispatchVolcCompatibleSeedanceActionPost",
+      "method": "POST",
+      "path": "/api/v3",
+      "content_type": "application/json",
+      "auth": "required",
+      "tags": [
+        "Seedance Volc Compatible"
+      ],
+      "profiles": [
+        "full"
+      ],
+      "description": "Get the mapped real-person material GroupId through the Volc-compatible Action API after the H5 validation succeeds. The operation returns the official ResponseMetadata and Result shape.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "BytedToken": {
+            "type": "string",
+            "description": "Opaque token returned by CreateVisualValidateSession. It is valid for 30 minutes and scoped to the authenticated organization, actor, and ProjectName."
+          },
+          "ProjectName": {
+            "type": "string",
+            "default": "default",
+            "description": "Must match the ProjectName used to create the token."
+          }
+        },
+        "required": [
+          "BytedToken"
+        ],
+        "additionalProperties": false
+      },
+      "bindings": {
+        "path": [],
+        "query": [
+          "Action",
+          "Version"
+        ],
+        "header": [],
+        "body": [
+          "BytedToken",
+          "ProjectName"
+        ],
+        "files": []
+      },
+      "default_arguments": {
+        "Action": "GetVisualValidateResult",
+        "Version": "2024-01-01"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
       "name": "get_volc_compatible_seedance_task",
       "title": "Get Seedance task (Volc-compatible)",
       "operation_id": "getVolcCompatibleSeedanceTask",
@@ -6144,7 +6171,7 @@
       "profiles": [
         "full"
       ],
-      "description": "List Seedance material asset groups Lists Seedance material groups owned by the authenticated organization. Real-person groups are returned after a successful verification bind flow.",
+      "description": "List Seedance material asset groups Lists Seedance material groups owned by the authenticated organization. Real-person groups are returned after GetVisualValidateResult succeeds.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -6253,55 +6280,6 @@
           "group_id",
           "status",
           "library_type"
-        ],
-        "header": [],
-        "body": [],
-        "files": []
-      },
-      "annotations": {
-        "readOnlyHint": true,
-        "destructiveHint": false,
-        "idempotentHint": true,
-        "openWorldHint": true
-      }
-    },
-    {
-      "name": "list_seedance_visual_validation_history",
-      "title": "List Seedance real-person verification history",
-      "operation_id": "listSeedanceVisualValidationHistory",
-      "method": "GET",
-      "path": "/v1/videos/assets/visual-validation-sessions",
-      "content_type": null,
-      "auth": "required",
-      "tags": [
-        "Video"
-      ],
-      "profiles": [
-        "full"
-      ],
-      "description": "List Seedance real-person verification history Lists TokenLab real-person material verification history for the authenticated organization. The response contains only TokenLab IDs and session status fields.",
-      "input_schema": {
-        "type": "object",
-        "properties": {
-          "page_size": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 100,
-            "default": 20,
-            "description": "Maximum number of history records to return."
-          },
-          "page_token": {
-            "type": "string",
-            "description": "Pagination token from a previous response."
-          }
-        },
-        "additionalProperties": false
-      },
-      "bindings": {
-        "path": [],
-        "query": [
-          "page_size",
-          "page_token"
         ],
         "header": [],
         "body": [],

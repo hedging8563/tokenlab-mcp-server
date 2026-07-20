@@ -112,6 +112,17 @@ for (const [profileName, profile] of profileEntries) {
     }
   }
 }
+for (const [operationId, variants] of Object.entries(overlay.operation_variants || {})) {
+  if (!operations.has(operationId)) {
+    throw new Error(`MCP operation variants reference an operation missing from OpenAPI: ${operationId}`);
+  }
+  if (!Array.isArray(variants) || variants.length === 0) {
+    throw new Error(`MCP operation variants for ${operationId} must be a non-empty array`);
+  }
+  for (const variant of variants) {
+    if (!variant.tool_name) throw new Error(`MCP operation variant for ${operationId} is missing tool_name`);
+  }
+}
 
 function operationProfiles(operationId, tags) {
   return profileEntries
@@ -136,7 +147,24 @@ function chooseContentTypes(operationId, operation, override) {
   return [available.includes("application/json") ? "application/json" : available[0]];
 }
 
-function buildInputSchema(pathItem, operation, contentType) {
+function requestSchemaForOverride(operationId, media, override) {
+  if (!override.request_schema) return media.schema || { type: "object", additionalProperties: true };
+  if (typeof override.request_schema === "string") {
+    if (!override.request_schema.startsWith("#/")) {
+      throw new Error(`${operationId} request_schema must be a local OpenAPI reference`);
+    }
+    if (!getByPointer(override.request_schema)) {
+      throw new Error(`${operationId} request_schema does not resolve: ${override.request_schema}`);
+    }
+    return { $ref: override.request_schema };
+  }
+  if (typeof override.request_schema !== "object" || Array.isArray(override.request_schema)) {
+    throw new Error(`${operationId} request_schema must be an object or local OpenAPI reference`);
+  }
+  return override.request_schema;
+}
+
+function buildInputSchema(operationId, pathItem, operation, contentType, override) {
   const properties = {};
   const required = [];
   const bindings = { path: [], query: [], header: [], body: [], files: [] };
@@ -156,7 +184,7 @@ function buildInputSchema(pathItem, operation, contentType) {
 
   if (contentType) {
     const media = operation.requestBody.content[contentType];
-    const bodySchema = normalizeSchema(media.schema || { type: "object", additionalProperties: true });
+    const bodySchema = normalizeSchema(requestSchemaForOverride(operationId, media, override));
     if (bodySchema.type === "object" || bodySchema.properties) {
       for (const [name, schema] of Object.entries(bodySchema.properties || {})) {
         if (properties[name]) throw new Error(`MCP argument collision for ${operation.operationId}: ${name}`);
@@ -227,6 +255,41 @@ function applyInputOverrides(schema, bindings, override) {
     }
     schema.properties[name] = { ...schema.properties[name], default: value };
   }
+  for (const [name, value] of Object.entries(override.fixed_arguments || {})) {
+    const property = schema.properties[name];
+    if (!property) throw new Error(`Cannot fix unknown MCP argument: ${name}`);
+    if (Array.isArray(property.enum) && !property.enum.includes(value)) {
+      throw new Error(`Fixed MCP argument ${name} is outside its enum`);
+    }
+    if (Object.hasOwn(property, "const") && property.const !== value) {
+      throw new Error(`Fixed MCP argument ${name} does not match its const value`);
+    }
+    delete schema.properties[name];
+    if (schema.required) schema.required = schema.required.filter((entry) => entry !== name);
+  }
+}
+
+function mergeOperationOverride(base, variant) {
+  return {
+    ...base,
+    ...variant,
+    input_property_overrides: {
+      ...(base.input_property_overrides || {}),
+      ...(variant.input_property_overrides || {})
+    },
+    default_arguments: {
+      ...(base.default_arguments || {}),
+      ...(variant.default_arguments || {})
+    },
+    fixed_arguments: {
+      ...(base.fixed_arguments || {}),
+      ...(variant.fixed_arguments || {})
+    },
+    annotations: {
+      ...(base.annotations || {}),
+      ...(variant.annotations || {})
+    }
+  };
 }
 
 function annotations(method) {
@@ -244,39 +307,49 @@ for (const [operationId, indexed] of operations) {
   const profiles = operationProfiles(operationId, tags);
   if (profiles.length === 0) continue;
 
-  const override = overlay.operation_overrides[operationId] || {};
-  const contentTypes = chooseContentTypes(operationId, indexed.operation, override);
-  for (const contentType of contentTypes) {
-    const suffix = contentTypes.length > 1 && contentType !== "application/json"
-      ? `_${contentType.split("/").at(-1).replace(/[^A-Za-z0-9]+/g, "_")}`
-      : "";
-    const toolName = override.tool_names_by_content_type?.[contentType]
-      || `${override.tool_name || snakeCase(operationId)}${suffix}`;
-    const { schema, bindings } = buildInputSchema(indexed.pathItem, indexed.operation, contentType);
-    applyInputOverrides(schema, bindings, override);
-    const description = [indexed.operation.summary, indexed.operation.description]
-      .filter(Boolean)
-      .join(" ")
-      .replace(/\s+/g, " ")
-      .trim();
+  const baseOverride = overlay.operation_overrides[operationId] || {};
+  const configurations = [
+    baseOverride,
+    ...(overlay.operation_variants?.[operationId] || []).map((variant) => mergeOperationOverride(baseOverride, variant))
+  ];
+  for (const override of configurations) {
+    const contentTypes = chooseContentTypes(operationId, indexed.operation, override);
+    for (const contentType of contentTypes) {
+      const suffix = contentTypes.length > 1 && contentType !== "application/json"
+        ? `_${contentType.split("/").at(-1).replace(/[^A-Za-z0-9]+/g, "_")}`
+        : "";
+      const toolName = override.tool_names_by_content_type?.[contentType]
+        || `${override.tool_name || snakeCase(operationId)}${suffix}`;
+      const { schema, bindings } = buildInputSchema(operationId, indexed.pathItem, indexed.operation, contentType, override);
+      applyInputOverrides(schema, bindings, override);
+      const description = override.description || [indexed.operation.summary, indexed.operation.description]
+        .filter(Boolean)
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim();
+      const defaultArguments = {
+        ...(override.default_arguments || {}),
+        ...(override.fixed_arguments || {})
+      };
 
-    tools.push({
-      name: toolName,
-      title: indexed.operation.summary?.replace(/\s+/g, " ").trim() || toolName,
-      operation_id: operationId,
-      method: indexed.method,
-      path: indexed.path,
-      content_type: contentType,
-      auth: publicAuth.has(operationId) ? "optional" : "required",
-      tags,
-      profiles,
-      description,
-      input_schema: schema,
-      bindings,
-      ...(override.default_arguments ? { default_arguments: override.default_arguments } : {}),
-      annotations: { ...annotations(indexed.method), ...(override.annotations || {}) },
-      ...(override.task ? { task: override.task } : {})
-    });
+      tools.push({
+        name: toolName,
+        title: override.title || indexed.operation.summary?.replace(/\s+/g, " ").trim() || toolName,
+        operation_id: operationId,
+        method: indexed.method,
+        path: indexed.path,
+        content_type: contentType,
+        auth: publicAuth.has(operationId) ? "optional" : "required",
+        tags,
+        profiles,
+        description,
+        input_schema: schema,
+        bindings,
+        ...(Object.keys(defaultArguments).length > 0 ? { default_arguments: defaultArguments } : {}),
+        annotations: { ...annotations(indexed.method), ...(override.annotations || {}) },
+        ...(override.task ? { task: override.task } : {})
+      });
+    }
   }
 }
 

@@ -127,6 +127,33 @@ test("advertises exactly the generated profile plus composite discovery tools", 
   assert.equal(byName.list_models.input_schema.properties.view.default, "compact");
   assert.deepEqual(byName.list_models.default_arguments, { view: "compact" });
   assert.deepEqual(byName.list_models.bindings.query, ["provider", "tag", "category", "recommended_for", "view"]);
+  for (const oldTool of [
+    "create_seedance_visual_validation_session",
+    "bind_seedance_visual_validation_result",
+    "list_seedance_visual_validation_history"
+  ]) {
+    assert.equal(byName[oldTool], undefined, `${oldTool} must be removed with the retired v1 contract`);
+  }
+  assert.deepEqual(byName.create_visual_validate_session.default_arguments, {
+    Action: "CreateVisualValidateSession",
+    Version: "2024-01-01"
+  });
+  assert.deepEqual(byName.create_visual_validate_session.bindings, {
+    path: [],
+    query: ["Action", "Version"],
+    header: [],
+    body: ["CallbackURL", "ProjectName"],
+    files: []
+  });
+  assert.deepEqual(Object.keys(byName.create_visual_validate_session.input_schema.properties), ["CallbackURL", "ProjectName"]);
+  assert.deepEqual(byName.create_visual_validate_session.input_schema.required, ["CallbackURL"]);
+  assert.deepEqual(byName.get_visual_validate_result.default_arguments, {
+    Action: "GetVisualValidateResult",
+    Version: "2024-01-01"
+  });
+  assert.deepEqual(Object.keys(byName.get_visual_validate_result.input_schema.properties), ["BytedToken", "ProjectName"]);
+  assert.deepEqual(byName.get_visual_validate_result.input_schema.required, ["BytedToken"]);
+  assert.equal(byName.get_visual_validate_result.annotations.idempotentHint, true);
   assert.equal(byName.create_gemini_content.input_schema.properties.key, undefined);
   for (const name of ["create_chat_completion", "create_response", "create_anthropic_message", "create_image", "edit_image"]) {
     assert.equal(byName[name].input_schema.properties.stream.const, false, `${name} must remain non-streaming in MCP`);
@@ -302,6 +329,53 @@ test("forwards generated JSON tools to their canonical public endpoints", async 
   assert.equal(api.requests[0].body.stream, false);
   assert.equal(api.requests[1].body.messages[0].content, "Hello");
   assert.equal(api.requests[2].body.contents[0].parts[0].text, "Hello");
+});
+
+test("forwards official-shape visual validation Action tools", async (t) => {
+  const api = await startMockApi(t);
+  const client = await startMcpClient(t, {
+    TOKENLAB_API_BASE: api.baseUrl,
+    TOKENLAB_API_KEY: "test-key",
+    TOKENLAB_MCP_TOOL_PROFILE: "full"
+  });
+
+  await client.callTool({
+    name: "create_visual_validate_session",
+    arguments: {
+      CallbackURL: "https://example.com/visual-validation/callback",
+      ProjectName: "default"
+    }
+  });
+  await client.callTool({
+    name: "get_visual_validate_result",
+    arguments: {
+      BytedToken: "opaque-byted-token",
+      ProjectName: "default"
+    }
+  });
+
+  assert.deepEqual(api.requests.map((request) => ({
+    method: request.method,
+    url: request.url,
+    body: request.body
+  })), [
+    {
+      method: "POST",
+      url: "/api/v3?Action=CreateVisualValidateSession&Version=2024-01-01",
+      body: {
+        CallbackURL: "https://example.com/visual-validation/callback",
+        ProjectName: "default"
+      }
+    },
+    {
+      method: "POST",
+      url: "/api/v3?Action=GetVisualValidateResult&Version=2024-01-01",
+      body: {
+        BytedToken: "opaque-byted-token",
+        ProjectName: "default"
+      }
+    }
+  ]);
 });
 
 test("returns structured JSON and response request metadata", async (t) => {

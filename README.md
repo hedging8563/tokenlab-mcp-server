@@ -10,15 +10,15 @@ It exposes public catalog tools for agents that need to choose models, inspect s
 
 ## Generated Tool Profiles
 
-The checked-in `generated/tools.json` manifest is generated from TokenLab's public OpenAPI document plus the small MCP-only overlay in `contract/mcp-overlay.json`. Version 0.6.7 generates 76 endpoint tools; two composite discovery tools are registered at runtime.
+The checked-in `generated/tools.json` manifest is generated from TokenLab's public OpenAPI document plus the small MCP-only overlay in `contract/mcp-overlay.json`. Version 0.6.8 generates 75 endpoint tools; two composite discovery tools are registered at runtime.
 
 | Profile | Endpoint tools | Coverage |
 | --- | ---: | --- |
 | `catalog` | 4 | Public model discovery and pricing only; no API key required |
 | `core` (default) | 29 | Catalog and pricing; Chat Completions, Responses, Anthropic Messages, Gemini generateContent; images, video, music, 3D, speech and transcription; async tasks; files; embeddings, rerank, and translation |
-| `full` | 76 | Every allowlisted developer API operation in the checked-in OpenAPI snapshot, including core plus response lifecycle, batches, worlds, and native model discovery |
+| `full` | 75 | Every allowlisted developer API operation in the checked-in OpenAPI snapshot, including core plus response lifecycle, batches, worlds, and native model discovery |
 
-All profiles also include `compare_models` and `get_api_overview`, producing totals of 6, 31, and 78 tools. Realtime and streaming-only operations are excluded because stdio MCP tool calls return one final result. API operations that accept `stream` constrain it to `false` in the MCP overlay, and the Gemini query-string API key is intentionally hidden from tool arguments.
+All profiles also include `compare_models` and `get_api_overview`, producing totals of 6, 31, and 77 tools. Realtime and streaming-only operations are excluded because stdio MCP tool calls return one final result. API operations that accept `stream` constrain it to `false` in the MCP overlay, and the Gemini query-string API key is intentionally hidden from tool arguments.
 
 Set `TOKENLAB_MCP_TOOL_PROFILE=catalog` for the smallest public-only tool list or `TOKENLAB_MCP_TOOL_PROFILE=full` for the broad developer API. Tool names, descriptions, input JSON Schemas, HTTP bindings, content types, auth requirements, and task behavior can be inspected in [`generated/tools.json`](./generated/tools.json).
 
@@ -126,7 +126,7 @@ This repository includes `server.json` for the official MCP Registry.
 
 Release metadata:
 
-- npm package: `@tokenlabai/mcp-server@0.6.7`
+- npm package: `@tokenlabai/mcp-server@0.6.8`
 - MCP registry name: `io.github.hedging8563/tokenlab`
 - `package.json.mcpName`: `io.github.hedging8563/tokenlab`
 

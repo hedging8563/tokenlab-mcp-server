@@ -5,7 +5,7 @@
     "id": "tokenlab-mcp-server",
     "name": "@tokenlabai/mcp-server",
     "title": "TokenLab MCP Server",
-    "version": "0.6.7",
+    "version": "0.6.8",
     "registry_name": "io.github.hedging8563/tokenlab",
     "source_url": "https://github.com/hedging8563/tokenlab-mcp-server",
     "landing_url": "https://tokenlab.sh/mcp",
@@ -25,8 +25,8 @@
     "openapi": "3.0.3",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "b97e2566a0ee162a76bf3036e53e124cc7555d0efe51bd38e17894baf7124152",
-    "tool_manifest_sha256": "020115866467dcabae35643182b950b59ec533eb6346e887ec5046cf2d021423"
+    "sha256": "66bfd771665f51aca0bd8a16cdec7c63712b529c4ff009d2b29cfdbb173e2602",
+    "tool_manifest_sha256": "c0ff1a3dfd194349349c2135ef26ff3b0e6631a4c2cb76a15898659298419a6c"
   },
   "profiles": {
     "catalog": {
@@ -84,11 +84,10 @@
     },
     "full": {
       "is_default": false,
-      "endpoint_tools": 76,
+      "endpoint_tools": 75,
       "composite_tools": 2,
-      "total_tools": 78,
+      "total_tools": 77,
       "tool_names": [
-        "bind_seedance_visual_validation_result",
         "cancel_anthropic_message_batch",
         "cancel_batch",
         "cancel_task",
@@ -110,9 +109,9 @@
         "create_response",
         "create_seedance_material_asset",
         "create_seedance_material_asset_group",
-        "create_seedance_visual_validation_session",
         "create_speech",
         "create_video",
+        "create_visual_validate_session",
         "create_volc_compatible_seedance_task",
         "create_world",
         "delete_anthropic_message_batch",
@@ -138,6 +137,7 @@
         "get_seedance_material_asset_group",
         "get_task_status",
         "get_video_task",
+        "get_visual_validate_result",
         "get_volc_compatible_seedance_task",
         "get_world",
         "get_world_media_asset",
@@ -149,7 +149,6 @@
         "list_models",
         "list_seedance_material_asset_groups",
         "list_seedance_material_assets",
-        "list_seedance_visual_validation_history",
         "list_volc_compatible_seedance_tasks",
         "list_worlds",
         "prepare_world_media_asset_upload",
