@@ -6,7 +6,7 @@
     "openapi": "3.0.3",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "d80d3da097ea6ba040e1ab85d00d95160f109ded7f2725e002f6dc86081dc812"
+    "sha256": "b97e2566a0ee162a76bf3036e53e124cc7555d0efe51bd38e17894baf7124152"
   },
   "default_profile": "core",
   "profiles": [
@@ -3484,7 +3484,7 @@
           "image_url": {
             "type": "string",
             "format": "uri",
-            "description": "Publicly reachable image URL for image-to-video generation. Preferred over inline base64 in production. When the selected Seedance model can use the TokenLab material library, TokenLab prepares this image input as a reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path."
+            "description": "Publicly reachable image URL for image-to-video generation, or asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab Seedance material used as the first frame. Preferred over inline base64 in production. TokenLab verifies material ownership. When the selected Seedance model can use the TokenLab material library, TokenLab prepares ordinary image input as a reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path."
           },
           "video_url": {
             "type": "string",
@@ -3554,11 +3554,11 @@
           },
           "start_image": {
             "type": "string",
-            "description": "First frame image input for start-end-to-video flows. When the selected Seedance model can use the TokenLab material library, TokenLab prepares this image input as a reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path."
+            "description": "First frame image input for start-end-to-video flows. Seedance accepts a public image reference or asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab material owned by the requesting organization. When the selected Seedance model can use the TokenLab material library, TokenLab prepares ordinary image input as a reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path."
           },
           "end_image": {
             "type": "string",
-            "description": "Last frame image input for start-end-to-video flows. When the selected Seedance model can use the TokenLab material library, TokenLab prepares this image input as a reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path."
+            "description": "Last frame image input for start-end-to-video flows. Seedance accepts a public image reference or asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab material owned by the requesting organization. When the selected Seedance model can use the TokenLab material library, TokenLab prepares ordinary image input as a reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path."
           },
           "user": {
             "type": "string",
@@ -3614,7 +3614,7 @@
           },
           "reference_images": {
             "type": "array",
-            "description": "Canonical public reference-image field for reference-to-video conditioning. This endpoint currently allows up to 9 URLs or compatible data URLs; model-specific limits can be lower. xAI grok-imagine-video accepts up to 7 image references with duration capped at 10 seconds; grok-imagine-video-1.5 and grok-imagine-video-1.5-preview are image-to-video only and do not accept reference images. When the selected Seedance model can use the TokenLab material library, TokenLab prepares this image input as reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path.",
+            "description": "Canonical public reference-image field for reference-to-video conditioning. This endpoint currently allows up to 9 URLs, compatible data URLs, or for Seedance, asset://asset-YYYYMMDDHHMMSS-xxxxx URIs for ACTIVE TokenLab materials owned by the requesting organization; model-specific limits can be lower. xAI grok-imagine-video accepts up to 7 image references with duration capped at 10 seconds; grok-imagine-video-1.5 and grok-imagine-video-1.5-preview are image-to-video only and do not accept reference images. When the selected Seedance model can use the TokenLab material library, TokenLab prepares ordinary image input as reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path.",
             "minItems": 1,
             "maxItems": 9,
             "items": {
@@ -3623,7 +3623,7 @@
           },
           "material_asset_id": {
             "type": "string",
-            "description": "TokenLab Seedance material asset ID returned by /v1/videos/assets, by automatic image preparation, or by a real-person verification bind flow. Use it after the asset is ACTIVE with Seedance models that can use the TokenLab material library. The asset must belong to the current account."
+            "description": "TokenLab Seedance material asset ID returned by /v1/videos/assets, by automatic image preparation, or by a real-person verification bind flow. Use it after the asset is ACTIVE with Seedance models that can use the TokenLab material library. The asset must belong to the current account. This field is a generic reference input; to assign first-frame, last-frame, or reference-image semantics explicitly, put asset://<material_asset_id> in start_image, end_image, or reference_images."
           },
           "material_asset_ids": {
             "type": "array",
@@ -3927,7 +3927,7 @@
                       "additionalProperties": true
                     }
                   ],
-                  "description": "Image URL. The object form {\"url\":\"https://...\"} matches the official request shape; a plain string is accepted for convenience."
+                  "description": "Image reference. The object form {\"url\":\"https://...\"} matches the official request shape; a plain string is accepted for convenience. TokenLab also accepts asset://asset-YYYYMMDDHHMMSS-xxxxx URIs for ACTIVE materials owned by the requesting organization, and preserves the item's first_frame, last_frame, or reference_image role."
                 },
                 "video_url": {
                   "oneOf": [
@@ -3996,6 +3996,12 @@
               },
               "additionalProperties": true
             }
+          },
+          "material_asset_id": {
+            "type": "string",
+            "pattern": "^asset-\\d{14}-[a-z0-9]{5}$",
+            "maxLength": 128,
+            "description": "TokenLab compatibility shorthand for one ACTIVE Seedance material owned by the requesting organization. It is treated as the first frame and cannot be combined with other media inputs. For multiple materials, use content image_url items with explicit roles; top-level material_asset_ids is rejected as ambiguous."
           },
           "ratio": {
             "type": "string",
@@ -4112,6 +4118,7 @@
         "body": [
           "model",
           "content",
+          "material_asset_id",
           "ratio",
           "duration",
           "resolution",
