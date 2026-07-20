@@ -6,7 +6,7 @@
     "openapi": "3.0.3",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "66bfd771665f51aca0bd8a16cdec7c63712b529c4ff009d2b29cfdbb173e2602"
+    "sha256": "ca3a4d2897ad8a71e44194b629170678ce31ee678379617b2a4018fbff9ce900"
   },
   "default_profile": "core",
   "profiles": [
@@ -905,7 +905,7 @@
                   }
                 }
               },
-              "additionalProperties": false
+              "additionalProperties": true
             }
           }
         },
@@ -4304,6 +4304,10 @@
           "file_id": {
             "type": "string",
             "description": "File ID returned by the Files API."
+          },
+          "anthropic-beta": {
+            "type": "string",
+            "description": "Include files-api-2025-04-14 to use Anthropic Files API mode."
           }
         },
         "required": [
@@ -4316,7 +4320,9 @@
           "file_id"
         ],
         "query": [],
-        "header": [],
+        "header": [
+          "anthropic-beta"
+        ],
         "body": [],
         "files": []
       },
@@ -5888,7 +5894,8 @@
           "limit": {
             "type": "integer",
             "minimum": 1,
-            "maximum": 100,
+            "maximum": 1000,
+            "default": 20,
             "description": "Maximum number of batches to return"
           }
         },
@@ -5980,10 +5987,23 @@
           "limit": {
             "type": "integer",
             "minimum": 1,
-            "maximum": 100
+            "maximum": 1000,
+            "default": 20
           },
           "after": {
             "type": "string"
+          },
+          "after_id": {
+            "type": "string",
+            "description": "Anthropic Files cursor. Return files after this public file id. Requires the Anthropic Files beta header and cannot be combined with before_id."
+          },
+          "before_id": {
+            "type": "string",
+            "description": "Anthropic Files cursor. Return files before this public file id. Requires the Anthropic Files beta header and cannot be combined with after_id."
+          },
+          "scope_id": {
+            "type": "string",
+            "description": "Reserved Anthropic Files scope cursor. TokenLab currently returns an explicit unsupported error rather than silently ignoring this value."
           },
           "purpose": {
             "type": "string",
@@ -5994,6 +6014,10 @@
               "vision"
             ],
             "description": "Optional file purpose filter. batch and batch_output cover Batch API files; user_data and vision cover TokenLab image/reference file bindings. Anthropic Files API mode is selected by Anthropic headers rather than this query parameter."
+          },
+          "anthropic-beta": {
+            "type": "string",
+            "description": "Include files-api-2025-04-14 to use Anthropic Files API mode."
           }
         },
         "additionalProperties": false
@@ -6003,9 +6027,14 @@
         "query": [
           "limit",
           "after",
+          "after_id",
+          "before_id",
+          "scope_id",
           "purpose"
         ],
-        "header": [],
+        "header": [
+          "anthropic-beta"
+        ],
         "body": [],
         "files": []
       },
@@ -6828,6 +6857,10 @@
         "properties": {
           "file_id": {
             "type": "string"
+          },
+          "anthropic-beta": {
+            "type": "string",
+            "description": "Include files-api-2025-04-14 to use Anthropic Files API mode."
           }
         },
         "required": [
@@ -6840,7 +6873,9 @@
           "file_id"
         ],
         "query": [],
-        "header": [],
+        "header": [
+          "anthropic-beta"
+        ],
         "body": [],
         "files": []
       },
@@ -7339,10 +7374,14 @@
         "core",
         "full"
       ],
-      "description": "Upload file Uploads a JSONL batch input file or an image input file that can be referenced by file_id in supported image edit requests.",
+      "description": "Upload file Uploads a TokenLab/OpenAI-compatible batch or image file. With anthropic-beta: files-api-2025-04-14, uploads an Anthropic Files resource without a purpose field and returns Anthropic file metadata.",
       "input_schema": {
         "type": "object",
         "properties": {
+          "anthropic-beta": {
+            "type": "string",
+            "description": "Include files-api-2025-04-14 to use Anthropic Files API mode."
+          },
           "file": {
             "type": "string",
             "description": "Pass local file path."
@@ -7354,7 +7393,7 @@
               "user_data",
               "vision"
             ],
-            "description": "Use batch for Batch API JSONL files. Use user_data or vision for image files that will be referenced from image edits."
+            "description": "Required in TokenLab/OpenAI-compatible mode: use batch for Batch API JSONL files, or user_data/vision for image edits. Omit in Anthropic Files mode."
           },
           "model": {
             "type": "string",
@@ -7362,15 +7401,16 @@
           }
         },
         "required": [
-          "file",
-          "purpose"
+          "file"
         ],
         "additionalProperties": false
       },
       "bindings": {
         "path": [],
         "query": [],
-        "header": [],
+        "header": [
+          "anthropic-beta"
+        ],
         "body": [
           "file",
           "purpose",

@@ -1759,7 +1759,8 @@
             "schema": {
               "type": "integer",
               "minimum": 1,
-              "maximum": 100
+              "maximum": 1000,
+              "default": 20
             },
             "description": "Maximum number of batches to return"
           }
@@ -1870,7 +1871,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AnthropicMessageBatch"
+                  "$ref": "#/components/schemas/AnthropicDeletedMessageBatch"
                 }
               }
             }
@@ -3322,8 +3323,19 @@
           "Files"
         ],
         "summary": "Upload file",
-        "description": "Uploads a JSONL batch input file or an image input file that can be referenced by file_id in supported image edit requests.",
+        "description": "Uploads a TokenLab/OpenAI-compatible batch or image file. With anthropic-beta: files-api-2025-04-14, uploads an Anthropic Files resource without a purpose field and returns Anthropic file metadata.",
         "operationId": "uploadFile",
+        "parameters": [
+          {
+            "name": "anthropic-beta",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Include files-api-2025-04-14 to use Anthropic Files API mode."
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -3331,8 +3343,7 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "file",
-                  "purpose"
+                  "file"
                 ],
                 "properties": {
                   "file": {
@@ -3346,7 +3357,7 @@
                       "user_data",
                       "vision"
                     ],
-                    "description": "Use batch for Batch API JSONL files. Use user_data or vision for image files that will be referenced from image edits."
+                    "description": "Required in TokenLab/OpenAI-compatible mode: use batch for Batch API JSONL files, or user_data/vision for image edits. Omit in Anthropic Files mode."
                   },
                   "model": {
                     "type": "string",
@@ -3363,7 +3374,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FileObject"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/FileObject"
+                    },
+                    {
+                      "$ref": "#/components/schemas/AnthropicFileObject"
+                    }
+                  ]
                 }
               }
             }
@@ -3392,7 +3410,8 @@
             "schema": {
               "type": "integer",
               "minimum": 1,
-              "maximum": 100
+              "maximum": 1000,
+              "default": 20
             }
           },
           {
@@ -3401,6 +3420,30 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "after_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Anthropic Files cursor. Return files after this public file id. Requires the Anthropic Files beta header and cannot be combined with before_id."
+          },
+          {
+            "name": "before_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Anthropic Files cursor. Return files before this public file id. Requires the Anthropic Files beta header and cannot be combined with after_id."
+          },
+          {
+            "name": "scope_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Reserved Anthropic Files scope cursor. TokenLab currently returns an explicit unsupported error rather than silently ignoring this value."
           },
           {
             "name": "purpose",
@@ -3415,6 +3458,15 @@
               ]
             },
             "description": "Optional file purpose filter. batch and batch_output cover Batch API files; user_data and vision cover TokenLab image/reference file bindings. Anthropic Files API mode is selected by Anthropic headers rather than this query parameter."
+          },
+          {
+            "name": "anthropic-beta",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Include files-api-2025-04-14 to use Anthropic Files API mode."
           }
         ],
         "responses": {
@@ -3423,7 +3475,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FileListResponse"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/FileListResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/AnthropicFileListResponse"
+                    }
+                  ]
                 }
               }
             }
@@ -3449,6 +3508,15 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "anthropic-beta",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Include files-api-2025-04-14 to use Anthropic Files API mode."
           }
         ],
         "responses": {
@@ -3457,7 +3525,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FileObject"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/FileObject"
+                    },
+                    {
+                      "$ref": "#/components/schemas/AnthropicFileObject"
+                    }
+                  ]
                 }
               }
             }
@@ -3483,6 +3558,15 @@
               "type": "string"
             },
             "description": "File ID returned by the Files API."
+          },
+          {
+            "name": "anthropic-beta",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Include files-api-2025-04-14 to use Anthropic Files API mode."
           }
         ],
         "responses": {
@@ -3491,7 +3575,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FileDeletedObject"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/FileDeletedObject"
+                    },
+                    {
+                      "$ref": "#/components/schemas/AnthropicDeletedFile"
+                    }
+                  ]
                 }
               }
             }
@@ -8557,6 +8648,7 @@
                   "unauthorized",
                   "invalid_api_key",
                   "expired_api_key",
+                  "permission_error",
                   "insufficient_balance",
                   "quota_exceeded",
                   "invalid_request_error",
@@ -10132,6 +10224,118 @@
           }
         }
       },
+      "AnthropicFileObject": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "filename",
+          "mime_type",
+          "size_bytes",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "file_01ABC123"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "file"
+            ]
+          },
+          "filename": {
+            "type": "string"
+          },
+          "mime_type": {
+            "type": "string"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "downloadable": {
+            "type": "boolean"
+          },
+          "scope": {
+            "type": "object",
+            "nullable": true,
+            "required": [
+              "id",
+              "type"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "session"
+                ]
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "AnthropicFileListResponse": {
+        "type": "object",
+        "required": [
+          "data",
+          "first_id",
+          "last_id",
+          "has_more"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AnthropicFileObject"
+            }
+          },
+          "first_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "last_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "has_more": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": true
+      },
+      "AnthropicDeletedFile": {
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "file_deleted"
+            ]
+          }
+        },
+        "additionalProperties": true
+      },
       "BatchRequestCounts": {
         "type": "object",
         "required": [
@@ -10741,18 +10945,26 @@
                   "$ref": "#/components/schemas/AnthropicMessagesRequest"
                 }
               },
-              "additionalProperties": false
+              "additionalProperties": true
             }
           }
         },
-        "additionalProperties": false
+        "additionalProperties": true
       },
       "AnthropicMessageBatch": {
         "type": "object",
         "description": "Anthropic-compatible message batch object relayed from the provider.",
         "required": [
           "id",
-          "type"
+          "type",
+          "processing_status",
+          "request_counts",
+          "ended_at",
+          "created_at",
+          "expires_at",
+          "cancel_initiated_at",
+          "archived_at",
+          "results_url"
         ],
         "properties": {
           "id": {
@@ -10789,6 +11001,16 @@
             "type": "string",
             "description": "ISO timestamp when the batch expires, when available"
           },
+          "cancel_initiated_at": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO timestamp when cancellation was initiated, when available"
+          },
+          "archived_at": {
+            "type": "string",
+            "nullable": true,
+            "description": "ISO timestamp when the batch was archived, when available"
+          },
           "results_url": {
             "type": "string",
             "nullable": true,
@@ -10797,8 +11019,34 @@
         },
         "additionalProperties": true
       },
+      "AnthropicDeletedMessageBatch": {
+        "type": "object",
+        "required": [
+          "id",
+          "type"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Deleted Message Batch identifier"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "message_batch_deleted"
+            ]
+          }
+        },
+        "additionalProperties": true
+      },
       "AnthropicMessageBatchListResponse": {
         "type": "object",
+        "required": [
+          "data",
+          "has_more",
+          "first_id",
+          "last_id"
+        ],
         "properties": {
           "data": {
             "type": "array",
