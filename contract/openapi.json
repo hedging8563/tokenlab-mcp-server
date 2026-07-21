@@ -977,6 +977,18 @@
               ]
             },
             "description": "Filter by material library class."
+          },
+          {
+            "name": "project_name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "default": "default"
+            },
+            "description": "Project scope for the material resource."
           }
         ],
         "responses": {
@@ -1042,6 +1054,18 @@
               "type": "string"
             },
             "example": "asset-20260720123456-qn7wr"
+          },
+          {
+            "name": "project_name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "default": "default"
+            },
+            "description": "Project scope for the material resource."
           }
         ],
         "responses": {
@@ -1193,6 +1217,18 @@
               "type": "string"
             },
             "example": "asset-20260720123456-qn7wr"
+          },
+          {
+            "name": "project_name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "default": "default"
+            },
+            "description": "Project scope for the material resource."
           }
         ],
         "responses": {
@@ -5538,6 +5574,18 @@
               ]
             },
             "description": "Filter by TokenLab material library class."
+          },
+          {
+            "name": "project_name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "default": "default"
+            },
+            "description": "Project scope for the material resource."
           }
         ],
         "responses": {
@@ -5610,6 +5658,18 @@
               "type": "string"
             },
             "example": "group-20260720123456-vrt01"
+          },
+          {
+            "name": "project_name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "default": "default"
+            },
+            "description": "Project scope for the material resource."
           }
         ],
         "responses": {
@@ -5748,6 +5808,18 @@
               "type": "string"
             },
             "example": "group-20260720123456-vrt01"
+          },
+          {
+            "name": "project_name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "default": "default"
+            },
+            "description": "Project scope for the material resource."
           }
         ],
         "responses": {
@@ -6192,7 +6264,7 @@
           "Seedance Volc Compatible"
         ],
         "summary": "Seedance Action dispatcher (POST)",
-        "description": "Dispatches Volc-style Action requests with TokenLab Bearer authentication. Real-person validation uses CreateVisualValidateSession and GetVisualValidateResult with Version=2024-01-01; these actions are POST-only.",
+        "description": "Dispatches Volc-style Action requests with TokenLab Bearer authentication. Real-person validation and material asset Actions use Version=2024-01-01 and are POST-only. The same POST contract is also available at the API root for endpoint-only migration from Volcengine.",
         "operationId": "dispatchVolcCompatibleSeedanceActionPost",
         "parameters": [
           {
@@ -6207,7 +6279,17 @@
                 "ListContentsGenerationsTasks",
                 "DeleteContentsGenerationsTasks",
                 "CreateVisualValidateSession",
-                "GetVisualValidateResult"
+                "GetVisualValidateResult",
+                "CreateAssetGroup",
+                "ListAssetGroups",
+                "GetAssetGroup",
+                "UpdateAssetGroup",
+                "DeleteAssetGroup",
+                "CreateAsset",
+                "ListAssets",
+                "GetAsset",
+                "UpdateAsset",
+                "DeleteAsset"
               ]
             }
           },
@@ -6234,6 +6316,9 @@
                     "$ref": "#/components/schemas/VolcGetVisualValidateResultRequest"
                   },
                   {
+                    "$ref": "#/components/schemas/VolcMaterialActionRequest"
+                  },
+                  {
                     "type": "object",
                     "additionalProperties": true
                   }
@@ -6244,7 +6329,7 @@
         },
         "responses": {
           "200": {
-            "description": "Action response. Content-generation actions return task JSON; real-person validation actions return the official ResponseMetadata + Result envelope.",
+            "description": "Action response. Content-generation actions return task JSON; real-person validation and material asset actions return the official ResponseMetadata + Result envelope.",
             "content": {
               "application/json": {
                 "schema": {
@@ -6263,6 +6348,9 @@
                     },
                     {
                       "$ref": "#/components/schemas/VolcGetVisualValidateResultResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/VolcMaterialActionResponse"
                     }
                   ]
                 }
@@ -8281,6 +8369,13 @@
             "type": "string",
             "description": "TokenLab material group ID. Required for liveness_face materials; optional for aigc_avatar."
           },
+          "project_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "default": "default",
+            "description": "Project scope for the material asset. Assets and groups are isolated by project inside the authenticated organization."
+          },
           "metadata": {
             "type": "object",
             "nullable": true,
@@ -8315,6 +8410,10 @@
             "type": "string",
             "nullable": true,
             "description": "TokenLab material group ID that owns this material asset."
+          },
+          "project_name": {
+            "type": "string",
+            "description": "Project scope for this material asset."
           },
           "library_type": {
             "type": "string",
@@ -8360,6 +8459,10 @@
           "created_at": {
             "type": "integer",
             "description": "Unix timestamp when the material asset record was created."
+          },
+          "updated_at": {
+            "type": "integer",
+            "description": "Unix timestamp when the material asset record was last updated."
           }
         }
       },
@@ -11783,6 +11886,13 @@
             "default": "aigc_avatar",
             "description": "Material library class. Direct creation supports aigc_avatar. Create liveness_face groups through CreateVisualValidateSession followed by GetVisualValidateResult."
           },
+          "project_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "default": "default",
+            "description": "Project scope for the material group."
+          },
           "metadata": {
             "type": "object",
             "nullable": true,
@@ -11802,6 +11912,12 @@
             "type": "string",
             "nullable": true,
             "maxLength": 500
+          },
+          "project_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "default": "default"
           },
           "metadata": {
             "type": "object",
@@ -11836,6 +11952,10 @@
               "liveness_face"
             ]
           },
+          "project_name": {
+            "type": "string",
+            "description": "Project scope for this material group."
+          },
           "group_name": {
             "type": "string",
             "nullable": true
@@ -11853,6 +11973,10 @@
             "additionalProperties": true
           },
           "created_at": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "updated_at": {
             "type": "integer",
             "format": "int64"
           }
@@ -11898,6 +12022,12 @@
               "Video",
               "Audio"
             ]
+          },
+          "project_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "default": "default"
           },
           "metadata": {
             "type": "object",
@@ -12887,6 +13017,186 @@
               }
             },
             "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "VolcMaterialActionRequest": {
+        "type": "object",
+        "description": "PascalCase request body for the material Action selected by the Action query parameter. Required fields depend on the selected Action.",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "description": "Asset or Asset Group identifier for get, update, and delete Actions."
+          },
+          "Name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "Description": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "GroupType": {
+            "type": "string",
+            "enum": [
+              "AIGC",
+              "LivenessFace"
+            ]
+          },
+          "GroupId": {
+            "type": "string"
+          },
+          "URL": {
+            "type": "string",
+            "format": "uri"
+          },
+          "AssetType": {
+            "type": "string",
+            "enum": [
+              "Image",
+              "Video",
+              "Audio"
+            ]
+          },
+          "Filter": {
+            "type": "object",
+            "properties": {
+              "GroupIds": {
+                "type": "array",
+                "maxItems": 100,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "GroupType": {
+                "type": "string",
+                "enum": [
+                  "AIGC",
+                  "LivenessFace"
+                ]
+              },
+              "Statuses": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "Active",
+                    "Processing",
+                    "Failed"
+                  ]
+                }
+              },
+              "Name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 64
+              }
+            },
+            "additionalProperties": false
+          },
+          "PageNumber": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1
+          },
+          "PageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 10
+          },
+          "SortBy": {
+            "type": "string",
+            "enum": [
+              "CreateTime",
+              "UpdateTime",
+              "GroupId"
+            ],
+            "default": "CreateTime"
+          },
+          "SortOrder": {
+            "type": "string",
+            "enum": [
+              "Desc",
+              "Asc"
+            ],
+            "default": "Desc"
+          },
+          "ProjectName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "default": "default",
+            "description": "Project isolation scope within the authenticated organization."
+          }
+        },
+        "additionalProperties": false
+      },
+      "VolcMaterialResponseMetadata": {
+        "type": "object",
+        "required": [
+          "RequestId",
+          "Action",
+          "Version",
+          "Service",
+          "Region"
+        ],
+        "properties": {
+          "RequestId": {
+            "type": "string"
+          },
+          "Action": {
+            "type": "string",
+            "enum": [
+              "CreateAssetGroup",
+              "ListAssetGroups",
+              "GetAssetGroup",
+              "UpdateAssetGroup",
+              "DeleteAssetGroup",
+              "CreateAsset",
+              "ListAssets",
+              "GetAsset",
+              "UpdateAsset",
+              "DeleteAsset"
+            ]
+          },
+          "Version": {
+            "type": "string",
+            "enum": [
+              "2024-01-01"
+            ]
+          },
+          "Service": {
+            "type": "string",
+            "enum": [
+              "ark"
+            ]
+          },
+          "Region": {
+            "type": "string",
+            "enum": [
+              "cn-beijing"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "VolcMaterialActionResponse": {
+        "type": "object",
+        "required": [
+          "ResponseMetadata",
+          "Result"
+        ],
+        "properties": {
+          "ResponseMetadata": {
+            "$ref": "#/components/schemas/VolcMaterialResponseMetadata"
+          },
+          "Result": {
+            "type": "object",
+            "description": "Action-dependent result. List Actions return Items, TotalCount, PageNumber, and PageSize; create and update Actions return Id; delete Actions return an empty object.",
+            "additionalProperties": true
           }
         },
         "additionalProperties": false

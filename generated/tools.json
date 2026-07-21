@@ -6,7 +6,7 @@
     "openapi": "3.0.3",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "ca3a4d2897ad8a71e44194b629170678ce31ee678379617b2a4018fbff9ce900"
+    "sha256": "40661266d5b182d7a9f829ae480a1c86d5f141c2b75b25f40ba4bfdf50a42c08"
   },
   "default_profile": "core",
   "profiles": [
@@ -3059,6 +3059,13 @@
             "type": "string",
             "description": "TokenLab material group ID. Required for liveness_face materials; optional for aigc_avatar."
           },
+          "project_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "default": "default",
+            "description": "Project scope for the material asset. Assets and groups are isolated by project inside the authenticated organization."
+          },
           "metadata": {
             "anyOf": [
               {
@@ -3087,6 +3094,7 @@
           "asset_type",
           "library_type",
           "group_id",
+          "project_name",
           "metadata"
         ],
         "files": []
@@ -3142,6 +3150,13 @@
             "default": "aigc_avatar",
             "description": "Material library class. Direct creation supports aigc_avatar. Create liveness_face groups through CreateVisualValidateSession followed by GetVisualValidateResult."
           },
+          "project_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "default": "default",
+            "description": "Project scope for the material group."
+          },
           "metadata": {
             "anyOf": [
               {
@@ -3164,6 +3179,7 @@
           "group_name",
           "description",
           "library_type",
+          "project_name",
           "metadata"
         ],
         "files": []
@@ -4397,6 +4413,13 @@
         "properties": {
           "assetId": {
             "type": "string"
+          },
+          "project_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "default": "default",
+            "description": "Project scope for the material resource."
           }
         },
         "required": [
@@ -4408,7 +4431,9 @@
         "path": [
           "assetId"
         ],
-        "query": [],
+        "query": [
+          "project_name"
+        ],
         "header": [],
         "body": [],
         "files": []
@@ -4440,6 +4465,13 @@
         "properties": {
           "groupId": {
             "type": "string"
+          },
+          "project_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "default": "default",
+            "description": "Project scope for the material resource."
           }
         },
         "required": [
@@ -4451,7 +4483,9 @@
         "path": [
           "groupId"
         ],
-        "query": [],
+        "query": [
+          "project_name"
+        ],
         "header": [],
         "body": [],
         "files": []
@@ -4619,7 +4653,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Seedance Action dispatcher (POST) Dispatches Volc-style Action requests with TokenLab Bearer authentication. Real-person validation uses CreateVisualValidateSession and GetVisualValidateResult with Version=2024-01-01; these actions are POST-only.",
+      "description": "Seedance Action dispatcher (POST) Dispatches Volc-style Action requests with TokenLab Bearer authentication. Real-person validation and material asset Actions use Version=2024-01-01 and are POST-only. The same POST contract is also available at the API root for endpoint-only migration from Volcengine.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -4631,7 +4665,17 @@
               "ListContentsGenerationsTasks",
               "DeleteContentsGenerationsTasks",
               "CreateVisualValidateSession",
-              "GetVisualValidateResult"
+              "GetVisualValidateResult",
+              "CreateAssetGroup",
+              "ListAssetGroups",
+              "GetAssetGroup",
+              "UpdateAssetGroup",
+              "DeleteAssetGroup",
+              "CreateAsset",
+              "ListAssets",
+              "GetAsset",
+              "UpdateAsset",
+              "DeleteAsset"
             ]
           },
           "Version": {
@@ -4673,6 +4717,119 @@
                     "type": "string",
                     "default": "default",
                     "description": "Must match the ProjectName used to create the token."
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "description": "PascalCase request body for the material Action selected by the Action query parameter. Required fields depend on the selected Action.",
+                "properties": {
+                  "Id": {
+                    "type": "string",
+                    "description": "Asset or Asset Group identifier for get, update, and delete Actions."
+                  },
+                  "Name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "Description": {
+                    "type": "string",
+                    "maxLength": 300
+                  },
+                  "GroupType": {
+                    "type": "string",
+                    "enum": [
+                      "AIGC",
+                      "LivenessFace"
+                    ]
+                  },
+                  "GroupId": {
+                    "type": "string"
+                  },
+                  "URL": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "AssetType": {
+                    "type": "string",
+                    "enum": [
+                      "Image",
+                      "Video",
+                      "Audio"
+                    ]
+                  },
+                  "Filter": {
+                    "type": "object",
+                    "properties": {
+                      "GroupIds": {
+                        "type": "array",
+                        "maxItems": 100,
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "GroupType": {
+                        "type": "string",
+                        "enum": [
+                          "AIGC",
+                          "LivenessFace"
+                        ]
+                      },
+                      "Statuses": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "Active",
+                            "Processing",
+                            "Failed"
+                          ]
+                        }
+                      },
+                      "Name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 64
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "PageNumber": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1
+                  },
+                  "PageSize": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100,
+                    "default": 10
+                  },
+                  "SortBy": {
+                    "type": "string",
+                    "enum": [
+                      "CreateTime",
+                      "UpdateTime",
+                      "GroupId"
+                    ],
+                    "default": "CreateTime"
+                  },
+                  "SortOrder": {
+                    "type": "string",
+                    "enum": [
+                      "Desc",
+                      "Asc"
+                    ],
+                    "default": "Desc"
+                  },
+                  "ProjectName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "default": "default",
+                    "description": "Project isolation scope within the authenticated organization."
                   }
                 },
                 "additionalProperties": false
@@ -5443,6 +5600,13 @@
         "properties": {
           "assetId": {
             "type": "string"
+          },
+          "project_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "default": "default",
+            "description": "Project scope for the material resource."
           }
         },
         "required": [
@@ -5454,7 +5618,9 @@
         "path": [
           "assetId"
         ],
-        "query": [],
+        "query": [
+          "project_name"
+        ],
         "header": [],
         "body": [],
         "files": []
@@ -5486,6 +5652,13 @@
         "properties": {
           "groupId": {
             "type": "string"
+          },
+          "project_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "default": "default",
+            "description": "Project scope for the material resource."
           }
         },
         "required": [
@@ -5497,7 +5670,9 @@
         "path": [
           "groupId"
         ],
-        "query": [],
+        "query": [
+          "project_name"
+        ],
         "header": [],
         "body": [],
         "files": []
@@ -6227,6 +6402,13 @@
               "liveness_face"
             ],
             "description": "Filter by TokenLab material library class."
+          },
+          "project_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "default": "default",
+            "description": "Project scope for the material resource."
           }
         },
         "additionalProperties": false
@@ -6237,7 +6419,8 @@
           "page_size",
           "page_token",
           "status",
-          "library_type"
+          "library_type",
+          "project_name"
         ],
         "header": [],
         "body": [],
@@ -6297,6 +6480,13 @@
               "liveness_face"
             ],
             "description": "Filter by material library class."
+          },
+          "project_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "default": "default",
+            "description": "Project scope for the material resource."
           }
         },
         "additionalProperties": false
@@ -6308,7 +6498,8 @@
           "page_token",
           "group_id",
           "status",
-          "library_type"
+          "library_type",
+          "project_name"
         ],
         "header": [],
         "body": [],
@@ -7246,6 +7437,12 @@
               "Audio"
             ]
           },
+          "project_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "default": "default"
+          },
           "metadata": {
             "anyOf": [
               {
@@ -7274,6 +7471,7 @@
           "asset_url",
           "asset_name",
           "asset_type",
+          "project_name",
           "metadata"
         ],
         "files": []
@@ -7322,6 +7520,12 @@
               }
             ]
           },
+          "project_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "default": "default"
+          },
           "metadata": {
             "anyOf": [
               {
@@ -7348,6 +7552,7 @@
         "body": [
           "group_name",
           "description",
+          "project_name",
           "metadata"
         ],
         "files": []
