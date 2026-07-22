@@ -12280,13 +12280,27 @@
           },
           "request_format_details": {
             "$ref": "#/components/schemas/NonChatRequestFormatDetails"
+          },
+          "accepted_request_formats": {
+            "type": "array",
+            "description": "Request formats accepted by this model.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "openai_chat_completions",
+                "openai_responses",
+                "anthropic_messages",
+                "gemini_generate_content"
+              ]
+            }
           }
         },
         "additionalProperties": true,
         "required": [
           "lifecycle",
           "commercial",
-          "badges"
+          "badges",
+          "accepted_request_formats"
         ]
       },
       "SeedanceMaterialAssetGroupCreateRequest": {
