@@ -16,6 +16,7 @@ const commitPaths = [
   "contract/openapi.json",
   "generated/public-contract.json",
   "generated/tools.json",
+  "llms-install.md",
   "package-lock.json",
   "package.json",
   "server.json"

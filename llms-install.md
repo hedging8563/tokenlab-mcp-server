@@ -34,7 +34,7 @@ Public model catalog and pricing tools work without credentials. When inference 
 }
 ```
 
-Set `TOKENLAB_MCP_TOOL_PROFILE=catalog` when the client should expose only the six public discovery tools. The default `core` profile exposes 31 tools, and `full` exposes 78.
+Set `TOKENLAB_MCP_TOOL_PROFILE=catalog` when the client should expose only the six public discovery tools. The default `core` profile exposes 31 tools, and `full` exposes 80.
 
 ## Verification
 

@@ -10,15 +10,15 @@ It exposes public catalog tools for agents that need to choose models, inspect s
 
 ## Generated Tool Profiles
 
-The checked-in `generated/tools.json` manifest is generated from TokenLab's public OpenAPI document plus the small MCP-only overlay in `contract/mcp-overlay.json`. Version 0.6.11 generates 75 endpoint tools; two composite discovery tools are registered at runtime.
+The checked-in `generated/tools.json` manifest is generated from TokenLab's public OpenAPI document plus the small MCP-only overlay in `contract/mcp-overlay.json`. Version 0.6.12 generates 78 endpoint tools; two composite discovery tools are registered at runtime.
 
 | Profile | Endpoint tools | Coverage |
 | --- | ---: | --- |
 | `catalog` | 4 | Public model discovery and pricing only; no API key required |
 | `core` (default) | 29 | Catalog and pricing; Chat Completions, Responses, Anthropic Messages, Gemini generateContent; images, video, music, 3D, speech and transcription; async tasks; files; embeddings, rerank, and translation |
-| `full` | 75 | Every allowlisted developer API operation in the checked-in OpenAPI snapshot, including core plus response lifecycle, batches, worlds, and native model discovery |
+| `full` | 78 | Every allowlisted developer API operation in the checked-in OpenAPI snapshot, including core plus response lifecycle, batches, worlds, and native model discovery |
 
-All profiles also include `compare_models` and `get_api_overview`, producing totals of 6, 31, and 77 tools. Realtime and streaming-only operations are excluded because stdio MCP tool calls return one final result. API operations that accept `stream` constrain it to `false` in the MCP overlay, and the Gemini query-string API key is intentionally hidden from tool arguments.
+All profiles also include `compare_models` and `get_api_overview`, producing totals of 6, 31, and 80 tools. Realtime and streaming-only operations are excluded because stdio MCP tool calls return one final result. API operations that accept `stream` constrain it to `false` in the MCP overlay, and the Gemini query-string API key is intentionally hidden from tool arguments.
 
 Set `TOKENLAB_MCP_TOOL_PROFILE=catalog` for the smallest public-only tool list or `TOKENLAB_MCP_TOOL_PROFILE=full` for the broad developer API. Tool names, descriptions, input JSON Schemas, HTTP bindings, content types, auth requirements, and task behavior can be inspected in [`generated/tools.json`](./generated/tools.json).
 
@@ -108,17 +108,20 @@ Use `delivery.mode` instead of assuming all image requests are synchronous. For 
 - `TOKENLAB_MCP_INLINE_BYTES`: optional maximum binary/JSON response size returned inline, defaults to `2097152` (2 MiB)
 - `TOKENLAB_ARTIFACT_DIR`: optional output directory for non-inline response artifacts, defaults to the OS temp directory under `tokenlab-mcp`
 
+For Chat Completions image inputs, prefer byte-accurate data URLs such as `data:image/png;base64,...`. If an MCP caller labels a recognized PNG, JPEG, WebP, or GIF payload as `application/octet-stream`, the server corrects that generic MIME before forwarding. An unrecognized generic binary payload is rejected locally with a precise input error.
+
 ## Contract Sync
 
 The public OpenAPI document is the API contract source. The overlay contains only MCP-specific choices: profile exposure, stable tool aliases, secret omission, non-streaming constraints, content-type variants, async task semantics, and the compact public projection consumed by the website and docs gates.
 
 ```bash
-npm run contract:sync      # fetch OpenAPI and regenerate the manifest
-npm run contract:check     # fail when generated output is stale
-npm test                   # compile both profiles and test routing, tasks, files, and binary output
+npm run contract:source-check # compare the snapshot with the live canonical OpenAPI (read-only)
+npm run contract:check        # check generated output against the checked-in snapshot (offline)
+npm run contract:sync         # fetch OpenAPI and regenerate; refuses dirty outputs or a stale branch
+npm test                      # compile profiles and test routing, tasks, files, and binary output
 ```
 
-The scheduled `Sync TokenLab OpenAPI contract` workflow runs this full sequence and commits only the verified OpenAPI snapshot and generated manifest to `main`. A failed fetch, generation, schema compilation, or test leaves `main` unchanged.
+Always run `git pull --ff-only` before a manual contract sync. `contract:check` proves internal consistency only; `contract:source-check` proves freshness against the canonical source. The scheduled `Sync TokenLab OpenAPI contract` workflow runs the full write sequence and commits only the verified OpenAPI snapshot and generated manifest to `main`. A failed fetch, stale local branch, dirty generated output, generation error, schema compilation error, or test leaves the tracked contract unchanged.
 
 ## MCP Registry Metadata
 
@@ -126,7 +129,7 @@ This repository includes `server.json` for the official MCP Registry.
 
 Release metadata:
 
-- npm package: `@tokenlabai/mcp-server@0.6.11`
+- npm package: `@tokenlabai/mcp-server@0.6.12`
 - MCP registry name: `io.github.hedging8563/tokenlab`
 - `package.json.mcpName`: `io.github.hedging8563/tokenlab`
 

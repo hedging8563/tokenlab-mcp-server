@@ -166,6 +166,12 @@ test("advertises exactly the generated profile plus composite discovery tools", 
     const exposedSecret = Object.keys(tool.input_schema.properties).find((name) => /api.?key|authorization|password|secret/i.test(name));
     assert.equal(exposedSecret, undefined, `${tool.name} must not expose credential arguments`);
   }
+  for (const toolName of publicContract.profiles.catalog.tool_names) {
+    assert.equal(publicContract.profiles.core.tool_names.includes(toolName), true, `core must include catalog tool ${toolName}`);
+  }
+  for (const toolName of publicContract.profiles.core.tool_names) {
+    assert.equal(publicContract.profiles.full.tool_names.includes(toolName), true, `full must include core tool ${toolName}`);
+  }
 
   assert.deepEqual(publicContract.features.live_model_contract, {
     tool: "get_model",
@@ -329,6 +335,65 @@ test("forwards generated JSON tools to their canonical public endpoints", async 
   assert.equal(api.requests[0].body.stream, false);
   assert.equal(api.requests[1].body.messages[0].content, "Hello");
   assert.equal(api.requests[2].body.contents[0].parts[0].text, "Hello");
+});
+
+test("normalizes byte-provable generic image data URLs before chat forwarding", async (t) => {
+  const api = await startMockApi(t);
+  const client = await startMcpClient(t, {
+    TOKENLAB_API_BASE: api.baseUrl,
+    TOKENLAB_API_KEY: "test-key"
+  });
+  const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]).toString("base64");
+  const originalUrl = `data:application/octet-stream;base64,${png}`;
+  const arguments_ = {
+    model: "gemini-3.5-flash",
+    messages: [{
+      role: "user",
+      content: [
+        { type: "text", text: "Describe this image" },
+        { type: "image_url", image_url: { url: originalUrl } }
+      ]
+    }],
+    stream: false
+  };
+
+  const result = await client.callTool({ name: "create_chat_completion", arguments: arguments_ });
+
+  assert.equal(result.isError, undefined, result.content?.[0]?.text);
+  assert.equal(api.requests.length, 1);
+  assert.equal(
+    api.requests[0].body.messages[0].content[1].image_url.url,
+    `data:image/png;base64,${png}`
+  );
+  assert.equal(arguments_.messages[0].content[1].image_url.url, originalUrl, "normalization must not mutate caller input");
+});
+
+test("rejects unrecognized generic image data URLs before calling TokenLab", async (t) => {
+  const api = await startMockApi(t);
+  const client = await startMcpClient(t, {
+    TOKENLAB_API_BASE: api.baseUrl,
+    TOKENLAB_API_KEY: "test-key"
+  });
+  const opaque = Buffer.from("not an image").toString("base64");
+
+  const result = await client.callTool({
+    name: "create_chat_completion",
+    arguments: {
+      model: "gemini-3.5-flash",
+      messages: [{
+        role: "user",
+        content: [{
+          type: "image_url",
+          image_url: { url: `data:application/octet-stream;base64,${opaque}` }
+        }]
+      }],
+      stream: false
+    }
+  });
+
+  assert.equal(result.isError, true);
+  assert.match(result.content[0].text, /not a recognized PNG, JPEG, WebP, or GIF image/);
+  assert.equal(api.requests.length, 0);
 });
 
 test("forwards official-shape visual validation Action tools", async (t) => {

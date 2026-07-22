@@ -18,13 +18,17 @@ const sourcePath = resolve(root, args.get("--source") || "contract/openapi.json"
 const overlayPath = resolve(root, args.get("--overlay") || "contract/mcp-overlay.json");
 const outputPath = resolve(root, args.get("--output") || "generated/tools.json");
 const publicOutputPath = resolve(root, args.get("--public-output") || "generated/public-contract.json");
+const readmePath = resolve(root, args.get("--readme") || "README.md");
+const installPath = resolve(root, args.get("--install") || "llms-install.md");
 const check = argv.includes("--check");
 
-const [sourceText, overlayText, packageText, serverText] = await Promise.all([
+const [sourceText, overlayText, packageText, serverText, readmeText, installText] = await Promise.all([
   readFile(sourcePath, "utf8"),
   readFile(overlayPath, "utf8"),
   readFile(resolve(root, "package.json"), "utf8"),
-  readFile(resolve(root, "server.json"), "utf8")
+  readFile(resolve(root, "server.json"), "utf8"),
+  readFile(readmePath, "utf8"),
+  readFile(installPath, "utf8")
 ]);
 const spec = JSON.parse(sourceText);
 const overlay = JSON.parse(overlayText);
@@ -466,20 +470,72 @@ const publicContract = {
 };
 const publicOutput = `${JSON.stringify(publicContract, null, 2)}\n`;
 
+function replaceProjection(text, pattern, replacement, label) {
+  if (!pattern.test(text)) throw new Error(`Cannot synchronize ${label}`);
+  return text.replace(pattern, replacement);
+}
+
+const catalogProfile = publicContract.profiles.catalog;
+const coreProfile = publicContract.profiles.core;
+const fullProfile = publicContract.profiles.full;
+let synchronizedReadme = replaceProjection(
+  readmeText,
+  /Version \d+\.\d+\.\d+ generates \d+ endpoint tools/,
+  `Version ${packageJson.version} generates ${tools.length} endpoint tools`,
+  "README manifest tool count"
+);
+synchronizedReadme = replaceProjection(
+  synchronizedReadme,
+  /\| `catalog` \| \d+ \|/,
+  `| \`catalog\` | ${catalogProfile.endpoint_tools} |`,
+  "README catalog profile count"
+);
+synchronizedReadme = replaceProjection(
+  synchronizedReadme,
+  /\| `core` \(default\) \| \d+ \|/,
+  `| \`core\` (default) | ${coreProfile.endpoint_tools} |`,
+  "README core profile count"
+);
+synchronizedReadme = replaceProjection(
+  synchronizedReadme,
+  /\| `full` \| \d+ \|/,
+  `| \`full\` | ${fullProfile.endpoint_tools} |`,
+  "README full profile count"
+);
+synchronizedReadme = replaceProjection(
+  synchronizedReadme,
+  /producing totals of \d+, \d+, and \d+ tools/,
+  `producing totals of ${catalogProfile.total_tools}, ${coreProfile.total_tools}, and ${fullProfile.total_tools} tools`,
+  "README profile totals"
+);
+const synchronizedInstall = replaceProjection(
+  installText,
+  /The default `core` profile exposes \d+ tools, and `full` exposes \d+\./,
+  `The default \`core\` profile exposes ${coreProfile.total_tools} tools, and \`full\` exposes ${fullProfile.total_tools}.`,
+  "install profile totals"
+);
+
 if (check) {
   const [existing, existingPublic] = await Promise.all([
     readFile(outputPath, "utf8"),
     readFile(publicOutputPath, "utf8")
   ]);
-  if (existing !== output || existingPublic !== publicOutput) {
-    console.error("Generated MCP contract is stale. Run npm run contract:generate.");
+  if (
+    existing !== output
+    || existingPublic !== publicOutput
+    || readmeText !== synchronizedReadme
+    || installText !== synchronizedInstall
+  ) {
+    console.error("Generated MCP contract or documentation projection is stale. Run npm run contract:generate.");
     process.exit(1);
   }
   console.log(`[contract] PASS (${tools.length} generated tools, ${Object.keys(profiles).length} profiles)`);
 } else {
   await Promise.all([
     writeFile(outputPath, output),
-    writeFile(publicOutputPath, publicOutput)
+    writeFile(publicOutputPath, publicOutput),
+    writeFile(readmePath, synchronizedReadme),
+    writeFile(installPath, synchronizedInstall)
   ]);
   console.log(`[contract] generated ${tools.length} tools and public projection`);
 }

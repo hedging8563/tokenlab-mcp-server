@@ -1,6 +1,6 @@
 {
   "name": "@tokenlabai/mcp-server",
-  "version": "0.6.11",
+  "version": "0.6.12",
   "description": "OpenAPI-generated TokenLab MCP server with catalog, native AI, multimodal, resource, prompt, and async task support.",
   "type": "module",
   "engines": {
@@ -18,15 +18,17 @@
     "llms-install.md",
     "scripts/generate-contract.mjs",
     "scripts/sync-contract.mjs",
-    "src/index.js"
+    "src/index.js",
+    "src/media-mime.js"
   ],
   "scripts": {
     "start": "node ./src/index.js",
     "contract:generate": "node ./scripts/generate-contract.mjs",
     "contract:check": "node ./scripts/generate-contract.mjs --check",
+    "contract:source-check": "node ./scripts/sync-contract.mjs --check",
     "contract:sync": "node ./scripts/sync-contract.mjs",
     "version": "node ./scripts/sync-version.mjs && npm run contract:generate",
-    "test": "node --check ./src/index.js && node --check ./scripts/generate-contract.mjs && npm run contract:check && node --test"
+    "test": "node --check ./src/index.js && node --check ./src/media-mime.js && node --check ./scripts/generate-contract.mjs && node --check ./scripts/sync-contract.mjs && npm run contract:check && node --test"
   },
   "keywords": [
     "mcp",

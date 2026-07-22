@@ -51,6 +51,7 @@
         "Video",
         "Tasks",
         "Models",
+        "Responses",
         "Anthropic",
         "Gemini",
         "Files",
@@ -242,6 +243,7 @@
       "omit_arguments": ["key"]
     },
     "createChatCompletion": {
+      "description": "Create an OpenAI-compatible chat completion. For inline image_url data URLs, declare the byte-accurate image MIME type. The MCP boundary corrects recognized PNG, JPEG, WebP, and GIF payloads declared as application/octet-stream and rejects unrecognized generic binary image payloads before sending a billable request.",
       "input_property_overrides": {
         "stream": {
           "const": false,

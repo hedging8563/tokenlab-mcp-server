@@ -14,7 +14,7 @@
     "core",
     "full"
   ],
-  "tool_count": 75,
+  "tool_count": 78,
   "tools": [
     {
       "name": "cancel_anthropic_message_batch",
@@ -163,6 +163,80 @@
           "canceled",
           "expired"
         ]
+      }
+    },
+    {
+      "name": "compact_response",
+      "title": "Compact response context (OpenAI Responses API)",
+      "operation_id": "compactResponse",
+      "method": "POST",
+      "path": "/v1/responses/compact",
+      "content_type": "application/json",
+      "auth": "required",
+      "tags": [
+        "Responses"
+      ],
+      "profiles": [
+        "full"
+      ],
+      "description": "Compact response context (OpenAI Responses API) Compacts Responses input and returns the native `response.compaction` contract. The request model must be available on a same-protocol Responses path.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "description": "Model to use for compaction. Codex CLI sends the current session model."
+          },
+          "input": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "description": "Responses input items to compact."
+              }
+            ],
+            "description": "Conversation input to compact."
+          },
+          "max_output_tokens": {
+            "type": "integer",
+            "description": "Maximum output tokens."
+          },
+          "stream": {
+            "type": "boolean",
+            "description": "Streaming is not supported for compaction."
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Request metadata."
+          }
+        },
+        "required": [
+          "model",
+          "input"
+        ],
+        "additionalProperties": false
+      },
+      "bindings": {
+        "path": [],
+        "query": [],
+        "header": [],
+        "body": [
+          "model",
+          "input",
+          "max_output_tokens",
+          "stream",
+          "metadata"
+        ],
+        "files": []
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
       }
     },
     {
@@ -957,7 +1031,7 @@
         "core",
         "full"
       ],
-      "description": "Create chat completion Creates a model response from a Chat Completions request. Chat-native upstreams receive the request shape unchanged apart from routing and authentication fields; unknown fields are forwarded on a best-effort basis. Portable Chat requests may be compiled one-way to another protocol when a compatible physical endpoint is selected.",
+      "description": "Create an OpenAI-compatible chat completion. For inline image_url data URLs, declare the byte-accurate image MIME type. The MCP boundary corrects recognized PNG, JPEG, WebP, and GIF payloads declared as application/octet-stream and rejects unrecognized generic binary image payloads before sending a billable request.",
       "input_schema": {
         "type": "object",
         "properties": {
@@ -2813,7 +2887,8 @@
         "Responses"
       ],
       "profiles": [
-        "core"
+        "core",
+        "full"
       ],
       "description": "Create response (OpenAI Responses API) Creates a response using the native OpenAI Responses API shape. The model details must advertise the Responses request format and a same-protocol route must be currently available; model names and providers do not imply availability. Unknown request fields are forwarded on a best-effort basis and remain subject to the selected provider's support.",
       "input_schema": {
@@ -4314,6 +4389,50 @@
         "header": [
           "anthropic-beta"
         ],
+        "body": [],
+        "files": []
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "delete_response",
+      "title": "Delete response",
+      "operation_id": "deleteResponse",
+      "method": "DELETE",
+      "path": "/v1/responses/{id}",
+      "content_type": null,
+      "auth": "required",
+      "tags": [
+        "Responses"
+      ],
+      "profiles": [
+        "full"
+      ],
+      "description": "Delete response Deletes a stored Responses API response. This operation is deletion, not cancellation of an in-progress response.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Response id returned by POST /v1/responses."
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "bindings": {
+        "path": [
+          "id"
+        ],
+        "query": [],
+        "header": [],
         "body": [],
         "files": []
       },
@@ -7241,6 +7360,74 @@
           "file_id"
         ],
         "query": [],
+        "header": [],
+        "body": [],
+        "files": []
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "retrieve_response",
+      "title": "Retrieve response",
+      "operation_id": "retrieveResponse",
+      "method": "GET",
+      "path": "/v1/responses/{id}",
+      "content_type": null,
+      "auth": "required",
+      "tags": [
+        "Responses"
+      ],
+      "profiles": [
+        "full"
+      ],
+      "description": "Retrieve response Retrieves a stored Responses API response by TokenLab response id. Ownership checks return 404 when the response is missing or unavailable to the current API key.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Response id returned by POST /v1/responses."
+          },
+          "include": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Additional response fields to include."
+          },
+          "include_obfuscation": {
+            "type": "boolean",
+            "description": "Whether streamed events include obfuscation fields."
+          },
+          "stream": {
+            "type": "boolean",
+            "description": "Whether to retrieve the response as an event stream."
+          },
+          "starting_after": {
+            "type": "integer",
+            "description": "Sequence number after which streaming events are returned."
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "bindings": {
+        "path": [
+          "id"
+        ],
+        "query": [
+          "include",
+          "include_obfuscation",
+          "stream",
+          "starting_after"
+        ],
         "header": [],
         "body": [],
         "files": []
