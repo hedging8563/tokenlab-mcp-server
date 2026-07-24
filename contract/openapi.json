@@ -832,7 +832,7 @@
           "Video"
         ],
         "summary": "Create Seedance material asset",
-        "description": "Uploads one Seedance material asset URL into a TokenLab material group. Real-person assets require the group_id mapped from Result.GroupId returned by GetVisualValidateResult.",
+        "description": "Uploads one Seedance material asset URL into a TokenLab material group. Image materials must use supported dimensions; an invalid source is rejected with 400 seedance_material_source_invalid instead of remaining in PROCESSING. Real-person assets require the group_id mapped from Result.GroupId returned by GetVisualValidateResult.",
         "operationId": "createSeedanceMaterialAsset",
         "requestBody": {
           "required": true,
@@ -1195,8 +1195,39 @@
           "404": {
             "$ref": "#/components/responses/NotFound"
           },
+          "409": {
+            "description": "Material asset is still processing or has failed without an active replica",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The stored material source failed permanent validation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "message": "Image width must be between 300px and 6000px.",
+                    "type": "invalid_request_error",
+                    "code": "seedance_material_source_invalid",
+                    "param": "asset_url"
+                  }
+                }
+              }
+            }
+          },
           "500": {
             "$ref": "#/components/responses/InternalServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaterialLibraryUnavailable"
           }
         },
         "security": [
@@ -8801,7 +8832,8 @@
           },
           "error_message": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "description": "Public-safe terminal processing error. Permanent source validation failures include the rejected dimension constraint."
           },
           "metadata": {
             "type": "object",

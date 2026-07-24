@@ -6,7 +6,7 @@
     "openapi": "3.0.3",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "01b575d702e9fc955085f089e850de7caca46708fd6e482bf5749224ff6e7d21"
+    "sha256": "85963db54cafb169aaf6e9c28bf200cc217f59a9d457ed61fe80ba7047d1d511"
   },
   "default_profile": "core",
   "profiles": [
@@ -3072,7 +3072,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Create Seedance material asset Uploads one Seedance material asset URL into a TokenLab material group. Real-person assets require the group_id mapped from Result.GroupId returned by GetVisualValidateResult.",
+      "description": "Create Seedance material asset Uploads one Seedance material asset URL into a TokenLab material group. Image materials must use supported dimensions; an invalid source is rejected with 400 seedance_material_source_invalid instead of remaining in PROCESSING. Real-person assets require the group_id mapped from Result.GroupId returned by GetVisualValidateResult.",
       "input_schema": {
         "type": "object",
         "properties": {
