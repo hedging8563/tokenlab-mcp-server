@@ -10,15 +10,15 @@ It exposes public catalog tools for agents that need to choose models, inspect s
 
 ## Generated Tool Profiles
 
-The checked-in `generated/tools.json` manifest is generated from TokenLab's public OpenAPI document plus the small MCP-only overlay in `contract/mcp-overlay.json`. Version 0.6.15 generates 78 endpoint tools; two composite discovery tools are registered at runtime.
+The checked-in `generated/tools.json` manifest is generated from TokenLab's public OpenAPI document plus the small MCP-only overlay in `contract/mcp-overlay.json`. Version 0.6.16 generates 78 endpoint tools; with the two MCP-only composite discovery tools, the full profile returns 80 tools from `tools/list`.
 
-| Profile | Endpoint tools | Model-facing schema | Coverage |
-| --- | ---: | --- | --- |
-| `catalog` | 4 | Exact | Public model discovery and pricing only; no API key required |
-| `core` (default) | 29 | Portable | Catalog and pricing; Chat Completions, Responses, Anthropic Messages, Gemini generateContent; images, video, music, 3D, speech and transcription; async tasks; files; embeddings, rerank, and translation |
-| `full` | 78 | Portable | Every allowlisted developer API operation in the checked-in OpenAPI snapshot, including core plus response lifecycle, batches, worlds, and native model discovery |
+| Profile | Endpoint tools | Total registered tools | Model-facing schema | Coverage |
+| --- | ---: | ---: | --- | --- |
+| `catalog` | 4 | 6 | Exact | Public model discovery and pricing only; no API key required |
+| `core` (default) | 29 | 31 | Portable | Catalog and pricing; Chat Completions, Responses, Anthropic Messages, Gemini generateContent; images, video, music, 3D, speech and transcription; async tasks; files; embeddings, rerank, and translation |
+| `full` | 78 | 80 | Portable | Every allowlisted developer API operation in the checked-in OpenAPI snapshot, including core plus response lifecycle, batches, worlds, and native model discovery |
 
-All profiles also include `compare_models` and `get_api_overview`, producing totals of 6, 31, and 80 tools. Realtime and streaming-only operations are excluded because stdio MCP tool calls return one final result. API operations that accept `stream` fix it internally to `false` without exposing a boolean `const` to provider adapters, and the Gemini query-string API key is intentionally hidden from tool arguments.
+The total registered count is the number returned by `tools/list`. All profiles include `compare_models` and `get_api_overview`, producing totals of 6, 31, and 80 tools. Realtime and streaming-only operations are excluded because stdio MCP tool calls return one final result. API operations that accept `stream` fix it internally to `false` without exposing a boolean `const` to provider adapters, and the Gemini query-string API key is intentionally hidden from tool arguments.
 
 The portable projection keeps every top-level argument but bounds deeply nested model-facing shapes. The server still validates calls against the complete generated OpenAPI schema before issuing an API request. Compatibility budgets keep `core` at no more than 60 KB and depth 8, and `full` at no more than 100 KB and depth 8 for the complete `tools/list` response. Tests also run the full profile through the Google AI SDK version used by the observed OpenCode/Gemini failure.
 
@@ -133,7 +133,7 @@ This repository includes `server.json` for the official MCP Registry.
 
 Release metadata:
 
-- npm package: `@tokenlabai/mcp-server@0.6.15`
+- npm package: `@tokenlabai/mcp-server@0.6.16`
 - MCP registry name: `io.github.hedging8563/tokenlab`
 - `package.json.mcpName`: `io.github.hedging8563/tokenlab`
 

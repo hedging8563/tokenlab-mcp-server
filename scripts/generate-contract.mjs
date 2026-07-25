@@ -553,21 +553,21 @@ let synchronizedReadme = replaceProjection(
 );
 synchronizedReadme = replaceProjection(
   synchronizedReadme,
-  /\| `catalog` \| \d+ \|/,
-  `| \`catalog\` | ${catalogProfile.endpoint_tools} |`,
-  "README catalog profile count"
+  /\| `catalog` \| \d+ \| \d+ \|/,
+  `| \`catalog\` | ${catalogProfile.endpoint_tools} | ${catalogProfile.total_tools} |`,
+  "README catalog profile counts"
 );
 synchronizedReadme = replaceProjection(
   synchronizedReadme,
-  /\| `core` \(default\) \| \d+ \|/,
-  `| \`core\` (default) | ${coreProfile.endpoint_tools} |`,
-  "README core profile count"
+  /\| `core` \(default\) \| \d+ \| \d+ \|/,
+  `| \`core\` (default) | ${coreProfile.endpoint_tools} | ${coreProfile.total_tools} |`,
+  "README core profile counts"
 );
 synchronizedReadme = replaceProjection(
   synchronizedReadme,
-  /\| `full` \| \d+ \|/,
-  `| \`full\` | ${fullProfile.endpoint_tools} |`,
-  "README full profile count"
+  /\| `full` \| \d+ \| \d+ \|/,
+  `| \`full\` | ${fullProfile.endpoint_tools} | ${fullProfile.total_tools} |`,
+  "README full profile counts"
 );
 synchronizedReadme = replaceProjection(
   synchronizedReadme,
