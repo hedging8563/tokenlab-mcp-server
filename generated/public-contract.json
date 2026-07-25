@@ -5,7 +5,7 @@
     "id": "tokenlab-mcp-server",
     "name": "@tokenlabai/mcp-server",
     "title": "TokenLab MCP Server",
-    "version": "0.6.14",
+    "version": "0.6.15",
     "registry_name": "io.github.hedging8563/tokenlab",
     "source_url": "https://github.com/hedging8563/tokenlab-mcp-server",
     "landing_url": "https://tokenlab.sh/mcp",
@@ -18,7 +18,8 @@
       "@tokenlabai/mcp-server"
     ],
     "api_key_environment_variable": "TOKENLAB_API_KEY",
-    "tool_profile_environment_variable": "TOKENLAB_MCP_TOOL_PROFILE"
+    "tool_profile_environment_variable": "TOKENLAB_MCP_TOOL_PROFILE",
+    "tool_schema_mode_environment_variable": "TOKENLAB_MCP_SCHEMA_MODE"
   },
   "source": {
     "url": "https://docs.tokenlab.sh/openapi.json",
@@ -26,14 +27,17 @@
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
     "sha256": "85963db54cafb169aaf6e9c28bf200cc217f59a9d457ed61fe80ba7047d1d511",
-    "tool_manifest_sha256": "b27f2499f678f3956927c4f4c203aeed3dbee264087364158116b8b424de9848"
+    "tool_manifest_sha256": "77536f77ea5ec73b1dba72758be2374f2d7ad1943b5cf066c246269aeeeb54b5"
   },
   "profiles": {
     "catalog": {
       "is_default": false,
+      "schema_mode": "exact",
       "endpoint_tools": 4,
       "composite_tools": 2,
       "total_tools": 6,
+      "input_schema_bytes": 1553,
+      "max_input_schema_depth": 4,
       "tool_names": [
         "compare_models",
         "get_api_overview",
@@ -45,9 +49,12 @@
     },
     "core": {
       "is_default": true,
+      "schema_mode": "portable",
       "endpoint_tools": 29,
       "composite_tools": 2,
       "total_tools": 31,
+      "input_schema_bytes": 44738,
+      "max_input_schema_depth": 8,
       "tool_names": [
         "cancel_task",
         "compare_models",
@@ -84,9 +91,12 @@
     },
     "full": {
       "is_default": false,
+      "schema_mode": "portable",
       "endpoint_tools": 78,
       "composite_tools": 2,
       "total_tools": 80,
+      "input_schema_bytes": 69847,
+      "max_input_schema_depth": 8,
       "tool_names": [
         "cancel_anthropic_message_batch",
         "cancel_batch",

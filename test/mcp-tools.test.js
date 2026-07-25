@@ -5,8 +5,14 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
+import { GoogleGenerativeAILanguageModel } from "@ai-sdk/google/internal";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import {
+  findProviderIncompatibleLiterals,
+  projectToolInputSchema,
+  schemaDepth
+} from "../src/tool-schema.js";
 
 const manifest = JSON.parse(await readFile(new URL("../generated/tools.json", import.meta.url), "utf8"));
 const publicContract = JSON.parse(await readFile(new URL("../generated/public-contract.json", import.meta.url), "utf8"));
@@ -78,7 +84,8 @@ test("advertises exactly the generated profile plus composite discovery tools", 
   for (const profile of manifest.profiles) {
     await t.test(profile, async (t) => {
       const client = await startMcpClient(t, { TOKENLAB_MCP_TOOL_PROFILE: profile });
-      const { tools } = await client.listTools();
+      const listed = await client.listTools();
+      const { tools } = listed;
       const actual = tools.map((tool) => tool.name).sort();
       const expected = manifest.tools
         .filter((tool) => tool.profiles.includes(profile))
@@ -87,10 +94,40 @@ test("advertises exactly the generated profile plus composite discovery tools", 
         .sort();
       assert.deepEqual(actual, expected);
 
+      const schemaMode = manifest.profile_config[profile].schema_mode;
+      const generatedByName = new Map(
+        manifest.tools
+          .filter((tool) => tool.profiles.includes(profile))
+          .map((tool) => [tool.name, tool])
+      );
       for (const tool of tools) {
         assert.equal(typeof tool.title, "string", `${tool.name} must expose a title`);
         assert.equal(typeof tool.annotations?.readOnlyHint, "boolean", `${tool.name} must expose risk annotations`);
+        assert.match(tool.name, /^[A-Za-z][A-Za-z0-9_]{0,63}$/, `${tool.name} must work across provider name limits`);
+        assert.deepEqual(
+          findProviderIncompatibleLiterals(tool.inputSchema),
+          [],
+          `${tool.name} must not expose booleans or numbers through enum/const`
+        );
+        const generated = generatedByName.get(tool.name);
+        if (generated) {
+          assert.deepEqual(
+            tool.inputSchema,
+            projectToolInputSchema(generated.input_schema, schemaMode),
+            `${tool.name} must expose the generated ${schemaMode} schema without runtime conversion drift`
+          );
+        }
       }
+      assert.ok(
+        Buffer.byteLength(JSON.stringify(listed))
+          <= manifest.profile_config[profile].compatibility_budget.max_tools_list_bytes,
+        `${profile} tools/list must remain inside its compatibility byte budget`
+      );
+      assert.ok(
+        Math.max(...tools.map((tool) => schemaDepth(tool.inputSchema)))
+          <= manifest.profile_config[profile].compatibility_budget.max_input_schema_depth,
+        `${profile} tools/list must remain inside its compatibility depth budget`
+      );
     });
   }
 
@@ -155,8 +192,19 @@ test("advertises exactly the generated profile plus composite discovery tools", 
   assert.deepEqual(byName.get_visual_validate_result.input_schema.required, ["BytedToken"]);
   assert.equal(byName.get_visual_validate_result.annotations.idempotentHint, true);
   assert.equal(byName.create_gemini_content.input_schema.properties.key, undefined);
-  for (const name of ["create_chat_completion", "create_response", "create_anthropic_message", "create_image", "edit_image"]) {
-    assert.equal(byName[name].input_schema.properties.stream.const, false, `${name} must remain non-streaming in MCP`);
+  for (const name of [
+    "compact_response",
+    "create_chat_completion",
+    "create_response",
+    "create_anthropic_message",
+    "create_image",
+    "create_image_file",
+    "edit_image",
+    "edit_image_file",
+    "retrieve_response"
+  ]) {
+    assert.equal(byName[name].input_schema.properties.stream, undefined, `${name} must not expose stream to providers`);
+    assert.equal(byName[name].default_arguments.stream, false, `${name} must remain non-streaming at execution`);
   }
   for (const name of ["create_image", "create_image_file", "edit_image", "edit_image_file"]) {
     assert.equal(byName[name].input_schema.properties.partial_images, undefined, `${name} must not expose partial_images`);
@@ -186,6 +234,171 @@ test("advertises exactly the generated profile plus composite discovery tools", 
       "recommended_request"
     ]
   });
+});
+
+test("exact schema mode publishes canonical JSON Schema without a Zod round trip", async (t) => {
+  const client = await startMcpClient(t, {
+    TOKENLAB_MCP_TOOL_PROFILE: "full",
+    TOKENLAB_MCP_SCHEMA_MODE: "exact"
+  });
+  const { tools } = await client.listTools();
+  const actualByName = new Map(tools.map((tool) => [tool.name, tool.inputSchema]));
+
+  for (const generated of manifest.tools.filter((tool) => tool.profiles.includes("full"))) {
+    assert.deepEqual(
+      actualByName.get(generated.name),
+      generated.input_schema,
+      `${generated.name} exact schema must equal the generated canonical schema`
+    );
+  }
+  assert.equal(
+    actualByName.get("create_anthropic_message").properties.metadata.additionalProperties,
+    true,
+    "open objects must remain open"
+  );
+  assert.equal(
+    actualByName.get("create_chat_completion").properties.max_tokens.maximum,
+    undefined,
+    "unbounded integers must not acquire JavaScript safe-integer bounds"
+  );
+});
+
+test("strict schema mode remains provider-valid and decodes canonical arguments", async (t) => {
+  const api = await startMockApi(t, ({ method, url }) => {
+    if (method === "GET" && url.endsWith("/pricing")) {
+      return { model: url.split("/").at(-2), pricing_unit: "per_token" };
+    }
+    if (method === "GET" && url.startsWith("/v1/models/")) {
+      return { id: url.split("/").at(-1), tokenlab: {} };
+    }
+    return { ok: true };
+  });
+  const client = await startMcpClient(t, {
+    TOKENLAB_API_BASE: api.baseUrl,
+    TOKENLAB_API_KEY: "test-key",
+    TOKENLAB_MCP_TOOL_PROFILE: "full",
+    TOKENLAB_MCP_SCHEMA_MODE: "strict"
+  });
+  const listed = await client.listTools();
+  const { tools } = listed;
+
+  assert.equal(tools.length, 80);
+  assert.ok(
+    Buffer.byteLength(JSON.stringify(listed)) <= 100_000,
+    "full strict tools/list must remain inside its compatibility byte budget"
+  );
+  for (const tool of tools) {
+    const schema = tool.inputSchema;
+    assert.equal(schema.type, "object", `${tool.name} must have an object input`);
+    assert.equal(schema.additionalProperties, false, `${tool.name} must be closed in strict mode`);
+    assert.deepEqual(
+      [...schema.required].sort(),
+      Object.keys(schema.properties).sort(),
+      `${tool.name} must mark every strict-mode property as required`
+    );
+    assert.equal("$schema" in schema, false, `${tool.name} must not send an unsupported dialect annotation`);
+    assert.doesNotMatch(JSON.stringify(schema), /"oneOf"|"allOf"/, `${tool.name} must use the strict subset`);
+    assert.deepEqual(
+      findProviderIncompatibleLiterals(schema),
+      [],
+      `${tool.name} must not expose non-string enum or const values`
+    );
+    assert.ok(schemaDepth(schema) <= 6, `${tool.name} strict schema must remain shallow`);
+  }
+
+  const anthropic = manifest.tools.find((tool) => tool.name === "create_anthropic_message");
+  const strictArguments = Object.fromEntries(
+    Object.keys(anthropic.input_schema.properties).map((name) => [name, null])
+  );
+  Object.assign(strictArguments, {
+    model: "claude-sonnet-5",
+    max_tokens: 128,
+    messages: JSON.stringify([{ role: "user", content: "Hello" }])
+  });
+  const generatedResult = await client.callTool({
+    name: anthropic.name,
+    arguments: strictArguments
+  });
+  assert.equal(generatedResult.isError, undefined, generatedResult.content?.[0]?.text);
+  assert.deepEqual(api.requests[0].body, {
+    model: "claude-sonnet-5",
+    max_tokens: 128,
+    messages: [{ role: "user", content: "Hello" }],
+    stream: false
+  });
+
+  const compared = parseTextResult(await client.callTool({
+    name: "compare_models",
+    arguments: {
+      models: JSON.stringify(["model-a", "model-b"]),
+      include_raw: null
+    }
+  }));
+  assert.deepEqual(compared.compared.map((entry) => entry.id), ["model-a", "model-b"]);
+});
+
+test("survives the OpenCode Google AI SDK tool conversion used by Gemini", async (t) => {
+  const client = await startMcpClient(t, { TOKENLAB_MCP_TOOL_PROFILE: "full" });
+  const listed = await client.listTools();
+  let requestBody;
+  const model = new GoogleGenerativeAILanguageModel("gemini-3-flash-preview", {
+    provider: "google.generative-ai",
+    baseURL: "https://example.test/v1beta",
+    headers: () => ({ "x-goog-api-key": "test" }),
+    generateId: () => "test-id",
+    fetch: async (_url, init) => {
+      requestBody = JSON.parse(init.body);
+      return new Response(JSON.stringify({
+        candidates: [{
+          content: { role: "model", parts: [{ text: "ok" }] },
+          finishReason: "STOP"
+        }],
+        usageMetadata: {
+          promptTokenCount: 1,
+          candidatesTokenCount: 1,
+          totalTokenCount: 2
+        }
+      }), {
+        status: 200,
+        headers: { "content-type": "application/json" }
+      });
+    }
+  });
+
+  await model.doGenerate({
+    prompt: [{ role: "user", content: [{ type: "text", text: "test" }] }],
+    tools: listed.tools.map((tool) => ({
+      type: "function",
+      name: `tokenlab_${tool.name}`,
+      description: tool.description,
+      inputSchema: tool.inputSchema
+    })),
+    toolChoice: { type: "auto" }
+  });
+
+  const declarations = requestBody.tools[0].functionDeclarations;
+  assert.equal(declarations.length, 80);
+  assert.ok(
+    Buffer.byteLength(JSON.stringify(requestBody.tools)) <= 85_000,
+    "Gemini function declarations must remain inside the tested portable payload budget"
+  );
+  assert.ok(
+    Math.max(...declarations.map((tool) => schemaDepth(tool.parameters))) <= 8,
+    "Gemini-converted schemas must remain shallow"
+  );
+  for (const declaration of declarations) {
+    assert.ok(declaration.name.length <= 64, `${declaration.name} must remain portable to 64-character providers`);
+    assert.deepEqual(
+      findProviderIncompatibleLiterals(declaration.parameters),
+      [],
+      `${declaration.name} must not contain the boolean enum shape rejected by Gemini`
+    );
+    assert.equal(
+      declaration.parameters?.properties?.stream,
+      undefined,
+      `${declaration.name} must not expose the fixed stream argument`
+    );
+  }
 });
 
 test("compare_models reads the live nested model request contract", async (t) => {
@@ -298,7 +511,7 @@ test("forwards generated JSON tools to their canonical public endpoints", async 
   });
 
   const calls = [
-    ["create_response", { model: "gpt-5.5", input: "Hello", stream: false }],
+    ["create_response", { model: "gpt-5.5", input: "Hello" }],
     ["create_anthropic_message", {
       model: "claude-sonnet-5",
       max_tokens: 128,
@@ -337,6 +550,29 @@ test("forwards generated JSON tools to their canonical public endpoints", async 
   assert.equal(api.requests[2].body.contents[0].parts[0].text, "Hello");
 });
 
+test("keeps hidden stream false backward-compatible and rejects stream true locally", async (t) => {
+  const api = await startMockApi(t);
+  const client = await startMcpClient(t, {
+    TOKENLAB_API_BASE: api.baseUrl,
+    TOKENLAB_API_KEY: "test-key"
+  });
+
+  const compatible = await client.callTool({
+    name: "create_response",
+    arguments: { model: "gpt-5.5", input: "Hello", stream: false }
+  });
+  const invalid = await client.callTool({
+    name: "create_response",
+    arguments: { model: "gpt-5.5", input: "Hello", stream: true }
+  });
+
+  assert.equal(compatible.isError, undefined);
+  assert.equal(api.requests[0].body.stream, false);
+  assert.equal(invalid.isError, true);
+  assert.match(invalid.content[0].text, /additional properties/);
+  assert.equal(api.requests.length, 1);
+});
+
 test("normalizes byte-provable generic image data URLs before chat forwarding", async (t) => {
   const api = await startMockApi(t);
   const client = await startMcpClient(t, {
@@ -353,8 +589,7 @@ test("normalizes byte-provable generic image data URLs before chat forwarding", 
         { type: "text", text: "Describe this image" },
         { type: "image_url", image_url: { url: originalUrl } }
       ]
-    }],
-    stream: false
+    }]
   };
 
   const result = await client.callTool({ name: "create_chat_completion", arguments: arguments_ });
@@ -386,8 +621,7 @@ test("rejects unrecognized generic image data URLs before calling TokenLab", asy
           type: "image_url",
           image_url: { url: `data:application/octet-stream;base64,${opaque}` }
         }]
-      }],
-      stream: false
+      }]
     }
   });
 
@@ -455,7 +689,7 @@ test("returns structured JSON and response request metadata", async (t) => {
 
   const result = await client.callTool({
     name: "create_response",
-    arguments: { model: "gpt-5.5", input: "Hello", stream: false }
+    arguments: { model: "gpt-5.5", input: "Hello" }
   });
   assert.deepEqual(result.structuredContent, { id: "resp_1", output_text: "Hello" });
   assert.equal(result._meta["tokenlab/httpStatus"], 200);

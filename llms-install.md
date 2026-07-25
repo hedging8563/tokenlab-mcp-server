@@ -34,7 +34,7 @@ Public model catalog and pricing tools work without credentials. When inference 
 }
 ```
 
-Set `TOKENLAB_MCP_TOOL_PROFILE=catalog` when the client should expose only the six public discovery tools. The default `core` profile exposes 31 tools, and `full` exposes 80.
+Set `TOKENLAB_MCP_TOOL_PROFILE=catalog` when the client should expose only the six public discovery tools. The default `core` profile exposes 31 tools, and `full` exposes 80. `core` and `full` use the bounded portable schema projection by default while validating calls against the complete canonical contract. Use `TOKENLAB_MCP_SCHEMA_MODE=exact` only for clients that require the complete nested tool schemas and can accept a larger/deeper tool payload. Use `TOKENLAB_MCP_SCHEMA_MODE=strict` for providers that require closed objects and every property in `required`; send complex top-level arguments as JSON-encoded strings and optional values as `null` when omitted.
 
 ## Verification
 

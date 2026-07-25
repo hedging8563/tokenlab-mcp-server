@@ -7,13 +7,13 @@
     "url": "https://github.com/hedging8563/tokenlab-mcp-server",
     "source": "github"
   },
-  "version": "0.6.14",
+  "version": "0.6.15",
   "websiteUrl": "https://tokenlab.sh/mcp",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@tokenlabai/mcp-server",
-      "version": "0.6.14",
+      "version": "0.6.15",
       "transport": {
         "type": "stdio"
       },
@@ -40,6 +40,12 @@
         {
           "name": "TOKENLAB_MCP_TOOL_PROFILE",
           "description": "Optional generated tool profile: catalog, core (default), or full.",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "TOKENLAB_MCP_SCHEMA_MODE",
+          "description": "Optional tool schema mode: portable, exact, or strict. Defaults to the selected profile's tested mode.",
           "isRequired": false,
           "format": "string"
         },

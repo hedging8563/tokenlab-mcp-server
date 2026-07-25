@@ -10,24 +10,27 @@ It exposes public catalog tools for agents that need to choose models, inspect s
 
 ## Generated Tool Profiles
 
-The checked-in `generated/tools.json` manifest is generated from TokenLab's public OpenAPI document plus the small MCP-only overlay in `contract/mcp-overlay.json`. Version 0.6.14 generates 78 endpoint tools; two composite discovery tools are registered at runtime.
+The checked-in `generated/tools.json` manifest is generated from TokenLab's public OpenAPI document plus the small MCP-only overlay in `contract/mcp-overlay.json`. Version 0.6.15 generates 78 endpoint tools; two composite discovery tools are registered at runtime.
 
-| Profile | Endpoint tools | Coverage |
-| --- | ---: | --- |
-| `catalog` | 4 | Public model discovery and pricing only; no API key required |
-| `core` (default) | 29 | Catalog and pricing; Chat Completions, Responses, Anthropic Messages, Gemini generateContent; images, video, music, 3D, speech and transcription; async tasks; files; embeddings, rerank, and translation |
-| `full` | 78 | Every allowlisted developer API operation in the checked-in OpenAPI snapshot, including core plus response lifecycle, batches, worlds, and native model discovery |
+| Profile | Endpoint tools | Model-facing schema | Coverage |
+| --- | ---: | --- | --- |
+| `catalog` | 4 | Exact | Public model discovery and pricing only; no API key required |
+| `core` (default) | 29 | Portable | Catalog and pricing; Chat Completions, Responses, Anthropic Messages, Gemini generateContent; images, video, music, 3D, speech and transcription; async tasks; files; embeddings, rerank, and translation |
+| `full` | 78 | Portable | Every allowlisted developer API operation in the checked-in OpenAPI snapshot, including core plus response lifecycle, batches, worlds, and native model discovery |
 
-All profiles also include `compare_models` and `get_api_overview`, producing totals of 6, 31, and 80 tools. Realtime and streaming-only operations are excluded because stdio MCP tool calls return one final result. API operations that accept `stream` constrain it to `false` in the MCP overlay, and the Gemini query-string API key is intentionally hidden from tool arguments.
+All profiles also include `compare_models` and `get_api_overview`, producing totals of 6, 31, and 80 tools. Realtime and streaming-only operations are excluded because stdio MCP tool calls return one final result. API operations that accept `stream` fix it internally to `false` without exposing a boolean `const` to provider adapters, and the Gemini query-string API key is intentionally hidden from tool arguments.
 
-Set `TOKENLAB_MCP_TOOL_PROFILE=catalog` for the smallest public-only tool list or `TOKENLAB_MCP_TOOL_PROFILE=full` for the broad developer API. Tool names, descriptions, input JSON Schemas, HTTP bindings, content types, auth requirements, and task behavior can be inspected in [`generated/tools.json`](./generated/tools.json).
+The portable projection keeps every top-level argument but bounds deeply nested model-facing shapes. The server still validates calls against the complete generated OpenAPI schema before issuing an API request. Compatibility budgets keep `core` at no more than 60 KB and depth 8, and `full` at no more than 100 KB and depth 8 for the complete `tools/list` response. Tests also run the full profile through the Google AI SDK version used by the observed OpenCode/Gemini failure.
+
+Set `TOKENLAB_MCP_TOOL_PROFILE=catalog` for the smallest public-only tool list or `TOKENLAB_MCP_TOOL_PROFILE=full` for the broad developer API. Set `TOKENLAB_MCP_SCHEMA_MODE=exact` only when a client needs the complete nested JSON Schema and can accept its larger/deeper tool payload. Use `strict` for providers that require every property to be listed in `required` and every object to set `additionalProperties: false`; complex top-level arguments are represented as JSON-encoded strings and decoded before canonical validation. Canonical tool names, descriptions, input JSON Schemas, HTTP bindings, content types, auth requirements, and task behavior can be inspected in [`generated/tools.json`](./generated/tools.json).
 
 The smaller [`generated/public-contract.json`](./generated/public-contract.json) is the machine-readable projection used by TokenLab's website and other public consumers. It contains package identity, profile counts, core tool layers, resources, prompts, and source hashes without copying all endpoint schemas.
 
 ## Native MCP Features
 
 - JSON tool responses include `structuredContent` while retaining serialized text for older clients.
-- Generated tools expose human-readable titles, standard read-only/destructive/idempotent/open-world annotations, auth/profile metadata, and response request IDs when available.
+- Generated tools expose human-readable titles, standard read-only/destructive/idempotent/open-world annotations, and response request IDs when available.
+- Tool schemas are published and validated directly as JSON Schema. The runtime does not round-trip generated tool schemas through Zod; `exact` mode is byte-shape equivalent to the generated canonical schema.
 - Three resources expose the live API overview, the package's OpenAPI snapshot, and the compact MCP public contract.
 - `choose_tokenlab_model` and `build_tokenlab_request` prompts guide agents to use live model truth and preserve native endpoint shapes.
 - Server instructions tell clients to confirm billable or destructive operations and treat external model/API output as untrusted content.
@@ -103,6 +106,7 @@ Use `delivery.mode` instead of assuming all image requests are synchronous. For 
 - `TOKENLAB_API_BASE`: optional, defaults to `https://api.tokenlab.sh`
 - `TOKENLAB_API_KEY`: optional; required for text inference, multimodal generation, async task, embedding, rerank, and translation tools
 - `TOKENLAB_MCP_TOOL_PROFILE`: optional, `catalog`, `core` (default), or `full`
+- `TOKENLAB_MCP_SCHEMA_MODE`: optional, `portable`, `exact`, or `strict`; defaults to the selected profile's tested mode
 - `TOKENLAB_REQUEST_TIMEOUT_MS`: optional request timeout in milliseconds, defaults to `120000`
 - `TOKENLAB_MCP_MAX_FILE_BYTES`: optional maximum local upload size per file, defaults to `104857600` (100 MiB)
 - `TOKENLAB_MCP_INLINE_BYTES`: optional maximum binary/JSON response size returned inline, defaults to `2097152` (2 MiB)
@@ -118,7 +122,7 @@ The public OpenAPI document is the API contract source. The overlay contains onl
 npm run contract:source-check # compare the snapshot with the live canonical OpenAPI (read-only)
 npm run contract:check        # check generated output against the checked-in snapshot (offline)
 npm run contract:sync         # fetch OpenAPI and regenerate; refuses dirty outputs or a stale branch
-npm test                      # compile profiles and test routing, tasks, files, and binary output
+npm test                      # compile profiles and test exact/portable/strict schemas, provider conversion, routing, tasks, files, and binary output
 ```
 
 Always run `git pull --ff-only` before a manual contract sync. `contract:check` proves internal consistency only; `contract:source-check` proves freshness against the canonical source. The scheduled `Sync TokenLab OpenAPI contract` workflow runs the full write sequence and commits only the verified OpenAPI snapshot and generated manifest to `main`. A failed fetch, stale local branch, dirty generated output, generation error, schema compilation error, or test leaves the tracked contract unchanged.
@@ -129,7 +133,7 @@ This repository includes `server.json` for the official MCP Registry.
 
 Release metadata:
 
-- npm package: `@tokenlabai/mcp-server@0.6.14`
+- npm package: `@tokenlabai/mcp-server@0.6.15`
 - MCP registry name: `io.github.hedging8563/tokenlab`
 - `package.json.mcpName`: `io.github.hedging8563/tokenlab`
 

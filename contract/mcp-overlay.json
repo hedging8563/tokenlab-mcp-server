@@ -4,6 +4,13 @@
   "default_profile": "core",
   "profiles": {
     "catalog": {
+      "schema_mode": "exact",
+      "compatibility_budget": {
+        "max_endpoint_tools": 4,
+        "max_input_schema_bytes": 2000,
+        "max_input_schema_depth": 4,
+        "max_tools_list_bytes": 6000
+      },
       "operations": [
         "listModels",
         "getModel",
@@ -12,6 +19,13 @@
       ]
     },
     "core": {
+      "schema_mode": "portable",
+      "compatibility_budget": {
+        "max_endpoint_tools": 29,
+        "max_input_schema_bytes": 48000,
+        "max_input_schema_depth": 8,
+        "max_tools_list_bytes": 60000
+      },
       "operations": [
         "listModels",
         "getModel",
@@ -43,6 +57,13 @@
       ]
     },
     "full": {
+      "schema_mode": "portable",
+      "compatibility_budget": {
+        "max_endpoint_tools": 78,
+        "max_input_schema_bytes": 72000,
+        "max_input_schema_depth": 8,
+        "max_tools_list_bytes": 100000
+      },
       "include_tags": [
         "Chat",
         "Embeddings",
@@ -229,13 +250,15 @@
         "openWorldHint": true
       }
     },
+    "compactResponse": {
+      "fixed_arguments": {
+        "stream": false
+      }
+    },
     "createAnthropicMessage": {
       "tool_name": "create_anthropic_message",
-      "input_property_overrides": {
-        "stream": {
-          "const": false,
-          "description": "MCP tool calls return one final result; omit stream or set it to false."
-        }
+      "fixed_arguments": {
+        "stream": false
       }
     },
     "geminiGenerateContent": {
@@ -244,19 +267,18 @@
     },
     "createChatCompletion": {
       "description": "Create an OpenAI-compatible chat completion. For inline image_url data URLs, declare the byte-accurate image MIME type. The MCP boundary corrects recognized PNG, JPEG, WebP, and GIF payloads declared as application/octet-stream and rejects unrecognized generic binary image payloads before sending a billable request.",
-      "input_property_overrides": {
-        "stream": {
-          "const": false,
-          "description": "MCP tool calls return one final result; omit stream or set it to false."
-        }
+      "fixed_arguments": {
+        "stream": false
       }
     },
     "createResponse": {
-      "input_property_overrides": {
-        "stream": {
-          "const": false,
-          "description": "MCP tool calls return one final result; omit stream or set it to false."
-        }
+      "fixed_arguments": {
+        "stream": false
+      }
+    },
+    "retrieveResponse": {
+      "fixed_arguments": {
+        "stream": false
       }
     },
     "getAsyncTask": {
@@ -294,11 +316,8 @@
         "application/json": "create_image",
         "multipart/form-data": "create_image_file"
       },
-      "input_property_overrides": {
-        "stream": {
-          "const": false,
-          "description": "Image streaming is not exposed through MCP tool calls; omit stream or set it to false."
-        }
+      "fixed_arguments": {
+        "stream": false
       },
       "task": {
         "mode": "hybrid",
@@ -314,11 +333,8 @@
         "application/json": "edit_image",
         "multipart/form-data": "edit_image_file"
       },
-      "input_property_overrides": {
-        "stream": {
-          "const": false,
-          "description": "Image streaming is not exposed through MCP tool calls; omit stream or set it to false."
-        }
+      "fixed_arguments": {
+        "stream": false
       },
       "task": {
         "mode": "hybrid",

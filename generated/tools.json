@@ -14,6 +14,52 @@
     "core",
     "full"
   ],
+  "profile_config": {
+    "catalog": {
+      "schema_mode": "exact",
+      "compatibility_budget": {
+        "max_endpoint_tools": 4,
+        "max_input_schema_bytes": 2000,
+        "max_input_schema_depth": 4,
+        "max_tools_list_bytes": 6000
+      }
+    },
+    "core": {
+      "schema_mode": "portable",
+      "compatibility_budget": {
+        "max_endpoint_tools": 29,
+        "max_input_schema_bytes": 48000,
+        "max_input_schema_depth": 8,
+        "max_tools_list_bytes": 60000
+      }
+    },
+    "full": {
+      "schema_mode": "portable",
+      "compatibility_budget": {
+        "max_endpoint_tools": 78,
+        "max_input_schema_bytes": 72000,
+        "max_input_schema_depth": 8,
+        "max_tools_list_bytes": 100000
+      }
+    }
+  },
+  "profile_metrics": {
+    "catalog": {
+      "endpoint_tools": 4,
+      "input_schema_bytes": 1553,
+      "max_input_schema_depth": 4
+    },
+    "core": {
+      "endpoint_tools": 29,
+      "input_schema_bytes": 44738,
+      "max_input_schema_depth": 8
+    },
+    "full": {
+      "endpoint_tools": 78,
+      "input_schema_bytes": 69847,
+      "max_input_schema_depth": 8
+    }
+  },
   "tool_count": 78,
   "tools": [
     {
@@ -32,6 +78,7 @@
       ],
       "description": "Cancel message batch (Anthropic-compatible) Cancels a native Anthropic Message Batch when the provider still allows cancellation.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "message_batch_id": {
@@ -76,6 +123,7 @@
       ],
       "description": "Cancel batch",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "batch_id": {
@@ -120,6 +168,7 @@
       ],
       "description": "Cancel async task Cancels a queued asynchronous task when cancellation is supported for the selected task. Cancellation currently supports queued Seedance video tasks (`seedance-1.5-pro`, `seedance-2.0`, and `seedance-2.0-fast`) while they are still waiting to run. Tasks that are already processing, completed, failed, expired, or unsupported are not cancelled.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "id": {
@@ -181,6 +230,7 @@
       ],
       "description": "Compact response context (OpenAI Responses API) Compacts Responses input and returns the native `response.compaction` contract. The request model must be available on a same-protocol Responses path.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "model": {
@@ -202,10 +252,6 @@
           "max_output_tokens": {
             "type": "integer",
             "description": "Maximum output tokens."
-          },
-          "stream": {
-            "type": "boolean",
-            "description": "Streaming is not supported for compaction."
           },
           "metadata": {
             "type": "object",
@@ -232,6 +278,9 @@
         ],
         "files": []
       },
+      "default_arguments": {
+        "stream": false
+      },
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -255,6 +304,7 @@
       ],
       "description": "Count message tokens (Anthropic-compatible) Counts input tokens for an Anthropic-compatible messages request without creating a model response. Authentication is required; the operation is not billed.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "model": {
@@ -425,6 +475,7 @@
       ],
       "description": "Create 3D model generation task Creates a 3D model generation task using Tripo3D. Returns a task ID for polling.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "model": {
@@ -535,6 +586,7 @@
       ],
       "description": "Create message (Anthropic-compatible) Creates a model response using Anthropic's native request format. Supports Claude models with vision and streaming. **Authentication:** Use `x-api-key` header or `Authorization: Bearer` header.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "model": {
@@ -636,12 +688,6 @@
               "type": "string"
             }
           },
-          "stream": {
-            "type": "boolean",
-            "default": false,
-            "const": false,
-            "description": "MCP tool calls return one final result; omit stream or set it to false."
-          },
           "tools": {
             "type": "array",
             "items": {
@@ -712,6 +758,9 @@
         ],
         "files": []
       },
+      "default_arguments": {
+        "stream": false
+      },
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -735,6 +784,7 @@
       ],
       "description": "Create message batch (Anthropic-compatible) Creates a native Anthropic Message Batch. Requests use the same Anthropic message parameters as /v1/messages.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "requests": {
@@ -946,6 +996,7 @@
       ],
       "description": "Create batch Creates an OpenAI-compatible batch job.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "input_file_id": {
@@ -1033,6 +1084,7 @@
       ],
       "description": "Create an OpenAI-compatible chat completion. For inline image_url data URLs, declare the byte-accurate image MIME type. The MCP boundary corrects recognized PNG, JPEG, WebP, and GIF payloads declared as application/octet-stream and rejects unrecognized generic binary image payloads before sending a billable request.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "model": {
@@ -1257,12 +1309,6 @@
             "maximum": 128,
             "default": 1,
             "description": "Number of completions to generate"
-          },
-          "stream": {
-            "type": "boolean",
-            "default": false,
-            "description": "MCP tool calls return one final result; omit stream or set it to false.",
-            "const": false
           },
           "stop": {
             "oneOf": [
@@ -1539,6 +1585,9 @@
         ],
         "files": []
       },
+      "default_arguments": {
+        "stream": false
+      },
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -1563,6 +1612,7 @@
       ],
       "description": "Create embeddings Creates an embedding vector representing the input text.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "model": {
@@ -1660,6 +1710,7 @@
       ],
       "description": "Generate content (Gemini-compatible) Generates content using the native Gemini GenerateContent shape. This route is exposed only when the model details advertise Gemini requests and a same-protocol route is currently available. ProtoJSON lowerCamelCase and original proto snake_case field names are preserved. Unknown fields are forwarded best-effort and support is determined by the selected provider. **Authentication:** Use `?key=` query parameter, `x-goog-api-key` header, or `Authorization: Bearer` header.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "model": {
@@ -2149,6 +2200,7 @@
       ],
       "description": "Create image Creates an image given a prompt.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "prompt": {
@@ -2285,11 +2337,6 @@
             ],
             "description": "Moderation strictness for compatible image models such as gpt-image-2"
           },
-          "stream": {
-            "type": "boolean",
-            "description": "Image streaming is not exposed through MCP tool calls; omit stream or set it to false.",
-            "const": false
-          },
           "aspect_ratio": {
             "type": "string",
             "description": "Aspect-ratio selector for compatible image model families."
@@ -2342,6 +2389,9 @@
         ],
         "files": []
       },
+      "default_arguments": {
+        "stream": false
+      },
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -2383,6 +2433,7 @@
       ],
       "description": "Create image Creates an image given a prompt.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "model": {
@@ -2479,11 +2530,6 @@
               "low"
             ]
           },
-          "stream": {
-            "type": "boolean",
-            "const": false,
-            "description": "Image streaming is not exposed through MCP tool calls; omit stream or set it to false."
-          },
           "size": {
             "type": "string"
           },
@@ -2541,6 +2587,9 @@
           "image"
         ]
       },
+      "default_arguments": {
+        "stream": false
+      },
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -2581,6 +2630,7 @@
       ],
       "description": "Create image variation Generates image variations from a multipart image upload.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "image": {
@@ -2651,6 +2701,7 @@
       ],
       "description": "Create multimodal embeddings Creates embeddings for multimodal input items. Text input is generally available; image input may require feature enablement.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "model": {
@@ -2758,6 +2809,7 @@
       ],
       "description": "Create music generation task Creates a music generation task using Suno. Returns a task ID for polling.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "model": {
@@ -2892,6 +2944,7 @@
       ],
       "description": "Create response (OpenAI Responses API) Creates a response using the native OpenAI Responses API shape. The model details must advertise the Responses request format and a same-protocol route must be currently available; model names and providers do not imply availability. Unknown request fields are forwarded on a best-effort basis and remain subject to the selected provider's support.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "model": {
@@ -2921,11 +2974,6 @@
           },
           "temperature": {
             "type": "number"
-          },
-          "stream": {
-            "type": "boolean",
-            "const": false,
-            "description": "MCP tool calls return one final result; omit stream or set it to false."
           },
           "tools": {
             "type": "array",
@@ -3051,6 +3099,9 @@
         ],
         "files": []
       },
+      "default_arguments": {
+        "stream": false
+      },
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -3074,6 +3125,7 @@
       ],
       "description": "Create Seedance material asset Uploads one Seedance material asset URL into a TokenLab material group. Image materials must use supported dimensions; an invalid source is rejected with 400 seedance_material_source_invalid instead of remaining in PROCESSING. Real-person assets require the group_id mapped from Result.GroupId returned by GetVisualValidateResult.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "asset_url": {
@@ -3172,6 +3224,7 @@
       ],
       "description": "Create Seedance material asset group Creates a TokenLab Seedance virtual-avatar material group. Real-person material groups are created by GetVisualValidateResult after the H5 validation succeeds.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "group_name": {
@@ -3258,6 +3311,7 @@
       ],
       "description": "Create speech Generates audio from the input text (Text-to-Speech).",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "model": {
@@ -3382,6 +3436,7 @@
       ],
       "description": "Create video generation task Creates an asynchronous video generation task. The response returns a canonical task ID and usually a preferred `poll_url`; clients should poll `poll_url` first, or use `/v1/tasks/{id}` as the fixed status endpoint.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "prompt": {
@@ -3795,6 +3850,7 @@
       ],
       "description": "Create a real-person visual validation session through the Volc-compatible Action API. Returns the official ResponseMetadata and Result shape with BytedToken, H5Link, and CallbackURL.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "CallbackURL": {
@@ -3853,6 +3909,7 @@
       ],
       "description": "Create Seedance task (Volc-compatible) Creates a Seedance 2.0 video generation task using a Volc-style REST body. Authentication uses a TokenLab Bearer API key.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "model": {
@@ -4148,6 +4205,7 @@
       ],
       "description": "Create world generation task Creates a World Labs Marble world generation task for TokenLab-supported Marble models. Returns a task ID for polling. TokenLab supports native world_prompt media_asset references when the media asset was prepared through TokenLab.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "model": {
@@ -4320,6 +4378,7 @@
       ],
       "description": "Delete message batch (Anthropic-compatible) Deletes a native Anthropic Message Batch when the provider supports deletion.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "message_batch_id": {
@@ -4365,6 +4424,7 @@
       ],
       "description": "Delete file Deletes a batch file or a bound image/reference file. When the request includes anthropic-beta: files-api-2025-04-14, the route uses Anthropic Files API mode for the bound workspace.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "file_id": {
@@ -4415,6 +4475,7 @@
       ],
       "description": "Delete response Deletes a stored Responses API response. This operation is deletion, not cancellation of an in-progress response.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "id": {
@@ -4459,6 +4520,7 @@
       ],
       "description": "Delete Seedance material asset Deletes a Seedance material asset owned by the authenticated organization.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "assetId": {
@@ -4511,6 +4573,7 @@
       ],
       "description": "Delete Seedance material asset group Deletes a TokenLab Seedance material group and its material assets. The operation is irreversible when accepted.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "groupId": {
@@ -4563,6 +4626,7 @@
       ],
       "description": "Cancel Seedance task (Volc-compatible)",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "id": {
@@ -4607,6 +4671,7 @@
       ],
       "description": "Delete World Labs world Deletes a World Labs world generated through TokenLab. This permanently deletes the world and associated assets when World Labs accepts the deletion. TokenLab keeps task status records for usage history.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "id": {
@@ -4651,6 +4716,7 @@
       ],
       "description": "Seedance Action dispatcher (GET) Dispatches Volc-style Action requests. Use Version=2024-01-01 or omit Version.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "Action": {
@@ -4705,6 +4771,7 @@
       ],
       "description": "Seedance Action dispatcher (POST) Dispatches Volc-style Action requests with TokenLab Bearer authentication. Real-person validation and material asset Actions use Version=2024-01-01 and are POST-only. The same POST contract is also available at the API root for endpoint-only migration from Volcengine.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "Action": {
@@ -4929,6 +4996,7 @@
       ],
       "description": "Edit image Edits an image using multipart image uploads, JSON image URLs, or the official JSON images array for supported GPT Image models.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "model": {
@@ -4998,11 +5066,6 @@
           "async": {
             "type": "boolean",
             "description": "Return a task before the edited image is ready for models that support public async execution."
-          },
-          "stream": {
-            "type": "boolean",
-            "description": "Image streaming is not exposed through MCP tool calls; omit stream or set it to false.",
-            "const": false
           },
           "user": {
             "type": "string"
@@ -5112,6 +5175,9 @@
         ],
         "files": []
       },
+      "default_arguments": {
+        "stream": false
+      },
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -5153,6 +5219,7 @@
       ],
       "description": "Edit image Edits an image using multipart image uploads, JSON image URLs, or the official JSON images array for supported GPT Image models.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "image": {
@@ -5237,11 +5304,6 @@
           "async": {
             "type": "boolean"
           },
-          "stream": {
-            "type": "boolean",
-            "const": false,
-            "description": "Image streaming is not exposed through MCP tool calls; omit stream or set it to false."
-          },
           "user": {
             "type": "string"
           },
@@ -5292,6 +5354,9 @@
           "image[]"
         ]
       },
+      "default_arguments": {
+        "stream": false
+      },
       "annotations": {
         "readOnlyHint": false,
         "destructiveHint": false,
@@ -5332,6 +5397,7 @@
       ],
       "description": "Batch embed contents (Gemini-compatible) Creates multiple embeddings using the native Gemini BatchEmbedContents contract.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "model": {
@@ -5390,6 +5456,7 @@
       ],
       "description": "Count tokens (Gemini-compatible) Counts tokens using the native Gemini CountTokens contract. Unknown fields and either official ProtoJSON field-name spelling are forwarded best-effort.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "model": {
@@ -5457,6 +5524,7 @@
       ],
       "description": "Embed content (Gemini-compatible) Creates an embedding using the native Gemini EmbedContent contract.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "model": {
@@ -5532,6 +5600,7 @@
       ],
       "description": "Get 3D task status Retrieves the status and result of a 3D generation task.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "id": {
@@ -5575,6 +5644,7 @@
       ],
       "description": "Get Gemini-native model Retrieves model metadata through the Gemini-compatible v1beta surface.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "model": {
@@ -5618,6 +5688,7 @@
       ],
       "description": "Get image task status Compatibility alias for polling public async image task IDs such as `ldtask_...`. Prefer the `poll_url` returned by create responses, or use `/v1/tasks/{id}` as the canonical fixed status endpoint. This route uses the same authorization, ownership checks, billing headers, terminal snapshots, and response shape as the image-specific status handler.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "id": {
@@ -5665,6 +5736,7 @@
       ],
       "description": "Get model Retrieves current model details, including supported operations, request parameters, request endpoints, selector limits, and pricing when available. Non-chat integrations should read these current model-specific request details before creating a request.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "model": {
@@ -5711,6 +5783,7 @@
       ],
       "description": "Get model pricing Retrieves pricing-only detail for one model. Use this endpoint for price explanation, not for non-chat request construction.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "model": {
@@ -5755,6 +5828,7 @@
       ],
       "description": "Get music task status Retrieves the status and result of a music generation task.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "id": {
@@ -5800,6 +5874,7 @@
       ],
       "description": "List model pricing Returns the public pricing surface for active models, with optional provider and tag filters.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "provider": {
@@ -5846,6 +5921,7 @@
       ],
       "description": "Get Seedance material asset Retrieves one TokenLab Seedance material asset and its asynchronous ingestion status.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "assetId": {
@@ -5898,6 +5974,7 @@
       ],
       "description": "Get Seedance material asset group Retrieves one TokenLab Seedance material group.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "groupId": {
@@ -5951,6 +6028,7 @@
       ],
       "description": "Get async task status Retrieves the status and result of an asynchronous generation task. Prefer the `poll_url` returned by the create response; `/v1/tasks/{id}` is the canonical fixed status endpoint for video, music, and 3D jobs.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "id": {
@@ -6012,6 +6090,7 @@
       ],
       "description": "Get video task status Retrieves the status and result of a video generation task. New clients should prefer the `poll_url` returned by create responses, or use `/v1/tasks/{id}` as the canonical fixed status endpoint. The `/v1/videos/generations/{id}` path remains for backward compatibility.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "id": {
@@ -6056,6 +6135,7 @@
       ],
       "description": "Get the mapped real-person material GroupId through the Volc-compatible Action API after the H5 validation succeeds. The operation returns the official ResponseMetadata and Result shape.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "BytedToken": {
@@ -6113,6 +6193,7 @@
       ],
       "description": "Get Seedance task (Volc-compatible)",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "id": {
@@ -6157,6 +6238,7 @@
       ],
       "description": "Get World Labs world Retrieves a World Labs world generated through TokenLab. The world ID must be owned by the authenticated organization.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "id": {
@@ -6201,6 +6283,7 @@
       ],
       "description": "Get World Labs media asset Retrieves metadata for a World Labs media asset prepared through TokenLab. The media asset must belong to the authenticated organization.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "id": {
@@ -6245,6 +6328,7 @@
       ],
       "description": "Get world generation status Retrieves the status and result of a World Labs Marble world generation task.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "id": {
@@ -6306,6 +6390,7 @@
       ],
       "description": "List message batches (Anthropic-compatible) Lists native Anthropic Message Batches for the authenticated organization.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "before_id": {
@@ -6360,6 +6445,7 @@
       ],
       "description": "List batches",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "limit": {
@@ -6407,6 +6493,7 @@
       ],
       "description": "List files",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "limit": {
@@ -6486,6 +6573,7 @@
       ],
       "description": "List Gemini-native models Lists enabled models through the Gemini-compatible v1beta model discovery surface.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "pageSize": {
@@ -6534,6 +6622,7 @@
       ],
       "description": "List models Lists the currently available models. Use `view=compact` for model selection and `view=full` for the existing OpenAI-compatible discovery shape. Native API calls default to `full`; integrations may choose `compact` as their default. Non-chat recommendations are available through `recommended_for`.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "provider": {
@@ -6627,6 +6716,7 @@
       ],
       "description": "List Seedance material asset groups Lists Seedance material groups owned by the authenticated organization. Real-person groups are returned after GetVisualValidateResult succeeds.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "page_size": {
@@ -6699,6 +6789,7 @@
       ],
       "description": "List Seedance material assets Lists Seedance material assets owned by the authenticated organization. Use library_type, group_id, and status filters to find assets for a generation workflow.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "page_size": {
@@ -6778,6 +6869,7 @@
       ],
       "description": "List Seedance tasks (Volc-compatible) Lists recent Seedance compatibility tasks for the authenticated organization.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "page_num": {
@@ -6857,6 +6949,7 @@
       ],
       "description": "List World Labs worlds Lists World Labs worlds created through TokenLab for the authenticated organization. Results only include resources created through TokenLab.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "page_size": {
@@ -7013,6 +7106,7 @@
       ],
       "description": "Prepare World Labs media asset upload Creates a World Labs media asset record and returns a signed upload URL. Use the returned media_asset_id from native world_prompt objects with source=media_asset. Media assets can only be used by the organization that created them.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "file_name": {
@@ -7094,6 +7188,7 @@
       ],
       "description": "Rerank documents Reranks documents by relevance to a query using semantic similarity.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "model": {
@@ -7162,6 +7257,7 @@
       ],
       "description": "Retrieve message batch (Anthropic-compatible) Retrieves the status and metadata for a native Anthropic Message Batch.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "message_batch_id": {
@@ -7206,6 +7302,7 @@
       ],
       "description": "Retrieve message batch results (Anthropic-compatible) Downloads JSONL results for a completed native Anthropic Message Batch.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "message_batch_id": {
@@ -7250,6 +7347,7 @@
       ],
       "description": "Retrieve batch",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "batch_id": {
@@ -7294,6 +7392,7 @@
       ],
       "description": "Retrieve file",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "file_id": {
@@ -7344,6 +7443,7 @@
       ],
       "description": "Retrieve file content",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "file_id": {
@@ -7387,6 +7487,7 @@
       ],
       "description": "Retrieve response Retrieves a stored Responses API response by TokenLab response id. Ownership checks return 404 when the response is missing or unavailable to the current API key.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "id": {
@@ -7403,10 +7504,6 @@
           "include_obfuscation": {
             "type": "boolean",
             "description": "Whether streamed events include obfuscation fields."
-          },
-          "stream": {
-            "type": "boolean",
-            "description": "Whether to retrieve the response as an event stream."
           },
           "starting_after": {
             "type": "integer",
@@ -7432,6 +7529,9 @@
         "body": [],
         "files": []
       },
+      "default_arguments": {
+        "stream": false
+      },
       "annotations": {
         "readOnlyHint": true,
         "destructiveHint": false,
@@ -7456,6 +7556,7 @@
       ],
       "description": "Create transcription Transcribes audio into text (Speech-to-Text).",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "file": {
@@ -7551,6 +7652,7 @@
       ],
       "description": "Translate audio Transcribes audio and translates the result to English.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "file": {
@@ -7617,6 +7719,7 @@
       ],
       "description": "Translate text Translates text into a target language using the current translation request format.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "model": {
@@ -7686,6 +7789,7 @@
       ],
       "description": "Update Seedance material asset Updates a Seedance material asset owned by the authenticated organization.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "assetId": {
@@ -7773,6 +7877,7 @@
       ],
       "description": "Update Seedance material asset group Updates display metadata for a TokenLab Seedance material group.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "groupId": {
@@ -7855,6 +7960,7 @@
       ],
       "description": "Upload file Uploads a TokenLab/OpenAI-compatible batch or image file. With anthropic-beta: files-api-2025-04-14, uploads an Anthropic Files resource without a purpose field and returns Anthropic file metadata.",
       "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
           "anthropic-beta": {

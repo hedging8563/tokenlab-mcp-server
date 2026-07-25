@@ -5,6 +5,15 @@ import { readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import {
+  findProviderIncompatibleLiterals,
+  projectToolInputSchema,
+  schemaBytes,
+  schemaDepth,
+  TOOL_SCHEMA_MODES,
+  withDraft07
+} from "../src/tool-schema.js";
+
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const argv = process.argv.slice(2);
 const args = new Map();
@@ -110,6 +119,16 @@ const profileEntries = Object.entries(overlay.profiles);
 const publicAuth = new Set(overlay.public_auth_operations || []);
 
 for (const [profileName, profile] of profileEntries) {
+  if (!TOOL_SCHEMA_MODES.includes(profile.schema_mode)) {
+    throw new Error(
+      `${profileName} MCP profile schema_mode must be ${TOOL_SCHEMA_MODES.join(" or ")}`
+    );
+  }
+  for (const [name, value] of Object.entries(profile.compatibility_budget || {})) {
+    if (!Number.isInteger(value) || value <= 0) {
+      throw new Error(`${profileName} MCP compatibility budget ${name} must be a positive integer`);
+    }
+  }
   for (const operationId of profile.operations || []) {
     if (!operations.has(operationId)) {
       throw new Error(`${profileName} MCP operation is missing from OpenAPI: ${operationId}`);
@@ -224,12 +243,12 @@ function buildInputSchema(operationId, pathItem, operation, contentType, overrid
   }
 
   return {
-    schema: {
+    schema: withDraft07({
       type: "object",
       properties,
       ...(required.length > 0 ? { required: [...new Set(required)] } : {}),
       additionalProperties: false
-    },
+    }),
     bindings
   };
 }
@@ -361,6 +380,48 @@ tools.sort((left, right) => left.name.localeCompare(right.name));
 const duplicateNames = tools.filter((tool, index) => tools.findIndex((candidate) => candidate.name === tool.name) !== index);
 if (duplicateNames.length > 0) throw new Error(`Duplicate MCP tool names: ${duplicateNames.map((tool) => tool.name).join(", ")}`);
 
+const profileConfig = Object.fromEntries(profileEntries.map(([profileName, profile]) => [
+  profileName,
+  {
+    schema_mode: profile.schema_mode,
+    compatibility_budget: profile.compatibility_budget
+  }
+]));
+const profileMetrics = Object.fromEntries(profileEntries.map(([profileName, profile]) => {
+  const activeTools = tools.filter((tool) => tool.profiles.includes(profileName));
+  const projectedSchemas = activeTools.map((tool) => ({
+    name: tool.name,
+    schema: projectToolInputSchema(tool.input_schema, profile.schema_mode)
+  }));
+  const literalFindings = projectedSchemas.flatMap(({ name, schema }) => (
+    findProviderIncompatibleLiterals(schema).map((finding) => ({ tool: name, ...finding }))
+  ));
+  if (literalFindings.length > 0) {
+    const first = literalFindings[0];
+    throw new Error(
+      `${profileName} MCP profile exposes provider-incompatible ${first.keyword} at ${first.tool}${first.path.slice(1)}`
+    );
+  }
+
+  const metrics = {
+    endpoint_tools: activeTools.length,
+    input_schema_bytes: projectedSchemas.reduce((total, entry) => total + schemaBytes(entry.schema), 0),
+    max_input_schema_depth: Math.max(...projectedSchemas.map((entry) => schemaDepth(entry.schema)), 0)
+  };
+  const budget = profile.compatibility_budget || {};
+  const violations = [
+    ["max_endpoint_tools", metrics.endpoint_tools],
+    ["max_input_schema_bytes", metrics.input_schema_bytes],
+    ["max_input_schema_depth", metrics.max_input_schema_depth]
+  ].filter(([name, value]) => budget[name] && value > budget[name]);
+  if (violations.length > 0) {
+    throw new Error(
+      `${profileName} MCP compatibility budget exceeded: ${violations.map(([name, value]) => `${name}=${value} > ${budget[name]}`).join(", ")}`
+    );
+  }
+  return [profileName, metrics];
+}));
+
 const manifest = {
   schema_version: 1,
   generated_at: null,
@@ -373,6 +434,8 @@ const manifest = {
   },
   default_profile: overlay.default_profile,
   profiles: Object.keys(overlay.profiles),
+  profile_config: profileConfig,
+  profile_metrics: profileMetrics,
   tool_count: tools.length,
   tools
 };
@@ -407,9 +470,12 @@ const profiles = Object.fromEntries(profileEntries.map(([profileName]) => {
   const composite = compositeTools.filter((tool) => tool.profiles.includes(profileName)).map((tool) => tool.name);
   return [profileName, {
     is_default: profileName === overlay.default_profile,
+    schema_mode: manifest.profile_config[profileName].schema_mode,
     endpoint_tools: endpointTools.length,
     composite_tools: composite.length,
     total_tools: endpointTools.length + composite.length,
+    input_schema_bytes: manifest.profile_metrics[profileName].input_schema_bytes,
+    max_input_schema_depth: manifest.profile_metrics[profileName].max_input_schema_depth,
     tool_names: [...endpointTools, ...composite].sort()
   }];
 }));
@@ -450,7 +516,8 @@ const publicContract = {
     command: "npx",
     args: ["-y", packageJson.name],
     api_key_environment_variable: "TOKENLAB_API_KEY",
-    tool_profile_environment_variable: "TOKENLAB_MCP_TOOL_PROFILE"
+    tool_profile_environment_variable: "TOKENLAB_MCP_TOOL_PROFILE",
+    tool_schema_mode_environment_variable: "TOKENLAB_MCP_SCHEMA_MODE"
   },
   source: {
     ...manifest.source,
