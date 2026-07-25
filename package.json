@@ -1,6 +1,6 @@
 {
   "name": "@tokenlabai/mcp-server",
-  "version": "0.6.16",
+  "version": "0.6.17",
   "description": "OpenAPI-generated TokenLab MCP server with 31 default and 80 full-profile tools for catalog, native AI, multimodal, and async APIs.",
   "type": "module",
   "engines": {

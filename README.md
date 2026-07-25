@@ -10,7 +10,7 @@ It exposes public catalog tools for agents that need to choose models, inspect s
 
 ## Generated Tool Profiles
 
-The checked-in `generated/tools.json` manifest is generated from TokenLab's public OpenAPI document plus the small MCP-only overlay in `contract/mcp-overlay.json`. Version 0.6.16 generates 78 endpoint tools; with the two MCP-only composite discovery tools, the full profile returns 80 tools from `tools/list`.
+The checked-in `generated/tools.json` manifest is generated from TokenLab's public OpenAPI document plus the small MCP-only overlay in `contract/mcp-overlay.json`. Version 0.6.17 generates 78 endpoint tools; with the two MCP-only composite discovery tools, the full profile returns 80 tools from `tools/list`.
 
 | Profile | Endpoint tools | Total registered tools | Model-facing schema | Coverage |
 | --- | ---: | ---: | --- | --- |
@@ -133,7 +133,7 @@ This repository includes `server.json` for the official MCP Registry.
 
 Release metadata:
 
-- npm package: `@tokenlabai/mcp-server@0.6.16`
+- npm package: `@tokenlabai/mcp-server@0.6.17`
 - MCP registry name: `io.github.hedging8563/tokenlab`
 - `package.json.mcpName`: `io.github.hedging8563/tokenlab`
 

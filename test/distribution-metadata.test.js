@@ -8,6 +8,9 @@ const publicContract = JSON.parse(
   await readFile(new URL("../generated/public-contract.json", import.meta.url), "utf8")
 );
 const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
+const registryMetadata = JSON.parse(
+  await readFile(new URL("../server.json", import.meta.url), "utf8")
+);
 
 test("distribution container includes every runtime contract asset", () => {
   for (const runtimePath of ["contract", "generated", "src"]) {
@@ -22,6 +25,11 @@ test("distribution container includes every runtime contract asset", () => {
 test("Glama ownership metadata names the repository maintainer", () => {
   assert.equal(glama.$schema, "https://glama.ai/mcp/schemas/server.json");
   assert.deepEqual(glama.maintainers, ["hedging8563"]);
+});
+
+test("official Registry description stays inside the publication contract", () => {
+  assert.ok(registryMetadata.description.length <= 100);
+  assert.match(registryMetadata.description, /31 default and 80 full-profile tools/);
 });
 
 test("README distinguishes endpoint tools from registered tools", () => {
