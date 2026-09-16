@@ -5,7 +5,7 @@
     "id": "tokenlab-mcp-server",
     "name": "@tokenlabai/mcp-server",
     "title": "TokenLab MCP Server",
-    "version": "0.6.17",
+    "version": "0.6.18",
     "registry_name": "io.github.hedging8563/tokenlab",
     "source_url": "https://github.com/hedging8563/tokenlab-mcp-server",
     "landing_url": "https://tokenlab.sh/mcp",
@@ -23,11 +23,11 @@
   },
   "source": {
     "url": "https://docs.tokenlab.sh/openapi.json",
-    "openapi": "3.0.3",
+    "openapi": "3.1.0",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "85963db54cafb169aaf6e9c28bf200cc217f59a9d457ed61fe80ba7047d1d511",
-    "tool_manifest_sha256": "77536f77ea5ec73b1dba72758be2374f2d7ad1943b5cf066c246269aeeeb54b5"
+    "sha256": "d45184d659f5f4c7d9b451e961e692e4e29faf451c0c8dc2e77f62df2821f35f",
+    "tool_manifest_sha256": "34b43a924be4e6a8d2f42eac560c0eef76503c9187f2d99d5450d94d05ba51a8"
   },
   "profiles": {
     "catalog": {
@@ -53,7 +53,7 @@
       "endpoint_tools": 29,
       "composite_tools": 2,
       "total_tools": 31,
-      "input_schema_bytes": 44738,
+      "input_schema_bytes": 43184,
       "max_input_schema_depth": 8,
       "tool_names": [
         "cancel_task",
@@ -95,7 +95,7 @@
       "endpoint_tools": 78,
       "composite_tools": 2,
       "total_tools": 80,
-      "input_schema_bytes": 69847,
+      "input_schema_bytes": 69395,
       "max_input_schema_depth": 8,
       "tool_names": [
         "cancel_anthropic_message_batch",

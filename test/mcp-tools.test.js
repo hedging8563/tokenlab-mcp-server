@@ -178,17 +178,17 @@ test("advertises exactly the generated profile plus composite discovery tools", 
   assert.deepEqual(byName.create_visual_validate_session.bindings, {
     path: [],
     query: ["Action", "Version"],
-    header: [],
+    header: ["X-TokenLab-Delivery-Policy"],
     body: ["CallbackURL", "ProjectName"],
     files: []
   });
-  assert.deepEqual(Object.keys(byName.create_visual_validate_session.input_schema.properties), ["CallbackURL", "ProjectName"]);
+  assert.deepEqual(Object.keys(byName.create_visual_validate_session.input_schema.properties), ["X-TokenLab-Delivery-Policy", "CallbackURL", "ProjectName"]);
   assert.deepEqual(byName.create_visual_validate_session.input_schema.required, ["CallbackURL"]);
   assert.deepEqual(byName.get_visual_validate_result.default_arguments, {
     Action: "GetVisualValidateResult",
     Version: "2024-01-01"
   });
-  assert.deepEqual(Object.keys(byName.get_visual_validate_result.input_schema.properties), ["BytedToken", "ProjectName"]);
+  assert.deepEqual(Object.keys(byName.get_visual_validate_result.input_schema.properties), ["X-TokenLab-Delivery-Policy", "BytedToken", "ProjectName"]);
   assert.deepEqual(byName.get_visual_validate_result.input_schema.required, ["BytedToken"]);
   assert.equal(byName.get_visual_validate_result.annotations.idempotentHint, true);
   assert.equal(byName.create_gemini_content.input_schema.properties.key, undefined);
@@ -800,4 +800,117 @@ test("requires auth only for protected generated operations", async (t) => {
 test("ships an executable npm binary", async () => {
   const { mode } = await stat(new URL("../src/index.js", import.meta.url));
   assert.notEqual(mode & 0o111, 0);
+});
+
+test("forwards current Delivery, media, and idempotency inputs while retaining canonical validation", async (t) => {
+  for (const mode of ["portable", "exact", "strict"]) {
+    await t.test(mode, async (t) => {
+      const api = await startMockApi(t);
+      const client = await startMcpClient(t, {
+        TOKENLAB_API_BASE: api.baseUrl,
+        TOKENLAB_API_KEY: "test-key",
+        TOKENLAB_MCP_TOOL_PROFILE: "full",
+        TOKENLAB_MCP_SCHEMA_MODE: mode
+      });
+      const encoded = (value) => mode === "strict" ? JSON.stringify(value) : value;
+      const references = Array.from({ length: 30 }, (_, index) => `https://example.com/${index}.png`);
+      const calls = [
+        { name: "create_chat_completion", arguments: {
+          model: "fixture", messages: encoded([{ role: "user", content: "fixture" }]),
+          "X-TokenLab-Delivery-Policy": "official"
+        } },
+        { name: "create_video", arguments: {
+          model: "seedance-2.5", prompt: "fixture", reference_images: encoded(references)
+        } },
+        { name: "create_volc_compatible_seedance_task", arguments: {
+          model: "fixture", content: encoded([{ type: "text", text: "fixture" }]),
+          duration: encoded(-1), "Idempotency-Key": "fixture-once"
+        } }
+      ];
+      for (const call of calls) assert.equal((await client.callTool(call)).isError, undefined);
+      assert.equal(api.requests.length, 3);
+      assert.equal(api.requests[0].headers["x-tokenlab-delivery-policy"], "official");
+      assert.equal(api.requests[0].body["X-TokenLab-Delivery-Policy"], undefined);
+      assert.deepEqual(api.requests[1].body.reference_images, references);
+      assert.equal(api.requests[1].headers["x-tokenlab-delivery-policy"], undefined);
+      assert.equal(api.requests[2].headers["idempotency-key"], "fixture-once");
+      assert.equal(api.requests[2].body["Idempotency-Key"], undefined);
+      assert.equal(api.requests[2].body.duration, -1);
+
+      const invalidCalls = [
+        { ...calls[0], arguments: { ...calls[0].arguments, "X-TokenLab-Delivery-Policy": "unknown" } },
+        { ...calls[1], arguments: { ...calls[1].arguments, reference_images: encoded([...references, references[0]]) } },
+        { ...calls[2], arguments: { ...calls[2].arguments, "Idempotency-Key": "" } },
+        { ...calls[2], arguments: { ...calls[2].arguments, duration: encoded(0) } },
+        { ...calls[2], arguments: { ...calls[2].arguments, content: encoded([{ type: "image_url", image_url: {} }]) } }
+      ];
+      for (const call of invalidCalls) {
+        const result = await client.callTool(call);
+        assert.equal(result.isError, true);
+        assert.match(result.content[0].text, /Input validation error/);
+      }
+      assert.equal(api.requests.length, 3, "invalid nested fields, enum values and limits must not reach HTTP");
+    });
+  }
+});
+
+test("preserves bounded HTTP recovery details without retrying a create", async (t) => {
+  const retryDate = new Date(Date.now() + 120_000).toUTCString();
+  const fixtures = [
+    { status: 429, headers: { "Retry-After": "37", "X-Request-ID": "req_header" },
+      json: { error: { code: "rate_limit_exceeded", message: "Slow down", retry_after: 1, request_id: "req_body" } } },
+    { status: 503, headers: { "Retry-After": retryDate },
+      json: { error: { code: "unavailable", message: "Try later", retryable: false }, request_id: "req_body" } },
+    { status: 401, json: { error: { code: "invalid_api_key", message: "Invalid credential" } } },
+    { status: 429, headers: { "Retry-After": "invalid" },
+      json: { error: { message: "Wait", retry_after: 12 } } },
+    { status: 502, headers: { "Content-Type": "text/html", "X-Request-ID": "req_html" },
+      rawBody: Buffer.from("upstream unavailable ".repeat(500)) }
+  ];
+  let index = 0;
+  const api = await startMockApi(t, () => fixtures[index]);
+  const client = await startMcpClient(t, { TOKENLAB_API_BASE: api.baseUrl, TOKENLAB_API_KEY: "test-key" });
+  const results = [];
+  for (; index < fixtures.length; index += 1) {
+    const result = await client.callTool({ name: "create_chat_completion", arguments: {
+      model: "fixture", messages: [{ role: "user", content: "fixture" }]
+    } });
+    assert.equal(result.isError, true);
+    assert.deepEqual(JSON.parse(result.content[0].text), result.structuredContent);
+    assert.equal(result.structuredContent.status, fixtures[index].status);
+    assert.equal(result._meta["tokenlab/httpStatus"], fixtures[index].status);
+    assert.ok(Buffer.byteLength(JSON.stringify(result.structuredContent)) < 5_000);
+    results.push(result);
+    assert.equal(api.requests.length, index + 1, "one call must dispatch at most one create");
+  }
+  assert.deepEqual(results[0].structuredContent, {
+    status: 429, error: { code: "rate_limit_exceeded", message: "Slow down" },
+    request_id: "req_header", retryable: true, retry_after: 37
+  });
+  assert.equal(results[0]._meta["tokenlab/retryAfter"], "37");
+  assert.equal(results[0]._meta["tokenlab/retryAfterSeconds"], 37);
+  assert.equal(results[1].structuredContent.request_id, "req_body");
+  assert.equal(results[1].structuredContent.retryable, false);
+  assert.ok(results[1].structuredContent.retry_after > 100 && results[1].structuredContent.retry_after <= 120);
+  assert.equal(results[1]._meta["tokenlab/retryAfter"], retryDate);
+  assert.equal(results[2].structuredContent.retryable, false);
+  assert.equal(results[2].structuredContent.retry_after, undefined);
+  assert.equal(results[3].structuredContent.retry_after, 12);
+  assert.equal(results[4].structuredContent.request_id, "req_html");
+  assert.match(results[4].structuredContent.error.message, /^upstream unavailable/);
+});
+
+test("keeps recovery metadata when a composite catalog read has unavailable pricing", async (t) => {
+  const api = await startMockApi(t, ({ url }) => url.endsWith("/pricing")
+    ? { status: 429, headers: { "Retry-After": "9", "X-Request-ID": "req_pricing" }, json: { error: { code: "rate_limit_exceeded", message: "Wait" } } }
+    : { id: url.split("/").at(-1), tokenlab: {} });
+  const client = await startMcpClient(t, { TOKENLAB_API_BASE: api.baseUrl, TOKENLAB_API_KEY: "" });
+  const result = parseTextResult(await client.callTool({ name: "compare_models", arguments: { models: ["model-a", "model-b"] } }));
+  assert.equal(api.requests.length, 4);
+  for (const model of result.compared) {
+    assert.equal(model.pricing.status, 429);
+    assert.equal(model.pricing.error.code, "rate_limit_exceeded");
+    assert.equal(model.pricing.request_id, "req_pricing");
+    assert.equal(model.pricing.retry_after, 9);
+  }
 });

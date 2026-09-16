@@ -3,10 +3,10 @@
   "generated_at": null,
   "source": {
     "url": "https://docs.tokenlab.sh/openapi.json",
-    "openapi": "3.0.3",
+    "openapi": "3.1.0",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "85963db54cafb169aaf6e9c28bf200cc217f59a9d457ed61fe80ba7047d1d511"
+    "sha256": "d45184d659f5f4c7d9b451e961e692e4e29faf451c0c8dc2e77f62df2821f35f"
   },
   "default_profile": "core",
   "profiles": [
@@ -51,12 +51,12 @@
     },
     "core": {
       "endpoint_tools": 29,
-      "input_schema_bytes": 44738,
+      "input_schema_bytes": 43184,
       "max_input_schema_depth": 8
     },
     "full": {
       "endpoint_tools": 78,
-      "input_schema_bytes": 69847,
+      "input_schema_bytes": 69395,
       "max_input_schema_depth": 8
     }
   },
@@ -233,6 +233,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "model": {
             "type": "string",
             "description": "Model to use for compaction. Codex CLI sends the current session model."
@@ -268,7 +277,9 @@
       "bindings": {
         "path": [],
         "query": [],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "model",
           "input",
@@ -478,6 +489,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "model": {
             "type": "string",
             "default": "tripo-h3.1"
@@ -531,7 +551,9 @@
       "bindings": {
         "path": [],
         "query": [],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "model",
           "prompt",
@@ -589,6 +611,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "model": {
             "type": "string",
             "description": "Model to use (e.g., claude-sonnet-4-6)"
@@ -738,7 +769,9 @@
       "bindings": {
         "path": [],
         "query": [],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "model",
           "max_tokens",
@@ -787,6 +820,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "requests": {
             "type": "array",
             "minItems": 1,
@@ -967,7 +1009,9 @@
       "bindings": {
         "path": [],
         "query": [],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "requests"
         ],
@@ -999,6 +1043,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "input_file_id": {
             "type": "string"
           },
@@ -1050,7 +1103,9 @@
       "bindings": {
         "path": [],
         "query": [],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "input_file_id",
           "endpoint",
@@ -1087,6 +1142,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "model": {
             "type": "string",
             "description": "ID of the model to use (e.g., gpt-5.4, claude-sonnet-4-6)"
@@ -1551,7 +1615,9 @@
       "bindings": {
         "path": [],
         "query": [],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "model",
           "messages",
@@ -1615,6 +1681,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "model": {
             "type": "string",
             "description": "ID of the model to use"
@@ -1676,7 +1751,9 @@
       "bindings": {
         "path": [],
         "query": [],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "model",
           "input",
@@ -1713,6 +1790,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "model": {
             "type": "string",
             "description": "Model name (e.g., gemini-2.5-pro)"
@@ -2159,7 +2245,9 @@
           "model"
         ],
         "query": [],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "contents",
           "systemInstruction",
@@ -2203,6 +2291,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "prompt": {
             "type": "string",
             "maxLength": 4000,
@@ -2359,7 +2456,9 @@
       "bindings": {
         "path": [],
         "query": [],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "prompt",
           "model",
@@ -2436,6 +2535,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "model": {
             "type": "string",
             "description": "Model to use. Send this explicitly."
@@ -2555,7 +2663,9 @@
       "bindings": {
         "path": [],
         "query": [],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "model",
           "prompt",
@@ -2633,6 +2743,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "image": {
             "type": "string",
             "description": "Pass local file path."
@@ -2664,7 +2783,9 @@
       "bindings": {
         "path": [],
         "query": [],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "image",
           "model",
@@ -2704,6 +2825,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "model": {
             "type": "string",
             "description": "Model to use for multimodal embeddings"
@@ -2777,7 +2907,9 @@
       "bindings": {
         "path": [],
         "query": [],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "model",
           "input",
@@ -2812,6 +2944,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "model": {
             "type": "string",
             "default": "suno_music"
@@ -2886,7 +3027,9 @@
       "bindings": {
         "path": [],
         "query": [],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "model",
           "prompt",
@@ -2947,6 +3090,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "model": {
             "type": "string",
             "description": "Model to use"
@@ -3073,7 +3225,9 @@
       "bindings": {
         "path": [],
         "query": [],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "model",
           "input",
@@ -3169,16 +3323,12 @@
             "description": "Project scope for the material asset. Assets and groups are isolated by project inside the authenticated organization."
           },
           "metadata": {
-            "anyOf": [
-              {
-                "type": "object",
-                "additionalProperties": true,
-                "description": "Optional client metadata stored with the material asset."
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true,
+            "description": "Optional client metadata stored with the material asset."
           }
         },
         "required": [
@@ -3234,15 +3384,11 @@
             "description": "Optional display name for the material group."
           },
           "description": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 500
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
           },
           "library_type": {
             "type": "string",
@@ -3261,15 +3407,11 @@
             "description": "Project scope for the material group."
           },
           "metadata": {
-            "anyOf": [
-              {
-                "type": "object",
-                "additionalProperties": true
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true
           }
         },
         "additionalProperties": false
@@ -3314,6 +3456,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "model": {
             "type": "string",
             "default": "tts-1",
@@ -3396,7 +3547,9 @@
       "bindings": {
         "path": [],
         "query": [],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "model",
           "input",
@@ -3439,6 +3592,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "prompt": {
             "type": "string",
             "description": "Video description"
@@ -3504,6 +3666,14 @@
             ],
             "description": "Video resolution. Seedance defaults to 720p when omitted; available values are model-dependent."
           },
+          "output_format": {
+            "type": "string",
+            "enum": [
+              "mp4",
+              "mov"
+            ],
+            "description": "Video container format for compatible models. Seedance 2.5 supports mp4 and mov; omit this field for Seedance 2.0 and other models that do not publish an output-format selector."
+          },
           "output_audio": {
             "type": "boolean",
             "description": "Canonical model-dependent audio output toggle. Veo 3 and Seedance requests default to true when omitted. Kling 3.0 Video accepts this selector for non-element-reference requests and maps it to the compatible sound control; omitted Kling requests default to silent output. Do not combine output_audio=true with kling_elements. The aliases outputAudio and generate_audio are accepted for compatibility and must match when provided together."
@@ -3522,7 +3692,7 @@
             "type": "integer",
             "minimum": -1,
             "maximum": 4294967295,
-            "description": "Seed for reproducibility. Seedance uses -1 for random seed when omitted."
+            "description": "Seed for reproducibility on compatible models. Compatible Seedance models use -1 for a random seed when omitted; Seedance 2.5 does not support this field."
           },
           "cfg_scale": {
             "type": "number",
@@ -3550,9 +3720,9 @@
           },
           "image_urls": {
             "type": "array",
-            "description": "Image URL array for compatible image-conditioned video flows. This endpoint currently allows up to 9 entries. When the selected Seedance model can use the TokenLab material library, TokenLab prepares this image input as reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path.",
+            "description": "Image URL array for compatible image-conditioned video flows. Seedance 2.5 accepts up to 30 aggregate image inputs; other video models retain the shared limit of 9 entries unless the model details specify a lower limit. When the selected Seedance model can use the TokenLab material library, TokenLab prepares this image input as reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path.",
             "minItems": 1,
-            "maxItems": 9,
+            "maxItems": 30,
             "items": {
               "type": "string",
               "format": "uri"
@@ -3598,9 +3768,9 @@
           },
           "reference_images": {
             "type": "array",
-            "description": "Canonical public reference-image field for reference-to-video conditioning. This endpoint currently allows up to 9 URLs, compatible data URLs, or for Seedance, asset://asset-YYYYMMDDHHMMSS-xxxxx URIs for ACTIVE TokenLab materials owned by the requesting organization; model-specific limits can be lower. xAI grok-imagine-video accepts up to 7 image references with duration capped at 10 seconds; grok-imagine-video-1.5 and grok-imagine-video-1.5-preview are image-to-video only and do not accept reference images. When the selected Seedance model can use the TokenLab material library, TokenLab prepares ordinary image input as reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path.",
+            "description": "Canonical public reference-image field for reference-to-video conditioning. Seedance 2.5 accepts up to 30 aggregate image inputs; other video models retain the shared limit of 9 URLs or compatible data URLs unless the model details specify a lower limit. xAI grok-imagine-video accepts up to 7 image references with duration capped at 10 seconds; grok-imagine-video-1.5 and grok-imagine-video-1.5-preview are image-to-video only and do not accept reference images. When the selected Seedance model can use the TokenLab material library, TokenLab prepares ordinary image input as reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path.",
             "minItems": 1,
-            "maxItems": 9,
+            "maxItems": 30,
             "items": {
               "type": "string"
             }
@@ -3664,9 +3834,9 @@
           },
           "video_urls": {
             "type": "array",
-            "description": "Compatibility array for video-conditioned flows when multiple input videos are supported by the routed model family. TokenLab currently accepts up to 3 reference videos.",
+            "description": "Compatibility array for video-conditioned flows when multiple input videos are supported by the routed model family. Seedance 2.5 accepts up to 10 aggregate video inputs; other video models retain the shared limit of 3 references unless the model details specify a lower limit.",
             "minItems": 1,
-            "maxItems": 3,
+            "maxItems": 10,
             "items": {
               "type": "string",
               "format": "uri"
@@ -3674,9 +3844,9 @@
           },
           "audio_urls": {
             "type": "array",
-            "description": "Compatibility array for audio-conditioned flows when multiple audio references are supported by the routed model family. TokenLab currently accepts up to 3 reference audios.",
+            "description": "Compatibility array for audio-conditioned flows when multiple audio references are supported by the routed model family. Seedance 2.5 accepts up to 10 aggregate audio inputs and permits pure-audio reference requests without a prompt; other video models retain the shared limit of 3 references unless the model details specify a lower limit.",
             "minItems": 1,
-            "maxItems": 3,
+            "maxItems": 10,
             "items": {
               "type": "string",
               "format": "uri"
@@ -3728,16 +3898,16 @@
               "default",
               "flex"
             ],
-            "description": "Optional service tier for compatible video models. service_tier=default is accepted as a no-op for Seedance 2.0 models; service_tier=flex is rejected where the selected model does not support it."
+            "description": "Optional service tier for compatible video models. service_tier=default is accepted as a compatibility no-op for Seedance 2.0 and Seedance 2.5; service_tier=flex is rejected for both models."
           },
           "frames": {
             "type": "integer",
             "minimum": 1,
-            "description": "Optional frame count for compatible video models. Seedance 2.0 models and Seedance 1.5 Pro do not support this field."
+            "description": "Optional frame count for compatible video models. Seedance 1.5 Pro, Seedance 2.0, and Seedance 2.5 do not support this field."
           },
           "camera_fixed": {
             "type": "boolean",
-            "description": "Optional fixed-camera selector for compatible video models. Seedance 2.0 models do not support this field."
+            "description": "Optional fixed-camera selector for compatible video models. Seedance 2.0 and Seedance 2.5 do not support this field."
           },
           "return_last_frame": {
             "type": "boolean",
@@ -3759,7 +3929,9 @@
       "bindings": {
         "path": [],
         "query": [],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "prompt",
           "model",
@@ -3770,6 +3942,7 @@
           "duration",
           "aspect_ratio",
           "resolution",
+          "output_format",
           "output_audio",
           "fps",
           "negative_prompt",
@@ -3853,6 +4026,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "CallbackURL": {
             "type": "string",
             "format": "uri",
@@ -3875,7 +4057,9 @@
           "Action",
           "Version"
         ],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "CallbackURL",
           "ProjectName"
@@ -3895,7 +4079,7 @@
     },
     {
       "name": "create_volc_compatible_seedance_task",
-      "title": "Create Seedance task (Volc-compatible)",
+      "title": "Create Seedance task (Volc wire-compatible)",
       "operation_id": "createVolcCompatibleSeedanceTask",
       "method": "POST",
       "path": "/api/v3/contents/generations/tasks",
@@ -3907,11 +4091,26 @@
       "profiles": [
         "full"
       ],
-      "description": "Create Seedance task (Volc-compatible) Creates a Seedance 2.0 video generation task using a Volc-style REST body. Authentication uses a TokenLab Bearer API key.",
+      "description": "Create Seedance task (Volc wire-compatible) Creates a Seedance 2.0 video task with the official Volc REST body and response shape. Authentication uses a TokenLab Bearer API key. TokenLab additionally accepts an optional Idempotency-Key header so a client can recover the same task ID after a lost create response.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
+          "Idempotency-Key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Client-generated key for idempotent REST task creation. Under the same TokenLab API credential, reusing the same key with the same JSON body returns the original cgt task ID; reusing it with a different body returns 409. Keep the credential, key, and request body unchanged when retrying after a timeout or disconnect."
+          },
           "model": {
             "type": "string",
             "description": "Seedance model or endpoint identifier. TokenLab maps supported Seedance 2.0 identifiers to the matching platform model."
@@ -3919,6 +4118,7 @@
           "content": {
             "type": "array",
             "minItems": 1,
+            "maxItems": 16,
             "items": {
               "type": "object",
               "description": "Volc-style content item. Use text, image_url, video_url, audio_url, or draft_task. For image_url, omitting role treats the image as first_frame; use role=reference_image for reference images.",
@@ -3952,100 +4152,61 @@
                   "description": "Media role. first_frame/last_frame inputs cannot be mixed with reference_image/reference_video/reference_audio inputs."
                 },
                 "image_url": {
-                  "oneOf": [
-                    {
-                      "type": "string",
-                      "format": "uri"
-                    },
-                    {
-                      "type": "object",
-                      "required": [
-                        "url"
-                      ],
-                      "properties": {
-                        "url": {
-                          "type": "string",
-                          "format": "uri"
-                        }
-                      },
-                      "additionalProperties": true
-                    }
+                  "type": "object",
+                  "required": [
+                    "url"
                   ],
-                  "description": "Image reference. The object form {\"url\":\"https://...\"} matches the official request shape; a plain string is accepted for convenience. TokenLab also accepts asset://asset-YYYYMMDDHHMMSS-xxxxx URIs for ACTIVE materials owned by the requesting organization, and preserves the item's first_frame, last_frame, or reference_image role."
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "description": "Image reference in the official {\"url\":\"https://...\"} shape. TokenLab material URIs remain available as URL values without changing the request object shape."
                 },
                 "video_url": {
-                  "oneOf": [
-                    {
-                      "type": "string",
-                      "format": "uri"
-                    },
-                    {
-                      "type": "object",
-                      "required": [
-                        "url"
-                      ],
-                      "properties": {
-                        "url": {
-                          "type": "string",
-                          "format": "uri"
-                        }
-                      },
-                      "additionalProperties": true
-                    }
+                  "type": "object",
+                  "required": [
+                    "url"
                   ],
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false,
                   "description": "Video URL. Use role=reference_video."
                 },
                 "audio_url": {
-                  "oneOf": [
-                    {
-                      "type": "string",
-                      "format": "uri"
-                    },
-                    {
-                      "type": "object",
-                      "required": [
-                        "url"
-                      ],
-                      "properties": {
-                        "url": {
-                          "type": "string",
-                          "format": "uri"
-                        }
-                      },
-                      "additionalProperties": true
-                    }
+                  "type": "object",
+                  "required": [
+                    "url"
                   ],
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false,
                   "description": "Audio URL. Use role=reference_audio."
                 },
                 "draft_task": {
-                  "oneOf": [
-                    {
-                      "type": "string"
-                    },
-                    {
-                      "type": "object",
-                      "required": [
-                        "id"
-                      ],
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        }
-                      },
-                      "additionalProperties": true
-                    }
+                  "type": "object",
+                  "required": [
+                    "id"
                   ],
-                  "description": "Draft task reference. The object form {\"id\":\"cgt-...\"} matches the official request shape."
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "description": "Draft task reference in the official {\"id\":\"cgt-...\"} shape."
                 }
               },
-              "additionalProperties": true
-            }
-          },
-          "material_asset_id": {
-            "type": "string",
-            "pattern": "^asset-\\d{14}-[a-z0-9]{5}$",
-            "maxLength": 128,
-            "description": "TokenLab compatibility shorthand for one ACTIVE Seedance material owned by the requesting organization. It is treated as the first frame and cannot be combined with other media inputs. For multiple materials, use content image_url items with explicit roles; top-level material_asset_ids is rejected as ambiguous."
+              "additionalProperties": false
+            },
+            "description": "At most 16 content items: one text item, nine image_url items, three video_url items, three audio_url items, and one draft_task item. Model- and operation-specific combination rules still apply."
           },
           "ratio": {
             "type": "string",
@@ -4062,7 +4223,19 @@
             "description": "Output aspect ratio. Defaults to adaptive when omitted."
           },
           "duration": {
-            "type": "integer",
+            "oneOf": [
+              {
+                "type": "integer",
+                "enum": [
+                  -1
+                ]
+              },
+              {
+                "type": "integer",
+                "minimum": 4,
+                "maximum": 15
+              }
+            ],
             "default": 5,
             "description": "Video duration in seconds. Seedance 2.0 supports normal integer durations and -1 for automatic duration where the selected model supports it."
           },
@@ -4071,16 +4244,15 @@
             "enum": [
               "480p",
               "720p",
-              "1080p",
-              "4k"
+              "1080p"
             ],
             "default": "720p",
-            "description": "Requested output resolution. 4k is only available on supported Seedance 2.0 routes; fast/mini availability depends on model capability."
+            "description": "Requested output resolution. Model-specific availability still applies."
           },
           "generate_audio": {
             "type": "boolean",
-            "default": true,
-            "description": "Whether to generate audio. Defaults to true for Seedance 2.0 compatible requests."
+            "default": false,
+            "description": "Whether to generate synchronized audio. The official default is false."
           },
           "return_last_frame": {
             "type": "boolean",
@@ -4093,6 +4265,8 @@
           },
           "seed": {
             "type": "integer",
+            "minimum": -1,
+            "maximum": 4294967295,
             "default": -1,
             "description": "Random seed. -1 lets the model choose a seed. Forwarded on a best-effort basis for routes that accept it."
           },
@@ -4102,12 +4276,6 @@
             "maximum": 259200,
             "default": 172800,
             "description": "Task execution expiration window in seconds."
-          },
-          "priority": {
-            "type": "integer",
-            "default": 0,
-            "minimum": 0,
-            "maximum": 9
           },
           "safety_identifier": {
             "type": "string",
@@ -4125,9 +4293,21 @@
           },
           "tools": {
             "type": "array",
+            "maxItems": 1,
             "items": {
               "type": "object",
-              "additionalProperties": true
+              "required": [
+                "type"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "web_search"
+                  ]
+                }
+              },
+              "additionalProperties": false
             },
             "description": "Optional tools such as {\"type\":\"web_search\"} when supported by the selected model."
           },
@@ -4146,7 +4326,8 @@
           "callback_url": {
             "type": "string",
             "format": "uri",
-            "description": "Not supported in this compatibility endpoint. Poll task status instead."
+            "maxLength": 2048,
+            "description": "Public HTTP(S) endpoint notified by POST whenever status changes. The body is identical to the get-task response. queued, running, succeeded, failed, and expired are delivered. For succeeded and failed, a delivery without success within 5 seconds is retried up to three times."
           }
         },
         "required": [
@@ -4158,11 +4339,13 @@
       "bindings": {
         "path": [],
         "query": [],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy",
+          "Idempotency-Key"
+        ],
         "body": [
           "model",
           "content",
-          "material_asset_id",
           "ratio",
           "duration",
           "resolution",
@@ -4171,7 +4354,6 @@
           "watermark",
           "seed",
           "execution_expires_after",
-          "priority",
           "safety_identifier",
           "service_tier",
           "tools",
@@ -4208,6 +4390,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "model": {
             "type": "string",
             "default": "marble-1.0",
@@ -4320,7 +4511,9 @@
       "bindings": {
         "path": [],
         "query": [],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "model",
           "prompt",
@@ -4774,6 +4967,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "Action": {
             "type": "string",
             "enum": [
@@ -4966,7 +5168,9 @@
           "Action",
           "Version"
         ],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "body"
         ],
@@ -4999,6 +5203,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "model": {
             "type": "string",
             "description": "Model to use for image edits. Send this explicitly."
@@ -5150,7 +5363,9 @@
       "bindings": {
         "path": [],
         "query": [],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "model",
           "prompt",
@@ -5222,6 +5437,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "image": {
             "oneOf": [
               {
@@ -5326,7 +5550,9 @@
       "bindings": {
         "path": [],
         "query": [],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "image",
           "mask",
@@ -5400,6 +5626,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "model": {
             "type": "string"
           },
@@ -5427,7 +5662,9 @@
         "query": [
           "key"
         ],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "requests"
         ],
@@ -5527,6 +5764,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "model": {
             "type": "string"
           },
@@ -5566,7 +5812,9 @@
         "query": [
           "key"
         ],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "content",
           "taskType",
@@ -6138,6 +6386,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "BytedToken": {
             "type": "string",
             "description": "Opaque token returned by CreateVisualValidateSession. It is valid for 30 minutes and scoped to the authenticated organization, actor, and ProjectName."
@@ -6159,7 +6416,9 @@
           "Action",
           "Version"
         ],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "BytedToken",
           "ProjectName"
@@ -6875,6 +7134,7 @@
           "page_num": {
             "type": "integer",
             "minimum": 1,
+            "maximum": 500,
             "default": 1,
             "description": "Page number."
           },
@@ -6898,8 +7158,11 @@
             "description": "Filter by task status."
           },
           "filter.task_ids": {
-            "type": "string",
-            "description": "Comma-separated task IDs."
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Exact task IDs. Repeat filter.task_ids for multiple IDs."
           },
           "filter.model": {
             "type": "string",
@@ -6959,91 +7222,63 @@
             "default": 20
           },
           "page_token": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
+            "type": [
+              "string",
+              "null"
             ]
           },
           "status": {
-            "anyOf": [
-              {
-                "type": "string",
-                "enum": [
-                  "SUCCEEDED",
-                  "PENDING",
-                  "FAILED",
-                  "RUNNING"
-                ]
-              },
-              {
-                "type": "null"
-              }
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "SUCCEEDED",
+              "PENDING",
+              "FAILED",
+              "RUNNING"
             ]
           },
           "model": {
-            "anyOf": [
-              {
-                "type": "string",
-                "enum": [
-                  "marble-1.0",
-                  "marble-1.1",
-                  "marble-1.1-plus",
-                  "marble-1.0-draft"
-                ]
-              },
-              {
-                "type": "null"
-              }
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "marble-1.0",
+              "marble-1.1",
+              "marble-1.1-plus",
+              "marble-1.0-draft"
             ]
           },
           "tags": {
-            "anyOf": [
-              {
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
           },
           "is_public": {
-            "anyOf": [
-              {
-                "type": "boolean"
-              },
-              {
-                "type": "null"
-              }
+            "type": [
+              "boolean",
+              "null"
             ]
           },
           "created_after": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
           },
           "created_before": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
           },
           "sort_by": {
             "type": "string",
@@ -7123,27 +7358,19 @@
             "description": "High-level media type."
           },
           "extension": {
-            "anyOf": [
-              {
-                "type": "string",
-                "description": "File extension without dot, such as jpg, png, or mp4."
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "File extension without dot, such as jpg, png, or mp4."
           },
           "metadata": {
-            "anyOf": [
-              {
-                "type": "object",
-                "additionalProperties": true,
-                "description": "Optional application metadata."
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true,
+            "description": "Optional application metadata."
           }
         },
         "required": [
@@ -7191,6 +7418,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "model": {
             "type": "string",
             "description": "Reranker model to use"
@@ -7224,7 +7460,9 @@
       "bindings": {
         "path": [],
         "query": [],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "model",
           "query",
@@ -7559,6 +7797,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "file": {
             "type": "string",
             "description": "Audio file to transcribe Pass local file path."
@@ -7614,7 +7861,9 @@
       "bindings": {
         "path": [],
         "query": [],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "file",
           "model",
@@ -7655,6 +7904,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "file": {
             "type": "string",
             "description": "Pass local file path."
@@ -7683,7 +7941,9 @@
       "bindings": {
         "path": [],
         "query": [],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "file",
           "model",
@@ -7722,6 +7982,15 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
           "model": {
             "type": "string"
           },
@@ -7755,7 +8024,9 @@
       "bindings": {
         "path": [],
         "query": [],
-        "header": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
         "body": [
           "model",
           "text",
@@ -7822,16 +8093,12 @@
             "default": "default"
           },
           "metadata": {
-            "anyOf": [
-              {
-                "type": "object",
-                "additionalProperties": true,
-                "description": "Updated client metadata stored with the material asset."
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true,
+            "description": "Updated client metadata stored with the material asset."
           }
         },
         "required": [
@@ -7889,15 +8156,11 @@
             "maxLength": 128
           },
           "description": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 500
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
           },
           "project_name": {
             "type": "string",
@@ -7906,15 +8169,11 @@
             "default": "default"
           },
           "metadata": {
-            "anyOf": [
-              {
-                "type": "object",
-                "additionalProperties": true
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true
           }
         },
         "required": [

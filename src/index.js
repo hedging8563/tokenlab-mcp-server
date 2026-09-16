@@ -245,6 +245,59 @@ function responseMeta(response) {
   });
 }
 
+function boundedText(value, limit = 4_000) {
+  return typeof value === "string" && value.length > 0 ? value.slice(0, limit) : undefined;
+}
+
+function retryAfterSeconds(value) {
+  if (typeof value !== "number" && typeof value !== "string") return undefined;
+  if (typeof value === "string" && value.trim() === "") return undefined;
+  const seconds = Number(value);
+  if (Number.isFinite(seconds) && seconds >= 0) return seconds;
+  if (typeof value !== "string" || /^-?\d/.test(value)) return undefined;
+  const date = Date.parse(value);
+  return Number.isFinite(date) ? Math.max(0, Math.ceil((date - Date.now()) / 1_000)) : undefined;
+}
+
+class TokenLabHttpError extends Error {
+  constructor(response, text) {
+    let body;
+    try { body = JSON.parse(text); } catch { /* Preserve non-JSON diagnostics below. */ }
+    const apiError = body?.error && typeof body.error === "object" ? body.error : body;
+    const meta = responseMeta(response);
+    const requestId = boundedText(meta["tokenlab/requestId"], 256)
+      || boundedText(apiError?.request_id, 256)
+      || boundedText(body?.request_id, 256);
+    const retryAfterHeader = boundedText(response.headers.get("retry-after"), 256);
+    const retryAfter = retryAfterSeconds(retryAfterHeader)
+      ?? retryAfterSeconds(apiError?.retry_after ?? body?.retry_after);
+    const declaredRetryable = apiError?.retryable ?? body?.retryable;
+    const message = boundedText(apiError?.message) || boundedText(text) || response.statusText;
+    super(`TokenLab request failed: ${response.status} ${response.statusText}${requestId ? ` (request ${requestId})` : ""}\n${message}`);
+    this.name = "TokenLabHttpError";
+    this.details = definedValues({
+      status: response.status,
+      error: definedValues({
+        message,
+        code: boundedText(apiError?.code, 256),
+        type: boundedText(apiError?.type, 256),
+        param: boundedText(apiError?.param, 256)
+      }),
+      request_id: requestId,
+      retryable: typeof declaredRetryable === "boolean"
+        ? declaredRetryable
+        : [408, 425, 429].includes(response.status) || response.status >= 500,
+      retry_after: retryAfter
+    });
+    this.meta = definedValues({
+      ...meta,
+      "tokenlab/requestId": requestId,
+      "tokenlab/retryAfter": retryAfterHeader,
+      "tokenlab/retryAfterSeconds": retryAfter
+    });
+  }
+}
+
 async function executeGeneratedTool(tool, input) {
   requireApiKey(tool);
   const { pathArguments, queryArguments, headerArguments, bodyArguments } = collectArguments(tool, input);
@@ -287,9 +340,7 @@ async function executeGeneratedTool(tool, input) {
   const meta = responseMeta(response);
 
   if (!response.ok) {
-    const detail = (await response.text()).slice(0, 4_000);
-    const requestId = meta["tokenlab/requestId"] ? ` (request ${meta["tokenlab/requestId"]})` : "";
-    throw new Error(`TokenLab request failed: ${response.status} ${response.statusText}${requestId}\n${detail}`);
+    throw new TokenLabHttpError(response, await response.text());
   }
 
   if (mimeType === "application/json" || mimeType.endsWith("+json")) {
@@ -332,7 +383,9 @@ async function compareModels({ models, include_raw }) {
     const encoded = encodeURIComponent(model);
     const [details, pricing] = await Promise.all([
       executePublicJson(`/v1/models/${encoded}`),
-      executePublicJson(`/v1/models/${encoded}/pricing`).catch((error) => ({ error: error.message }))
+      executePublicJson(`/v1/models/${encoded}/pricing`).catch((error) => (
+        error instanceof TokenLabHttpError ? error.details : { error: error.message }
+      ))
     ]);
     if (include_raw) return { model, details, pricing };
     const tokenlab = details?.tokenlab && typeof details.tokenlab === "object" ? details.tokenlab : {};
@@ -444,6 +497,9 @@ const registeredToolsByName = new Map(registeredTools.map((tool) => [
 ]));
 
 function toolExecutionError(error) {
+  if (error instanceof TokenLabHttpError) {
+    return { ...textResult(error.details, error.meta), isError: true };
+  }
   return {
     content: [{
       type: "text",
@@ -576,7 +632,7 @@ async function executePublicJson(path) {
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS)
   });
   const text = await response.text();
-  if (!response.ok) throw new Error(`TokenLab request failed: ${response.status} ${response.statusText}\n${text.slice(0, 2_000)}`);
+  if (!response.ok) throw new TokenLabHttpError(response, text);
   return JSON.parse(text);
 }
 
@@ -586,7 +642,7 @@ async function executePublicText(path) {
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS)
   });
   const text = await response.text();
-  if (!response.ok) throw new Error(`TokenLab request failed: ${response.status} ${response.statusText}\n${text.slice(0, 2_000)}`);
+  if (!response.ok) throw new TokenLabHttpError(response, text);
   return text;
 }
 

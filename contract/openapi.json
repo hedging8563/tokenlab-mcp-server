@@ -1,5 +1,5 @@
 {
-  "openapi": "3.0.3",
+  "openapi": "3.1.0",
   "info": {
     "title": "TokenLab AI Gateway",
     "description": "Organization balance, API key management, and key-level usage/billing via management token",
@@ -221,9 +221,14 @@
             "$ref": "#/components/responses/UpstreamError"
           },
           "503": {
-            "$ref": "#/components/responses/AllChannelsFailed"
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/embeddings": {
@@ -288,8 +293,16 @@
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/multimodal/embeddings": {
@@ -349,8 +362,16 @@
           },
           "502": {
             "$ref": "#/components/responses/UpstreamError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/images/generations": {
@@ -421,8 +442,16 @@
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/images/{id}": {
@@ -618,8 +647,16 @@
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/audio/transcriptions": {
@@ -670,8 +707,16 @@
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/videos/generations": {
@@ -773,8 +818,16 @@
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/videos/generations/{id}": {
@@ -1694,8 +1747,16 @@
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/messages/count_tokens": {
@@ -1794,8 +1855,16 @@
           },
           "502": {
             "$ref": "#/components/responses/UpstreamError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       },
       "get": {
         "tags": [
@@ -2087,6 +2156,9 @@
         "operationId": "geminiGenerateContent",
         "parameters": [
           {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          },
+          {
             "name": "model",
             "in": "path",
             "required": true,
@@ -2199,6 +2271,9 @@
                 }
               }
             }
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
         }
       }
@@ -2212,6 +2287,9 @@
         "description": "Streams native Gemini GenerateContent Server-Sent Events without adding Chat Completions terminators. Metadata-only chunks, intermediate chunks without finishReason, and natural EOF are valid.\n\n**Authentication:** Use `?key=` query parameter, `x-goog-api-key` header, or `Authorization: Bearer` header.",
         "operationId": "geminiStreamGenerateContent",
         "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          },
           {
             "name": "model",
             "in": "path",
@@ -2292,6 +2370,9 @@
                 }
               }
             }
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
         }
       }
@@ -2385,6 +2466,9 @@
         "operationId": "geminiEmbedContent",
         "parameters": [
           {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          },
+          {
             "name": "model",
             "in": "path",
             "required": true,
@@ -2457,6 +2541,9 @@
                 }
               }
             }
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
         }
       }
@@ -2470,6 +2557,9 @@
         "description": "Creates multiple embeddings using the native Gemini BatchEmbedContents contract.",
         "operationId": "geminiBatchEmbedContents",
         "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          },
           {
             "name": "model",
             "in": "path",
@@ -2531,6 +2621,9 @@
                 }
               }
             }
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
         }
       }
@@ -2688,8 +2781,16 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/responses/{id}": {
@@ -2863,9 +2964,14 @@
             "$ref": "#/components/responses/PaymentRequired"
           },
           "503": {
-            "$ref": "#/components/responses/ServerError"
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/rerank": {
@@ -2955,8 +3061,16 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/music/generations": {
@@ -3053,8 +3167,16 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/music/generations/{id}": {
@@ -3158,8 +3280,16 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/3d/generations/{id}": {
@@ -3223,6 +3353,11 @@
           "404": {
             "$ref": "#/components/responses/NotFound"
           }
+        },
+        "x-mint": {
+          "metadata": {
+            "playground": "simple"
+          }
         }
       }
     },
@@ -3255,6 +3390,11 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          }
+        },
+        "x-mint": {
+          "metadata": {
+            "playground": "simple"
           }
         }
       },
@@ -3316,6 +3456,19 @@
                     ],
                     "format": "date-time",
                     "description": "Optional RFC3339 timestamp. null means no expiry."
+                  },
+                  "deliveryPolicy": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "auto",
+                      "verified",
+                      "official",
+                      null
+                    ],
+                    "description": "Per-key Delivery policy. null inherits the Workspace default."
                   }
                 },
                 "required": [
@@ -3344,6 +3497,11 @@
           },
           "403": {
             "$ref": "#/components/responses/Forbidden"
+          }
+        },
+        "x-mint": {
+          "metadata": {
+            "playground": "simple"
           }
         }
       }
@@ -3383,6 +3541,7 @@
                     "enum": [
                       "active",
                       "inactive",
+                      "suspended",
                       "revoked"
                     ],
                     "description": "Lifecycle status for the user API key."
@@ -3424,6 +3583,19 @@
                     ],
                     "format": "date-time",
                     "description": "Updated RFC3339 expiry timestamp. null clears the expiry."
+                  },
+                  "deliveryPolicy": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "auto",
+                      "verified",
+                      "official",
+                      null
+                    ],
+                    "description": "Per-key Delivery policy. null inherits the Workspace default."
                   }
                 },
                 "description": "At least one field must be provided.",
@@ -3454,6 +3626,11 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          }
+        },
+        "x-mint": {
+          "metadata": {
+            "playground": "simple"
           }
         }
       }
@@ -3579,6 +3756,11 @@
           "404": {
             "$ref": "#/components/responses/NotFound"
           }
+        },
+        "x-mint": {
+          "metadata": {
+            "playground": "simple"
+          }
         }
       }
     },
@@ -3679,6 +3861,11 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          }
+        },
+        "x-mint": {
+          "metadata": {
+            "playground": "simple"
           }
         }
       }
@@ -4082,8 +4269,16 @@
           },
           "402": {
             "$ref": "#/components/responses/PaymentRequired"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       },
       "get": {
         "tags": [
@@ -4283,8 +4478,16 @@
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/audio/translations": {
@@ -4351,8 +4554,16 @@
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/realtime": {
@@ -4361,7 +4572,7 @@
           "Realtime"
         ],
         "summary": "Connect to realtime WebSocket",
-        "description": "Returns realtime endpoint metadata for normal HTTP GET requests. WebSocket clients use the same path with `?model={model}` and Bearer API key authentication to open realtime speech or multimodal sessions. This public surface is a TokenLab WebSocket proxy; it does not expose OpenAI Realtime REST helper endpoints such as client secrets, translation client secrets, Calls, or legacy beta session creation.",
+        "description": "Returns realtime endpoint metadata for normal HTTP GET requests. WebSocket clients use the same path with `?model={model}` and Bearer API key authentication to open realtime speech or multimodal sessions. This public surface is a TokenLab WebSocket subset of OpenAI Realtime; it does not expose its REST helper endpoints such as client secrets, translation client secrets, Calls, or legacy beta session creation.",
         "operationId": "connectRealtime",
         "parameters": [
           {
@@ -4759,8 +4970,16 @@
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/images/variations": {
@@ -4831,8 +5050,16 @@
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1beta/models": {
@@ -4992,14 +5219,18 @@
                     "description": "High-level media type."
                   },
                   "extension": {
-                    "type": "string",
-                    "nullable": true,
+                    "type": [
+                      "string",
+                      "null"
+                    ],
                     "description": "File extension without dot, such as jpg, png, or mp4."
                   },
                   "metadata": {
-                    "type": "object",
+                    "type": [
+                      "object",
+                      "null"
+                    ],
                     "additionalProperties": true,
-                    "nullable": true,
                     "description": "Optional application metadata."
                   }
                 }
@@ -5044,18 +5275,24 @@
                           "type": "string"
                         },
                         "extension": {
-                          "type": "string",
-                          "nullable": true
+                          "type": [
+                            "string",
+                            "null"
+                          ]
                         },
                         "metadata": {
-                          "type": "object",
-                          "additionalProperties": true,
-                          "nullable": true
+                          "type": [
+                            "object",
+                            "null"
+                          ],
+                          "additionalProperties": true
                         },
                         "updated_at": {
-                          "type": "string",
-                          "format": "date-time",
-                          "nullable": true
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "date-time"
                         }
                       },
                       "additionalProperties": true
@@ -5149,18 +5386,24 @@
                       "type": "string"
                     },
                     "extension": {
-                      "type": "string",
-                      "nullable": true
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "metadata": {
-                      "type": "object",
-                      "additionalProperties": true,
-                      "nullable": true
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "additionalProperties": true
                     },
                     "updated_at": {
-                      "type": "string",
-                      "format": "date-time",
-                      "nullable": true
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
                     }
                   },
                   "additionalProperties": true
@@ -5404,8 +5647,16 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
-        }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          }
+        ]
       }
     },
     "/v1/worlds/generations/{id}": {
@@ -5523,49 +5774,63 @@
                     "default": 20
                   },
                   "page_token": {
-                    "type": "string",
-                    "nullable": true
+                    "type": [
+                      "string",
+                      "null"
+                    ]
                   },
                   "status": {
-                    "type": "string",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
                     "enum": [
                       "SUCCEEDED",
                       "PENDING",
                       "FAILED",
                       "RUNNING"
-                    ],
-                    "nullable": true
+                    ]
                   },
                   "model": {
-                    "type": "string",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
                     "enum": [
                       "marble-1.0",
                       "marble-1.1",
                       "marble-1.1-plus",
                       "marble-1.0-draft"
-                    ],
-                    "nullable": true
+                    ]
                   },
                   "tags": {
-                    "type": "array",
+                    "type": [
+                      "array",
+                      "null"
+                    ],
                     "items": {
                       "type": "string"
-                    },
-                    "nullable": true
+                    }
                   },
                   "is_public": {
-                    "type": "boolean",
-                    "nullable": true
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
                   },
                   "created_after": {
-                    "type": "string",
-                    "format": "date-time",
-                    "nullable": true
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
                   },
                   "created_before": {
-                    "type": "string",
-                    "format": "date-time",
-                    "nullable": true
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
                   },
                   "sort_by": {
                     "type": "string",
@@ -5623,29 +5888,37 @@
                             "additionalProperties": true
                           },
                           "created_at": {
-                            "type": "string",
-                            "format": "date-time",
-                            "nullable": true
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "date-time"
                           },
                           "model": {
-                            "type": "string",
-                            "nullable": true
+                            "type": [
+                              "string",
+                              "null"
+                            ]
                           },
                           "permission": {
                             "type": "object",
                             "additionalProperties": true
                           },
                           "tags": {
-                            "type": "array",
+                            "type": [
+                              "array",
+                              "null"
+                            ],
                             "items": {
                               "type": "string"
-                            },
-                            "nullable": true
+                            }
                           },
                           "updated_at": {
-                            "type": "string",
-                            "format": "date-time",
-                            "nullable": true
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "date-time"
                           },
                           "world_prompt": {
                             "type": "object",
@@ -5656,8 +5929,10 @@
                       }
                     },
                     "next_page_token": {
-                      "type": "string",
-                      "nullable": true
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     }
                   },
                   "additionalProperties": true
@@ -5719,29 +5994,37 @@
                       "additionalProperties": true
                     },
                     "created_at": {
-                      "type": "string",
-                      "format": "date-time",
-                      "nullable": true
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
                     },
                     "model": {
-                      "type": "string",
-                      "nullable": true
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     },
                     "permission": {
                       "type": "object",
                       "additionalProperties": true
                     },
                     "tags": {
-                      "type": "array",
+                      "type": [
+                        "array",
+                        "null"
+                      ],
                       "items": {
                         "type": "string"
-                      },
-                      "nullable": true
+                      }
                     },
                     "updated_at": {
-                      "type": "string",
-                      "format": "date-time",
-                      "nullable": true
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
                     },
                     "world_prompt": {
                       "type": "object",
@@ -6241,9 +6524,25 @@
         "tags": [
           "Seedance Volc Compatible"
         ],
-        "summary": "Create Seedance task (Volc-compatible)",
-        "description": "Creates a Seedance 2.0 video generation task using a Volc-style REST body. Authentication uses a TokenLab Bearer API key.",
+        "summary": "Create Seedance task (Volc wire-compatible)",
+        "description": "Creates a Seedance 2.0 video task with the official Volc REST body and response shape. Authentication uses a TokenLab Bearer API key. TokenLab additionally accepts an optional Idempotency-Key header so a client can recover the same task ID after a lost create response.",
         "operationId": "createVolcCompatibleSeedanceTask",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255
+            },
+            "description": "Client-generated key for idempotent REST task creation. Under the same TokenLab API credential, reusing the same key with the same JSON body returns the original cgt task ID; reusing it with a different body returns 409. Keep the credential, key, and request body unchanged when retrying after a timeout or disconnect."
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -6269,7 +6568,7 @@
                 "ratio": "16:9",
                 "duration": 5,
                 "resolution": "720p",
-                "generate_audio": true
+                "generate_audio": false
               }
             }
           }
@@ -6277,6 +6576,17 @@
         "responses": {
           "200": {
             "description": "Task created",
+            "headers": {
+              "Idempotency-Replayed": {
+                "description": "Present with value true when this response recovered an earlier create request.",
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "true"
+                  ]
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -6305,6 +6615,24 @@
               }
             }
           },
+          "409": {
+            "description": "Idempotency key conflict or original request still in progress",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying an in-progress request with the same key and body.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VolcSeedanceError"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal error",
             "content": {
@@ -6314,6 +6642,9 @@
                 }
               }
             }
+          },
+          "503": {
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
         }
       },
@@ -6332,6 +6663,7 @@
             "schema": {
               "type": "integer",
               "minimum": 1,
+              "maximum": 500,
               "default": 1
             },
             "description": "Page number."
@@ -6369,10 +6701,15 @@
             "name": "filter.task_ids",
             "in": "query",
             "required": false,
+            "style": "form",
+            "explode": true,
             "schema": {
-              "type": "string"
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             },
-            "description": "Comma-separated task IDs."
+            "description": "Exact task IDs. Repeat filter.task_ids for multiple IDs."
           },
           {
             "name": "filter.model",
@@ -6647,6 +6984,9 @@
         "operationId": "dispatchVolcCompatibleSeedanceActionPost",
         "parameters": [
           {
+            "$ref": "#/components/parameters/DeliveryPolicy"
+          },
+          {
             "name": "Action",
             "in": "query",
             "required": false,
@@ -6873,21 +7213,7 @@
             }
           },
           "503": {
-            "description": "Real-person validation service unavailable",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "oneOf": [
-                    {
-                      "$ref": "#/components/schemas/VolcSeedanceError"
-                    },
-                    {
-                      "$ref": "#/components/schemas/VolcVisualValidationError"
-                    }
-                  ]
-                }
-              }
-            }
+            "$ref": "#/components/responses/DeliveryUnavailable"
           }
         }
       }
@@ -6899,13 +7225,13 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "API Key",
-        "description": "API Key authentication. Get your API key from the dashboard."
+        "description": "API Key authentication. Create or manage API keys in [Dashboard > API > API Keys](https://tokenlab.sh/dashboard/api?tab=keys)."
       },
       "ManagementTokenAuth": {
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "Management Token",
-        "description": "Management token authentication. Get your management token from Dashboard Settings."
+        "description": "Management token authentication. Create or manage Management Tokens in [Dashboard > API > Management Tokens](https://tokenlab.sh/dashboard/api?tab=tokens)."
       }
     },
     "schemas": {
@@ -7453,8 +7779,10 @@
                 ]
               },
               "content": {
-                "type": "string",
-                "nullable": true
+                "type": [
+                  "string",
+                  "null"
+                ]
               },
               "tool_calls": {
                 "type": "array",
@@ -7463,20 +7791,24 @@
                 }
               },
               "refusal": {
-                "type": "string",
-                "nullable": true
+                "type": [
+                  "string",
+                  "null"
+                ]
               }
             }
           },
           "finish_reason": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "enum": [
               "stop",
               "length",
               "tool_calls",
               "content_filter"
             ],
-            "nullable": true,
             "description": "Reason for completion"
           }
         },
@@ -8235,6 +8567,14 @@
             ],
             "description": "Video resolution. Seedance defaults to 720p when omitted; available values are model-dependent."
           },
+          "output_format": {
+            "type": "string",
+            "enum": [
+              "mp4",
+              "mov"
+            ],
+            "description": "Video container format for compatible models. Seedance 2.5 supports mp4 and mov; omit this field for Seedance 2.0 and other models that do not publish an output-format selector."
+          },
           "output_audio": {
             "type": "boolean",
             "description": "Canonical model-dependent audio output toggle. Veo 3 and Seedance requests default to true when omitted. Kling 3.0 Video accepts this selector for non-element-reference requests and maps it to the compatible sound control; omitted Kling requests default to silent output. Do not combine output_audio=true with kling_elements. The aliases outputAudio and generate_audio are accepted for compatibility and must match when provided together."
@@ -8253,7 +8593,7 @@
             "type": "integer",
             "minimum": -1,
             "maximum": 4294967295,
-            "description": "Seed for reproducibility. Seedance uses -1 for random seed when omitted."
+            "description": "Seed for reproducibility on compatible models. Compatible Seedance models use -1 for a random seed when omitted; Seedance 2.5 does not support this field."
           },
           "cfg_scale": {
             "type": "number",
@@ -8281,9 +8621,9 @@
           },
           "image_urls": {
             "type": "array",
-            "description": "Image URL array for compatible image-conditioned video flows. This endpoint currently allows up to 9 entries. When the selected Seedance model can use the TokenLab material library, TokenLab prepares this image input as reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path.",
+            "description": "Image URL array for compatible image-conditioned video flows. Seedance 2.5 accepts up to 30 aggregate image inputs; other video models retain the shared limit of 9 entries unless the model details specify a lower limit. When the selected Seedance model can use the TokenLab material library, TokenLab prepares this image input as reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path.",
             "minItems": 1,
-            "maxItems": 9,
+            "maxItems": 30,
             "items": {
               "type": "string",
               "format": "uri"
@@ -8329,9 +8669,9 @@
           },
           "reference_images": {
             "type": "array",
-            "description": "Canonical public reference-image field for reference-to-video conditioning. This endpoint currently allows up to 9 URLs, compatible data URLs, or for Seedance, asset://asset-YYYYMMDDHHMMSS-xxxxx URIs for ACTIVE TokenLab materials owned by the requesting organization; model-specific limits can be lower. xAI grok-imagine-video accepts up to 7 image references with duration capped at 10 seconds; grok-imagine-video-1.5 and grok-imagine-video-1.5-preview are image-to-video only and do not accept reference images. When the selected Seedance model can use the TokenLab material library, TokenLab prepares ordinary image input as reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path.",
+            "description": "Canonical public reference-image field for reference-to-video conditioning. Seedance 2.5 accepts up to 30 aggregate image inputs; other video models retain the shared limit of 9 URLs or compatible data URLs unless the model details specify a lower limit. xAI grok-imagine-video accepts up to 7 image references with duration capped at 10 seconds; grok-imagine-video-1.5 and grok-imagine-video-1.5-preview are image-to-video only and do not accept reference images. When the selected Seedance model can use the TokenLab material library, TokenLab prepares ordinary image input as reusable material before generation; if it is not ACTIVE within 60 seconds, the API returns 409 seedance_material_preparing with auto_material_asset_ids. If the selected model cannot use the material library, ordinary image inputs continue on the regular image path.",
             "minItems": 1,
-            "maxItems": 9,
+            "maxItems": 30,
             "items": {
               "type": "string"
             }
@@ -8395,9 +8735,9 @@
           },
           "video_urls": {
             "type": "array",
-            "description": "Compatibility array for video-conditioned flows when multiple input videos are supported by the routed model family. TokenLab currently accepts up to 3 reference videos.",
+            "description": "Compatibility array for video-conditioned flows when multiple input videos are supported by the routed model family. Seedance 2.5 accepts up to 10 aggregate video inputs; other video models retain the shared limit of 3 references unless the model details specify a lower limit.",
             "minItems": 1,
-            "maxItems": 3,
+            "maxItems": 10,
             "items": {
               "type": "string",
               "format": "uri"
@@ -8405,9 +8745,9 @@
           },
           "audio_urls": {
             "type": "array",
-            "description": "Compatibility array for audio-conditioned flows when multiple audio references are supported by the routed model family. TokenLab currently accepts up to 3 reference audios.",
+            "description": "Compatibility array for audio-conditioned flows when multiple audio references are supported by the routed model family. Seedance 2.5 accepts up to 10 aggregate audio inputs and permits pure-audio reference requests without a prompt; other video models retain the shared limit of 3 references unless the model details specify a lower limit.",
             "minItems": 1,
-            "maxItems": 3,
+            "maxItems": 10,
             "items": {
               "type": "string",
               "format": "uri"
@@ -8459,16 +8799,16 @@
               "default",
               "flex"
             ],
-            "description": "Optional service tier for compatible video models. service_tier=default is accepted as a no-op for Seedance 2.0 models; service_tier=flex is rejected where the selected model does not support it."
+            "description": "Optional service tier for compatible video models. service_tier=default is accepted as a compatibility no-op for Seedance 2.0 and Seedance 2.5; service_tier=flex is rejected for both models."
           },
           "frames": {
             "type": "integer",
             "minimum": 1,
-            "description": "Optional frame count for compatible video models. Seedance 2.0 models and Seedance 1.5 Pro do not support this field."
+            "description": "Optional frame count for compatible video models. Seedance 1.5 Pro, Seedance 2.0, and Seedance 2.5 do not support this field."
           },
           "camera_fixed": {
             "type": "boolean",
-            "description": "Optional fixed-camera selector for compatible video models. Seedance 2.0 models do not support this field."
+            "description": "Optional fixed-camera selector for compatible video models. Seedance 2.0 and Seedance 2.5 do not support this field."
           },
           "return_last_frame": {
             "type": "boolean",
@@ -8760,8 +9100,10 @@
             "description": "Project scope for the material asset. Assets and groups are isolated by project inside the authenticated organization."
           },
           "metadata": {
-            "type": "object",
-            "nullable": true,
+            "type": [
+              "object",
+              "null"
+            ],
             "additionalProperties": true,
             "description": "Optional client metadata stored with the material asset."
           }
@@ -8790,8 +9132,10 @@
             ]
           },
           "group_id": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "TokenLab material group ID that owns this material asset."
           },
           "project_name": {
@@ -8806,8 +9150,10 @@
             ]
           },
           "asset_name": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "asset_type": {
             "type": "string",
@@ -8831,13 +9177,17 @@
             "description": "True when the asset is active and not deleted."
           },
           "error_message": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Public-safe terminal processing error. Permanent source validation failures include the rejected dimension constraint."
           },
           "metadata": {
-            "type": "object",
-            "nullable": true,
+            "type": [
+              "object",
+              "null"
+            ],
             "additionalProperties": true
           },
           "created_at": {
@@ -8863,8 +9213,10 @@
             }
           },
           "next_page_token": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "additionalProperties": true
@@ -9153,7 +9505,8 @@
                   "upstream_contract_mismatch",
                   "platform_normalization_error",
                   "async_task_not_found",
-                  "async_task_mapping_invalid"
+                  "async_task_mapping_invalid",
+                  "delivery_tier_unavailable"
                 ]
               },
               "code": {
@@ -9293,6 +9646,9 @@
                   "string",
                   "null"
                 ]
+              },
+              "request_id": {
+                "type": "string"
               }
             },
             "required": [
@@ -9535,8 +9891,10 @@
             ]
           },
           "stop_sequence": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "usage": {
             "type": "object",
@@ -10117,7 +10475,8 @@
           "models",
           "expires_at",
           "last_used_at",
-          "created_at"
+          "created_at",
+          "delivery_policy"
         ],
         "properties": {
           "id": {
@@ -10134,6 +10493,7 @@
             "enum": [
               "active",
               "inactive",
+              "suspended",
               "revoked"
             ],
             "description": "Lifecycle status for the user API key: active, inactive, or revoked."
@@ -10187,6 +10547,19 @@
           "used_amount_decimal": {
             "type": "string",
             "description": "Exact accumulated API key usage in USD as a decimal string for reconciliation."
+          },
+          "delivery_policy": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "auto",
+              "verified",
+              "official",
+              null
+            ],
+            "description": "Per-key Delivery policy. null inherits the Workspace default."
           }
         }
       },
@@ -10256,7 +10629,10 @@
           "cache_write_tokens_1h",
           "cost",
           "cost_decimal",
-          "created_at"
+          "created_at",
+          "requested_policy",
+          "resolved_tier",
+          "charged_price_basis"
         ],
         "properties": {
           "request_id": {
@@ -10332,6 +10708,39 @@
           "cost_decimal": {
             "type": "string",
             "description": "Exact request cost in USD as a decimal string for reconciliation."
+          },
+          "requested_policy": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "auto",
+              "verified",
+              "official",
+              null
+            ]
+          },
+          "resolved_tier": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "verified",
+              "official",
+              null
+            ]
+          },
+          "charged_price_basis": {
+            "anyOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ChargedPriceBasis"
+              }
+            ]
           }
         }
       },
@@ -10779,8 +11188,10 @@
             "type": "boolean"
           },
           "scope": {
-            "type": "object",
-            "nullable": true,
+            "type": [
+              "object",
+              "null"
+            ],
             "required": [
               "id",
               "type"
@@ -11551,8 +11962,10 @@
             "description": "Upstream request count summary for the batch"
           },
           "ended_at": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "ISO timestamp when processing ended, when available"
           },
           "created_at": {
@@ -11564,18 +11977,24 @@
             "description": "ISO timestamp when the batch expires, when available"
           },
           "cancel_initiated_at": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "ISO timestamp when cancellation was initiated, when available"
           },
           "archived_at": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "ISO timestamp when the batch was archived, when available"
           },
           "results_url": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Upstream results URL, when available"
           }
         },
@@ -11620,12 +12039,16 @@
             "type": "boolean"
           },
           "first_id": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "last_id": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "additionalProperties": true
@@ -12346,8 +12769,10 @@
             "description": "Optional display name for the material group."
           },
           "description": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "maxLength": 500
           },
           "library_type": {
@@ -12367,8 +12792,10 @@
             "description": "Project scope for the material group."
           },
           "metadata": {
-            "type": "object",
-            "nullable": true,
+            "type": [
+              "object",
+              "null"
+            ],
             "additionalProperties": true
           }
         }
@@ -12382,8 +12809,10 @@
             "maxLength": 128
           },
           "description": {
-            "type": "string",
-            "nullable": true,
+            "type": [
+              "string",
+              "null"
+            ],
             "maxLength": 500
           },
           "project_name": {
@@ -12393,8 +12822,10 @@
             "default": "default"
           },
           "metadata": {
-            "type": "object",
-            "nullable": true,
+            "type": [
+              "object",
+              "null"
+            ],
             "additionalProperties": true
           }
         }
@@ -12430,19 +12861,25 @@
             "description": "Project scope for this material group."
           },
           "group_name": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "description": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "status": {
             "type": "string"
           },
           "metadata": {
-            "type": "object",
-            "nullable": true,
+            "type": [
+              "object",
+              "null"
+            ],
             "additionalProperties": true
           },
           "created_at": {
@@ -12468,8 +12905,10 @@
             }
           },
           "next_page_token": {
-            "type": "string",
-            "nullable": true
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       },
@@ -12503,8 +12942,10 @@
             "default": "default"
           },
           "metadata": {
-            "type": "object",
-            "nullable": true,
+            "type": [
+              "object",
+              "null"
+            ],
             "additionalProperties": true,
             "description": "Updated client metadata stored with the material asset."
           }
@@ -12941,93 +13382,59 @@
             "description": "Media role. first_frame/last_frame inputs cannot be mixed with reference_image/reference_video/reference_audio inputs."
           },
           "image_url": {
-            "oneOf": [
-              {
-                "type": "string",
-                "format": "uri"
-              },
-              {
-                "type": "object",
-                "required": [
-                  "url"
-                ],
-                "properties": {
-                  "url": {
-                    "type": "string",
-                    "format": "uri"
-                  }
-                },
-                "additionalProperties": true
-              }
+            "type": "object",
+            "required": [
+              "url"
             ],
-            "description": "Image reference. The object form {\"url\":\"https://...\"} matches the official request shape; a plain string is accepted for convenience. TokenLab also accepts asset://asset-YYYYMMDDHHMMSS-xxxxx URIs for ACTIVE materials owned by the requesting organization, and preserves the item's first_frame, last_frame, or reference_image role."
+            "properties": {
+              "url": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "description": "Image reference in the official {\"url\":\"https://...\"} shape. TokenLab material URIs remain available as URL values without changing the request object shape."
           },
           "video_url": {
-            "oneOf": [
-              {
-                "type": "string",
-                "format": "uri"
-              },
-              {
-                "type": "object",
-                "required": [
-                  "url"
-                ],
-                "properties": {
-                  "url": {
-                    "type": "string",
-                    "format": "uri"
-                  }
-                },
-                "additionalProperties": true
-              }
+            "type": "object",
+            "required": [
+              "url"
             ],
+            "properties": {
+              "url": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
             "description": "Video URL. Use role=reference_video."
           },
           "audio_url": {
-            "oneOf": [
-              {
-                "type": "string",
-                "format": "uri"
-              },
-              {
-                "type": "object",
-                "required": [
-                  "url"
-                ],
-                "properties": {
-                  "url": {
-                    "type": "string",
-                    "format": "uri"
-                  }
-                },
-                "additionalProperties": true
-              }
+            "type": "object",
+            "required": [
+              "url"
             ],
+            "properties": {
+              "url": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
             "description": "Audio URL. Use role=reference_audio."
           },
           "draft_task": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "object",
-                "required": [
-                  "id"
-                ],
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  }
-                },
-                "additionalProperties": true
-              }
+            "type": "object",
+            "required": [
+              "id"
             ],
-            "description": "Draft task reference. The object form {\"id\":\"cgt-...\"} matches the official request shape."
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "description": "Draft task reference in the official {\"id\":\"cgt-...\"} shape."
           }
         },
-        "additionalProperties": true
+        "additionalProperties": false
       },
       "VolcSeedanceCreateTaskRequest": {
         "type": "object",
@@ -13044,15 +13451,11 @@
           "content": {
             "type": "array",
             "minItems": 1,
+            "maxItems": 16,
             "items": {
               "$ref": "#/components/schemas/VolcSeedanceContentItem"
-            }
-          },
-          "material_asset_id": {
-            "type": "string",
-            "pattern": "^asset-\\d{14}-[a-z0-9]{5}$",
-            "maxLength": 128,
-            "description": "TokenLab compatibility shorthand for one ACTIVE Seedance material owned by the requesting organization. It is treated as the first frame and cannot be combined with other media inputs. For multiple materials, use content image_url items with explicit roles; top-level material_asset_ids is rejected as ambiguous."
+            },
+            "description": "At most 16 content items: one text item, nine image_url items, three video_url items, three audio_url items, and one draft_task item. Model- and operation-specific combination rules still apply."
           },
           "ratio": {
             "type": "string",
@@ -13069,7 +13472,19 @@
             "description": "Output aspect ratio. Defaults to adaptive when omitted."
           },
           "duration": {
-            "type": "integer",
+            "oneOf": [
+              {
+                "type": "integer",
+                "enum": [
+                  -1
+                ]
+              },
+              {
+                "type": "integer",
+                "minimum": 4,
+                "maximum": 15
+              }
+            ],
             "default": 5,
             "example": 5,
             "description": "Video duration in seconds. Seedance 2.0 supports normal integer durations and -1 for automatic duration where the selected model supports it."
@@ -13079,17 +13494,16 @@
             "enum": [
               "480p",
               "720p",
-              "1080p",
-              "4k"
+              "1080p"
             ],
             "default": "720p",
             "example": "720p",
-            "description": "Requested output resolution. 4k is only available on supported Seedance 2.0 routes; fast/mini availability depends on model capability."
+            "description": "Requested output resolution. Model-specific availability still applies."
           },
           "generate_audio": {
             "type": "boolean",
-            "default": true,
-            "description": "Whether to generate audio. Defaults to true for Seedance 2.0 compatible requests."
+            "default": false,
+            "description": "Whether to generate synchronized audio. The official default is false."
           },
           "return_last_frame": {
             "type": "boolean",
@@ -13102,6 +13516,8 @@
           },
           "seed": {
             "type": "integer",
+            "minimum": -1,
+            "maximum": 4294967295,
             "default": -1,
             "description": "Random seed. -1 lets the model choose a seed. Forwarded on a best-effort basis for routes that accept it."
           },
@@ -13111,12 +13527,6 @@
             "maximum": 259200,
             "default": 172800,
             "description": "Task execution expiration window in seconds."
-          },
-          "priority": {
-            "type": "integer",
-            "default": 0,
-            "minimum": 0,
-            "maximum": 9
           },
           "safety_identifier": {
             "type": "string",
@@ -13134,9 +13544,21 @@
           },
           "tools": {
             "type": "array",
+            "maxItems": 1,
             "items": {
               "type": "object",
-              "additionalProperties": true
+              "required": [
+                "type"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "web_search"
+                  ]
+                }
+              },
+              "additionalProperties": false
             },
             "description": "Optional tools such as {\"type\":\"web_search\"} when supported by the selected model."
           },
@@ -13155,11 +13577,11 @@
           "callback_url": {
             "type": "string",
             "format": "uri",
-            "deprecated": true,
-            "description": "Not supported in this compatibility endpoint. Poll task status instead."
+            "maxLength": 2048,
+            "description": "Public HTTP(S) endpoint notified by POST whenever status changes. The body is identical to the get-task response. queued, running, succeeded, failed, and expired are delivered. For succeeded and failed, a delivery without success within 5 seconds is retried up to three times."
           }
         },
-        "additionalProperties": true
+        "additionalProperties": false
       },
       "VolcSeedanceCreateTaskResponse": {
         "type": "object",
@@ -13169,7 +13591,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "example": "cgt-0123456789abcdef0123456789abcdef"
+            "example": "cgt-20260102030405-a1b2c"
           }
         },
         "additionalProperties": false
@@ -13179,13 +13601,12 @@
         "required": [
           "id",
           "model",
-          "status",
-          "error"
+          "status"
         ],
         "properties": {
           "id": {
             "type": "string",
-            "example": "cgt-0123456789abcdef0123456789abcdef"
+            "example": "cgt-20260102030405-a1b2c"
           },
           "model": {
             "type": "string",
@@ -13202,12 +13623,6 @@
               "expired"
             ]
           },
-          "progress": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 100,
-            "description": "Optional progress value returned only when a real progress value is available; use status to determine completion."
-          },
           "content": {
             "type": "object",
             "properties": {
@@ -13220,7 +13635,7 @@
                 "format": "uri"
               }
             },
-            "additionalProperties": true
+            "additionalProperties": false
           },
           "seed": {
             "type": "integer"
@@ -13232,35 +13647,31 @@
             "type": "string"
           },
           "duration": {
-            "type": "integer"
+            "type": "string"
           },
           "frames": {
             "type": "integer"
           },
           "framespersecond": {
-            "type": "number"
+            "type": "integer"
           },
           "generate_audio": {
             "type": "boolean"
           },
-          "return_last_frame": {
-            "type": "boolean"
-          },
-          "watermark": {
-            "type": "boolean"
-          },
           "tools": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": true
-            }
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "web_search"
+                ]
+              }
+            },
+            "additionalProperties": false
           },
           "safety_identifier": {
             "type": "string"
-          },
-          "priority": {
-            "type": "integer"
           },
           "draft": {
             "type": "boolean"
@@ -13271,19 +13682,39 @@
           "service_tier": {
             "type": "string"
           },
-          "camera_fixed": {
-            "type": "boolean"
-          },
           "execution_expires_after": {
             "type": "integer"
           },
           "usage": {
             "type": "object",
-            "additionalProperties": true
+            "properties": {
+              "completion_tokens": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "total_tokens": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "tool_usage": {
+                "type": "object",
+                "properties": {
+                  "web_search": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
           },
           "error": {
             "type": "object",
-            "nullable": true,
+            "required": [
+              "code",
+              "message"
+            ],
             "properties": {
               "code": {
                 "type": "string"
@@ -13292,7 +13723,7 @@
                 "type": "string"
               }
             },
-            "additionalProperties": true
+            "additionalProperties": false
           },
           "created_at": {
             "type": "integer",
@@ -13335,7 +13766,9 @@
             "type": "object",
             "required": [
               "code",
-              "message"
+              "message",
+              "param",
+              "type"
             ],
             "properties": {
               "code": {
@@ -13346,9 +13779,12 @@
               },
               "param": {
                 "type": "string"
+              },
+              "type": {
+                "type": "string"
               }
             },
-            "additionalProperties": true
+            "additionalProperties": false
           }
         },
         "additionalProperties": false
@@ -13746,6 +14182,145 @@
             "$ref": "#/components/schemas/VolcVisualValidationError"
           }
         ]
+      },
+      "ChargedPriceBasis": {
+        "type": "object",
+        "required": [
+          "version",
+          "resolvedTier",
+          "priceVersion",
+          "measure",
+          "effectiveUnitPrices"
+        ],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "enum": [
+              1
+            ]
+          },
+          "resolvedTier": {
+            "type": "string",
+            "enum": [
+              "verified",
+              "official"
+            ]
+          },
+          "priceVersion": {
+            "type": "string"
+          },
+          "measure": {
+            "type": "object",
+            "required": [
+              "unit",
+              "quantity",
+              "dimensions"
+            ],
+            "properties": {
+              "unit": {
+                "type": "string"
+              },
+              "quantity": {
+                "type": "string"
+              },
+              "dimensions": {
+                "type": "object",
+                "additionalProperties": {
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            },
+            "additionalProperties": false
+          },
+          "effectiveUnitPrices": {
+            "type": "object",
+            "required": [
+              "unit"
+            ],
+            "properties": {
+              "unit": {
+                "type": "string"
+              },
+              "input": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "output": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "cacheRead": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "cacheWrite": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "cacheWrite1h": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "fixed": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "structured": {
+                "anyOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
       }
     },
     "responses": {
@@ -13935,6 +14510,57 @@
               }
             }
           }
+        }
+      },
+      "DeliveryUnavailable": {
+        "description": "No eligible Delivery route is currently available, or all eligible routes failed.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            },
+            "examples": {
+              "requestedTierUnavailable": {
+                "summary": "The requested Delivery tier has no eligible route",
+                "value": {
+                  "error": {
+                    "message": "The requested Delivery tier is temporarily unavailable for model gpt-5.4.",
+                    "type": "all_channels_failed",
+                    "code": "delivery_tier_unavailable",
+                    "retryable": true,
+                    "request_id": "req_01JEXAMPLE"
+                  }
+                }
+              },
+              "eligibleRoutesFailed": {
+                "summary": "All eligible Delivery routes failed",
+                "value": {
+                  "error": {
+                    "message": "All available routes failed to process the request.",
+                    "type": "all_channels_failed",
+                    "retryable": true,
+                    "request_id": "req_01JEXAMPLE"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "DeliveryPolicy": {
+        "name": "X-TokenLab-Delivery-Policy",
+        "in": "header",
+        "required": false,
+        "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation.",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "verified",
+            "official"
+          ]
         }
       }
     }

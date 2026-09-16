@@ -1,7 +1,7 @@
 const DRAFT_07_SCHEMA = "http://json-schema.org/draft-07/schema#";
 const PORTABLE_PROPERTY_DEPTH = 3;
-const MAX_DESCRIPTION_LENGTH = 500;
-const MAX_STRICT_DESCRIPTION_LENGTH = 160;
+// Keep model-facing prose compact; execution still validates the complete schema.
+const MAX_DESCRIPTION_LENGTH = 100;
 
 export const TOOL_SCHEMA_MODES = ["exact", "portable", "strict"];
 
@@ -10,6 +10,16 @@ function compactDescription(value, maxLength = MAX_DESCRIPTION_LENGTH) {
   return value.length <= maxLength
     ? value
     : `${value.slice(0, maxLength - 1)}…`;
+}
+
+function portableKeyword(key, value) {
+  const literal = key === "const" ? value : key === "enum" && value.length === 1 ? value[0] : undefined;
+  // Numeric singleton enums (for example duration=-1) are rejected by Gemini.
+  // Equal bounds express the same value without changing canonical validation.
+  if (typeof literal === "number" && Number.isFinite(literal)) {
+    return { minimum: literal, maximum: literal };
+  }
+  return { [key]: structuredClone(value) };
 }
 
 function portableScalarSchema(schema) {
@@ -28,7 +38,7 @@ function portableScalarSchema(schema) {
     "maxLength",
     "pattern"
   ]) {
-    if (Object.hasOwn(schema, key)) projected[key] = structuredClone(schema[key]);
+    if (Object.hasOwn(schema, key)) Object.assign(projected, portableKeyword(key, schema[key]));
   }
   const description = compactDescription(schema.description);
   if (description) projected.description = description;
@@ -88,7 +98,7 @@ function portableSchemaNode(schema, propertyDepth) {
       projected[key] = value.map((entry) => portableSchemaNode(entry, propertyDepth + 1));
       continue;
     }
-    projected[key] = structuredClone(value);
+    Object.assign(projected, portableKeyword(key, value));
   }
   return projected;
 }
@@ -107,7 +117,7 @@ function isSimpleScalarSchema(schema) {
 
 function strictScalarSchema(schema) {
   const projected = portableScalarSchema(schema);
-  const description = compactDescription(schema.description, MAX_STRICT_DESCRIPTION_LENGTH);
+  const description = compactDescription(schema.description);
   if (description) projected.description = description;
   else delete projected.description;
   delete projected.default;
@@ -115,7 +125,7 @@ function strictScalarSchema(schema) {
 }
 
 function strictPropertySchema(schema, optional) {
-  const description = compactDescription(schema?.description, MAX_STRICT_DESCRIPTION_LENGTH);
+  const description = compactDescription(schema?.description);
   const valueSchema = isSimpleScalarSchema(schema)
     ? strictScalarSchema(schema)
     : {
@@ -126,6 +136,9 @@ function strictPropertySchema(schema, optional) {
         ].filter(Boolean).join(" ")
       };
   if (!optional) return valueSchema;
+  if (!valueSchema.enum && !Object.hasOwn(valueSchema, "const")) {
+    return { ...valueSchema, type: [valueSchema.type, "null"] };
+  }
   return {
     anyOf: [
       valueSchema,
