@@ -78,4 +78,24 @@ jobs:
         run: ./mcp-publisher login github-oidc
 
       - name: Publish to MCP Registry
-        run: ./mcp-publisher publish
+        shell: bash
+        run: |
+          set -euo pipefail
+          publish_log="$(mktemp)"
+          trap 'rm -f "$publish_log"' EXIT
+          for attempt in 1 2 3 4; do
+            if ./mcp-publisher publish >"$publish_log" 2>&1; then
+              cat "$publish_log"
+              exit 0
+            fi
+            cat "$publish_log"
+            # Registry validates npm through its own cache. Only retry the
+            # explicit pre-publication version-not-found response, never an
+            # authentication, validation, or ambiguous write failure.
+            if [ "$attempt" -eq 4 ] || \
+               ! grep -Fq 'newly published release can take a moment' "$publish_log" || \
+               ! grep -Fq 'was not found (status: 404)' "$publish_log"; then
+              exit 1
+            fi
+            sleep 15
+          done
