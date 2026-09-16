@@ -10,7 +10,7 @@ It exposes public catalog tools for agents that need to choose models, inspect s
 
 ## Generated Tool Profiles
 
-The checked-in `generated/tools.json` manifest is generated from TokenLab's public OpenAPI document plus the small MCP-only overlay in `contract/mcp-overlay.json`. Version 0.6.18 generates 78 endpoint tools; with the two MCP-only composite discovery tools, the full profile returns 80 tools from `tools/list`.
+The checked-in `generated/tools.json` manifest is generated from TokenLab's public OpenAPI document plus the small MCP-only overlay in `contract/mcp-overlay.json`. Version 0.6.19 generates 78 endpoint tools; with the two MCP-only composite discovery tools, the full profile returns 80 tools from `tools/list`.
 
 | Profile | Endpoint tools | Total registered tools | Model-facing schema | Coverage |
 | --- | ---: | ---: | --- | --- |
@@ -29,6 +29,7 @@ The smaller [`generated/public-contract.json`](./generated/public-contract.json)
 ## Native MCP Features
 
 - JSON tool responses include `structuredContent` while retaining serialized text for older clients.
+- HTTP errors retain the original response text (up to 4,000 characters), including public correction hints, alongside structured status, request ID and retry timing. Only the request ID and retry headers are exposed; failed generation requests are never submitted again automatically.
 - Generated tools expose human-readable titles, standard read-only/destructive/idempotent/open-world annotations, and response request IDs when available.
 - Tool schemas are published and validated directly as JSON Schema. The runtime does not round-trip generated tool schemas through Zod; `exact` mode is byte-shape equivalent to the generated canonical schema.
 - Three resources expose the live API overview, the package's OpenAPI snapshot, and the compact MCP public contract.
@@ -133,7 +134,7 @@ This repository includes `server.json` for the official MCP Registry.
 
 Release metadata:
 
-- npm package: `@tokenlabai/mcp-server@0.6.18`
+- npm package: `@tokenlabai/mcp-server@0.6.19`
 - MCP registry name: `io.github.hedging8563/tokenlab`
 - `package.json.mcpName`: `io.github.hedging8563/tokenlab`
 

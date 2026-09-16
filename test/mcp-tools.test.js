@@ -876,7 +876,8 @@ test("preserves bounded HTTP recovery details without retrying a create", async 
       model: "fixture", messages: [{ role: "user", content: "fixture" }]
     } });
     assert.equal(result.isError, true);
-    assert.deepEqual(JSON.parse(result.content[0].text), result.structuredContent);
+    assert.match(result.content[0].text, /^TokenLab request failed:/);
+    assert.ok(result.content[0].text.length < 4_400);
     assert.equal(result.structuredContent.status, fixtures[index].status);
     assert.equal(result._meta["tokenlab/httpStatus"], fixtures[index].status);
     assert.ok(Buffer.byteLength(JSON.stringify(result.structuredContent)) < 5_000);
@@ -900,9 +901,41 @@ test("preserves bounded HTTP recovery details without retrying a create", async 
   assert.match(results[4].structuredContent.error.message, /^upstream unavailable/);
 });
 
+test("keeps original public error diagnostics on generated and discovery paths without copying headers", async (t) => {
+  const diagnostic = {
+    error: {
+      code: "invalid_request_error", message: "Unsupported request shape",
+      hint: "Use the declared endpoint and request fields",
+      recommended_request: { model: "fixture", prompt: "example" },
+      did_you_mean: ["prompt"]
+    },
+    request_id: "req_diagnostic"
+  };
+  const api = await startMockApi(t, () => ({
+    status: 400,
+    headers: { "Authorization": "Bearer response-secret", "Set-Cookie": "private=cookie-secret", "X-API-Key": "header-secret" },
+    json: diagnostic
+  }));
+  const client = await startMcpClient(t, { TOKENLAB_API_BASE: api.baseUrl, TOKENLAB_API_KEY: "request-secret" });
+  const calls = [
+    { name: "get_model", arguments: { model: "fixture" } },
+    { name: "get_api_overview", arguments: {} },
+    { name: "compare_models", arguments: { models: ["model-a", "model-b"] } }
+  ];
+  for (const call of calls) {
+    const result = await client.callTool(call);
+    assert.equal(result.isError, true);
+    assert.match(result.content[0].text, /^TokenLab request failed: 400/);
+    assert.ok(result.content[0].text.includes(JSON.stringify(diagnostic)));
+    assert.equal(result.structuredContent.error.message, diagnostic.error.message);
+    assert.equal(result.structuredContent.request_id, "req_diagnostic");
+    assert.doesNotMatch(JSON.stringify(result), /request-secret|response-secret|cookie-secret|header-secret/);
+  }
+});
+
 test("keeps recovery metadata when a composite catalog read has unavailable pricing", async (t) => {
   const api = await startMockApi(t, ({ url }) => url.endsWith("/pricing")
-    ? { status: 429, headers: { "Retry-After": "9", "X-Request-ID": "req_pricing" }, json: { error: { code: "rate_limit_exceeded", message: "Wait" } } }
+    ? { status: 429, headers: { "Retry-After": "9", "X-Request-ID": "req_pricing", "Set-Cookie": "private=cookie-secret" }, json: { error: { code: "rate_limit_exceeded", message: "Wait", hint: "Poll again after Retry-After" } } }
     : { id: url.split("/").at(-1), tokenlab: {} });
   const client = await startMcpClient(t, { TOKENLAB_API_BASE: api.baseUrl, TOKENLAB_API_KEY: "" });
   const result = parseTextResult(await client.callTool({ name: "compare_models", arguments: { models: ["model-a", "model-b"] } }));
@@ -912,5 +945,7 @@ test("keeps recovery metadata when a composite catalog read has unavailable pric
     assert.equal(model.pricing.error.code, "rate_limit_exceeded");
     assert.equal(model.pricing.request_id, "req_pricing");
     assert.equal(model.pricing.retry_after, 9);
+    assert.match(model.pricing.diagnostic, /Poll again after Retry-After/);
+    assert.doesNotMatch(JSON.stringify(model.pricing), /cookie-secret/);
   }
 });

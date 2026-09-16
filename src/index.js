@@ -273,7 +273,7 @@ class TokenLabHttpError extends Error {
       ?? retryAfterSeconds(apiError?.retry_after ?? body?.retry_after);
     const declaredRetryable = apiError?.retryable ?? body?.retryable;
     const message = boundedText(apiError?.message) || boundedText(text) || response.statusText;
-    super(`TokenLab request failed: ${response.status} ${response.statusText}${requestId ? ` (request ${requestId})` : ""}\n${message}`);
+    super(`TokenLab request failed: ${response.status} ${response.statusText}${requestId ? ` (request ${requestId})` : ""}\n${boundedText(text) || message}`);
     this.name = "TokenLabHttpError";
     this.details = definedValues({
       status: response.status,
@@ -384,7 +384,7 @@ async function compareModels({ models, include_raw }) {
     const [details, pricing] = await Promise.all([
       executePublicJson(`/v1/models/${encoded}`),
       executePublicJson(`/v1/models/${encoded}/pricing`).catch((error) => (
-        error instanceof TokenLabHttpError ? error.details : { error: error.message }
+        error instanceof TokenLabHttpError ? { ...error.details, diagnostic: error.message } : { error: error.message }
       ))
     ]);
     if (include_raw) return { model, details, pricing };
@@ -498,7 +498,12 @@ const registeredToolsByName = new Map(registeredTools.map((tool) => [
 
 function toolExecutionError(error) {
   if (error instanceof TokenLabHttpError) {
-    return { ...textResult(error.details, error.meta), isError: true };
+    return {
+      content: [{ type: "text", text: error.message }],
+      structuredContent: error.details,
+      _meta: error.meta,
+      isError: true
+    };
   }
   return {
     content: [{
