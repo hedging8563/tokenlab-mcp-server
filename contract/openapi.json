@@ -3626,6 +3626,23 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "description": "A revoked API key cannot be reactivated. Create a new key.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "error": {
+                    "message": "A revoked API key cannot be reactivated. Create a new key.",
+                    "type": "invalid_request_error",
+                    "code": "api_key_revoked"
+                  }
+                }
+              }
+            }
           }
         },
         "x-mint": {
