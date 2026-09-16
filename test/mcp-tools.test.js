@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, stat, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { execFileSync } from "node:child_process";
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 import { GoogleGenerativeAILanguageModel } from "@ai-sdk/google/internal";
@@ -797,9 +799,37 @@ test("requires auth only for protected generated operations", async (t) => {
   assert.equal(api.requests.length, 1);
 });
 
-test("ships an executable npm binary", async () => {
-  const { mode } = await stat(new URL("../src/index.js", import.meta.url));
-  assert.notEqual(mode & 0o111, 0);
+test("ships an executable npm binary on each platform", async (t) => {
+  const binary = new URL("../src/index.js", import.meta.url);
+  assert.match(await readFile(binary, "utf8"), /^#!\/usr\/bin\/env node\n/);
+  // Windows executes npm's .cmd shim; its filesystem has no POSIX execute bit.
+  if (process.platform !== "win32") {
+    assert.notEqual((await stat(binary)).mode & 0o111, 0);
+  }
+  const installDir = await mkdtemp(join(tmpdir(), "tokenlab-mcp-bin-"));
+  t.after(() => rm(installDir, { recursive: true, force: true }));
+  assert.ok(process.env.npm_execpath, "Run this installation check with npm test");
+  execFileSync(process.execPath, [
+    process.env.npm_execpath, "install", "--offline", "--ignore-scripts",
+    "--no-audit", "--no-fund", "--no-package-lock",
+    fileURLToPath(new URL("..", import.meta.url))
+  ], { cwd: installDir, timeout: 30_000, stdio: "pipe" });
+
+  const transport = new StdioClientTransport({
+    command: join(installDir, "node_modules", ".bin", `tokenlab-mcp-server${process.platform === "win32" ? ".cmd" : ""}`),
+    cwd: installDir,
+    env: { TOKENLAB_MCP_TOOL_PROFILE: "core" },
+    stderr: "pipe"
+  });
+  const client = new Client({ name: "tokenlab-installed-bin-test", version: "0.0.0" });
+  try {
+    await client.connect(transport);
+    const { tools } = await client.listTools();
+    assert.equal(tools.length, 31);
+    assert.ok(tools.some((tool) => tool.name === "create_response"));
+  } finally {
+    await client.close();
+  }
 });
 
 test("forwards current Delivery, media, and idempotency inputs while retaining canonical validation", async (t) => {
