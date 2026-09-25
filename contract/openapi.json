@@ -9319,6 +9319,25 @@
             "type": "string",
             "description": "Model identifier"
           },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "Current model availability by delivery tier; omitted when the source projection is unavailable.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "Whether this model has eligible TokenLab Verified delivery supply."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "Whether this model has eligible Official delivery supply."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
+          },
           "provider": {
             "type": "string",
             "description": "Public model provider"
@@ -12217,6 +12236,25 @@
               "type": "string"
             }
           },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "Current model availability by delivery tier; omitted when the source projection is unavailable.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "Whether this model has eligible TokenLab Verified delivery supply."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "Whether this model has eligible Official delivery supply."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
+          },
           "pricing": {
             "type": "object",
             "additionalProperties": true
@@ -12491,6 +12529,25 @@
             "items": {
               "type": "string"
             }
+          },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "Current model availability by delivery tier; omitted when the source projection is unavailable.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "Whether this model has eligible TokenLab Verified delivery supply."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "Whether this model has eligible Official delivery supply."
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
           },
           "pricing": {
             "type": "object",
