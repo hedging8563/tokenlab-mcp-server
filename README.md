@@ -10,15 +10,15 @@ It exposes public catalog tools for agents that need to choose models, inspect s
 
 ## Generated Tool Profiles
 
-The checked-in `generated/tools.json` manifest is generated from TokenLab's public OpenAPI document plus the small MCP-only overlay in `contract/mcp-overlay.json`. Version 0.6.23 generates 79 endpoint tools; with the two MCP-only composite discovery tools, the full profile returns 81 tools from `tools/list`.
+The checked-in `generated/tools.json` manifest is generated from TokenLab's public OpenAPI document plus the small MCP-only overlay in `contract/mcp-overlay.json`. Version 0.6.24 generates 87 endpoint tools; with the two MCP-only composite discovery tools, the full profile returns 89 tools from `tools/list`.
 
 | Profile | Endpoint tools | Total registered tools | Model-facing schema | Coverage |
 | --- | ---: | ---: | --- | --- |
 | `catalog` | 4 | 6 | Exact | Public model discovery and pricing only; no API key required |
 | `core` (default) | 30 | 32 | Portable | Catalog and pricing; Chat Completions, Responses, Anthropic Messages, Gemini generateContent; System One typed decisions; images, video, music, 3D, speech and transcription; async tasks; files; embeddings, rerank, and translation |
-| `full` | 79 | 81 | Portable | Every allowlisted developer API operation in the checked-in OpenAPI snapshot, including core plus response lifecycle, batches, worlds, and native model discovery |
+| `full` | 87 | 89 | Portable | Every allowlisted developer API operation in the checked-in OpenAPI snapshot, including core plus response lifecycle, batches, worlds, and native model discovery |
 
-The total registered count is the number returned by `tools/list`. All profiles include `compare_models` and `get_api_overview`, producing totals of 6, 32, and 81 tools. Realtime and streaming-only operations are excluded because stdio MCP tool calls return one final result. API operations that accept `stream` fix it internally to `false` without exposing a boolean `const` to provider adapters, and the Gemini query-string API key is intentionally hidden from tool arguments.
+The total registered count is the number returned by `tools/list`. All profiles include `compare_models` and `get_api_overview`, producing totals of 6, 32, and 89 tools. Realtime and streaming-only operations are excluded because stdio MCP tool calls return one final result. API operations that accept `stream` fix it internally to `false` without exposing a boolean `const` to provider adapters, and the Gemini query-string API key is intentionally hidden from tool arguments.
 
 The portable projection keeps every top-level argument but bounds deeply nested model-facing shapes. The server still validates calls against the complete generated OpenAPI schema before issuing an API request. Compatibility budgets keep `core` at no more than 60 KB and depth 8, and `full` at no more than 100 KB and depth 8 for the complete `tools/list` response. Tests also run the full profile through the Google AI SDK version used by the observed OpenCode/Gemini failure.
 
@@ -134,7 +134,7 @@ This repository includes `server.json` for the official MCP Registry.
 
 Release metadata:
 
-- npm package: `@tokenlabai/mcp-server@0.6.23`
+- npm package: `@tokenlabai/mcp-server@0.6.24`
 - MCP registry name: `io.github.hedging8563/tokenlab`
 - `package.json.mcpName`: `io.github.hedging8563/tokenlab`
 
@@ -157,3 +157,11 @@ Use the `catalog` profile when no credentialed tools are needed. Keep `TOKENLAB_
 - OpenAPI: https://docs.tokenlab.sh/openapi.json
 - Model catalog: https://api.tokenlab.sh/v1/models
 - Skills: https://github.com/hedging8563/tokenlab-skills
+
+## Webhook management
+
+Use the `full` profile to configure workspace webhooks with `list_webhooks`, `create_webhook`, `get_webhook`, `update_webhook`, `delete_webhook`, `rotate_webhook_secret`, `test_webhook` and `list_webhook_deliveries`.
+
+Set `TOKENLAB_MANAGEMENT_TOKEN=mt-...` separately from `TOKENLAB_API_KEY=sk-...`. Create the management token at [Dashboard → API → Management Tokens](https://tokenlab.sh/dashboard/api?tab=tokens). It authorizes management operations only within its workspace and is not limited to webhooks. The inference key cannot substitute for it; the `whsec_...` returned by creation/rotation is for receiver signature verification only. Keep all credentials out of tool arguments and prompts.
+
+Webhook notifications avoid continuous task polling. On a polling fallback, stop on terminal status, 401/403/404 or `retryable: false`; back off on transient failures. See the [complete webhook guide](https://docs.tokenlab.sh/guides/webhooks) for payloads, signing, deduplication and delivery history.

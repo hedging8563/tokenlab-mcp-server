@@ -71,6 +71,10 @@
     },
     {
       "name": "Decisions"
+    },
+    {
+      "name": "Webhooks",
+      "description": "Workspace webhook management with Management Tokens (mt-...). Inference API keys do not grant management access."
     }
   ],
   "security": [
@@ -7641,6 +7645,620 @@
           }
         }
       }
+    },
+    "/v1/management/webhooks": {
+      "get": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "List webhook endpoints",
+        "description": "Requires a workspace Management Token (mt-...), created at Dashboard > API > Management Tokens. Send Authorization: Bearer mt-.... Inference API keys (sk-...) and webhook signing secrets (whsec_...) are not accepted. Only the token workspace is accessible.",
+        "operationId": "listWebhooks",
+        "security": [
+          {
+            "ManagementTokenAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List webhook endpoints result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookEndpointList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "description": "Webhook not found in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Endpoint quota reached or endpoint paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "x-mint": {
+          "metadata": {
+            "playground": "simple"
+          }
+        },
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Create webhook endpoint",
+        "description": "Requires a workspace Management Token (mt-...), created at Dashboard > API > Management Tokens. Send Authorization: Bearer mt-.... Inference API keys (sk-...) and webhook signing secrets (whsec_...) are not accepted. Only the token workspace is accessible. The full whsec_ signing secret is returned only on creation or rotation. Store it securely; GET/list never return it. Rotation takes effect immediately for new deliveries; already in-flight deliveries can still use the previous secret. Up to 10 endpoints per workspace. Subscriptions cover future terminal async task events; existing tasks are not replayed.",
+        "operationId": "createWebhook",
+        "security": [
+          {
+            "ManagementTokenAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Create webhook endpoint result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedWebhookEndpoint"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "description": "Webhook not found in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Endpoint quota reached or endpoint paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "x-mint": {
+          "metadata": {
+            "playground": "simple"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWebhookEndpointRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/management/webhooks/{webhookId}": {
+      "get": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Retrieve webhook endpoint",
+        "description": "Requires a workspace Management Token (mt-...), created at Dashboard > API > Management Tokens. Send Authorization: Bearer mt-.... Inference API keys (sk-...) and webhook signing secrets (whsec_...) are not accepted. Only the token workspace is accessible.",
+        "operationId": "getWebhook",
+        "security": [
+          {
+            "ManagementTokenAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Retrieve webhook endpoint result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookEndpoint"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "description": "Webhook not found in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Endpoint quota reached or endpoint paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "x-mint": {
+          "metadata": {
+            "playground": "simple"
+          }
+        },
+        "parameters": [
+          {
+            "name": "webhookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Update webhook endpoint",
+        "description": "Requires a workspace Management Token (mt-...), created at Dashboard > API > Management Tokens. Send Authorization: Bearer mt-.... Inference API keys (sk-...) and webhook signing secrets (whsec_...) are not accepted. Only the token workspace is accessible.",
+        "operationId": "updateWebhook",
+        "security": [
+          {
+            "ManagementTokenAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Update webhook endpoint result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookEndpoint"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "description": "Webhook not found in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Endpoint quota reached or endpoint paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "x-mint": {
+          "metadata": {
+            "playground": "simple"
+          }
+        },
+        "parameters": [
+          {
+            "name": "webhookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWebhookEndpointRequest"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Delete webhook endpoint",
+        "description": "Requires a workspace Management Token (mt-...), created at Dashboard > API > Management Tokens. Send Authorization: Bearer mt-.... Inference API keys (sk-...) and webhook signing secrets (whsec_...) are not accepted. Only the token workspace is accessible.",
+        "operationId": "deleteWebhook",
+        "security": [
+          {
+            "ManagementTokenAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Delete webhook endpoint result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletedWebhookEndpoint"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "description": "Webhook not found in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Endpoint quota reached or endpoint paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "x-mint": {
+          "metadata": {
+            "playground": "simple"
+          }
+        },
+        "parameters": [
+          {
+            "name": "webhookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ]
+      }
+    },
+    "/v1/management/webhooks/{webhookId}/rotate-secret": {
+      "post": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Rotate webhook signing secret",
+        "description": "Requires a workspace Management Token (mt-...), created at Dashboard > API > Management Tokens. Send Authorization: Bearer mt-.... Inference API keys (sk-...) and webhook signing secrets (whsec_...) are not accepted. Only the token workspace is accessible. The full whsec_ signing secret is returned only on creation or rotation. Store it securely; GET/list never return it. Rotation takes effect immediately for new deliveries; already in-flight deliveries can still use the previous secret.",
+        "operationId": "rotateWebhookSecret",
+        "security": [
+          {
+            "ManagementTokenAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rotate webhook signing secret result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedWebhookEndpoint"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "description": "Webhook not found in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Endpoint quota reached or endpoint paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "x-mint": {
+          "metadata": {
+            "playground": "simple"
+          }
+        },
+        "parameters": [
+          {
+            "name": "webhookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ]
+      }
+    },
+    "/v1/management/webhooks/{webhookId}/test": {
+      "post": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Send a test webhook",
+        "description": "Requires a workspace Management Token (mt-...), created at Dashboard > API > Management Tokens. Send Authorization: Bearer mt-.... Inference API keys (sk-...) and webhook signing secrets (whsec_...) are not accepted. Only the token workspace is accessible. Sends webhook.test through the same signed delivery path. HTTP 200 reports a persisted attempt; inspect outcome and http_status to determine receiver success. Resume a paused endpoint before testing.",
+        "operationId": "testWebhook",
+        "security": [
+          {
+            "ManagementTokenAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Send a test webhook result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookDelivery"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "description": "Webhook not found in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Endpoint quota reached or endpoint paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "x-mint": {
+          "metadata": {
+            "playground": "simple"
+          }
+        },
+        "parameters": [
+          {
+            "name": "webhookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          }
+        ]
+      }
+    },
+    "/v1/management/webhooks/{webhookId}/deliveries": {
+      "get": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "List webhook deliveries",
+        "description": "Requires a workspace Management Token (mt-...), created at Dashboard > API > Management Tokens. Send Authorization: Bearer mt-.... Inference API keys (sk-...) and webhook signing secrets (whsec_...) are not accepted. Only the token workspace is accessible. Returns cumulative attempts and latest outcome per event and endpoint. A previously confirmed delivery remains delivered even if a duplicate fails. History contains no payloads or signing secrets; no manual replay operation is provided.",
+        "operationId": "listWebhookDeliveries",
+        "security": [
+          {
+            "ManagementTokenAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List webhook deliveries result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookDeliveryList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "description": "Webhook not found in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Endpoint quota reached or endpoint paused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "x-mint": {
+          "metadata": {
+            "playground": "simple"
+          }
+        },
+        "parameters": [
+          {
+            "name": "webhookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -14859,6 +15477,508 @@
           }
         },
         "additionalProperties": false
+      },
+      "WebhookEndpoint": {
+        "type": "object",
+        "required": [
+          "id",
+          "object",
+          "url",
+          "events",
+          "is_active",
+          "description",
+          "created_at",
+          "updated_at",
+          "last_delivered_at",
+          "failure_count"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "object": {
+            "type": "string",
+            "enum": [
+              "webhook_endpoint"
+            ]
+          },
+          "url": {
+            "type": "string"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "task.completed",
+                "task.failed",
+                "task.timeout"
+              ]
+            }
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "last_delivered_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "failure_count": {
+            "type": "integer"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreatedWebhookEndpoint": {
+        "type": "object",
+        "required": [
+          "id",
+          "object",
+          "url",
+          "events",
+          "is_active",
+          "description",
+          "created_at",
+          "updated_at",
+          "last_delivered_at",
+          "failure_count",
+          "secret"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "object": {
+            "type": "string",
+            "enum": [
+              "webhook_endpoint"
+            ]
+          },
+          "url": {
+            "type": "string"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "task.completed",
+                "task.failed",
+                "task.timeout"
+              ]
+            }
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "last_delivered_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "failure_count": {
+            "type": "integer"
+          },
+          "secret": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WebhookDelivery": {
+        "type": "object",
+        "required": [
+          "id",
+          "webhook_id",
+          "delivery_id",
+          "event_type",
+          "outcome",
+          "http_status",
+          "attempts",
+          "delivered_at",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "webhook_id": {
+            "type": "string"
+          },
+          "delivery_id": {
+            "type": "string"
+          },
+          "event_type": {
+            "type": "string"
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "delivered",
+              "failed"
+            ]
+          },
+          "http_status": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "attempts": {
+            "type": "integer"
+          },
+          "delivered_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WebhookEndpointList": {
+        "type": "object",
+        "required": [
+          "object",
+          "data",
+          "pagination"
+        ],
+        "properties": {
+          "object": {
+            "type": "string",
+            "enum": [
+              "list"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "object",
+                "url",
+                "events",
+                "is_active",
+                "description",
+                "created_at",
+                "updated_at",
+                "last_delivered_at",
+                "failure_count"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "object": {
+                  "type": "string",
+                  "enum": [
+                    "webhook_endpoint"
+                  ]
+                },
+                "url": {
+                  "type": "string"
+                },
+                "events": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "task.completed",
+                      "task.failed",
+                      "task.timeout"
+                    ]
+                  }
+                },
+                "is_active": {
+                  "type": "boolean"
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "updated_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "last_delivered_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date-time"
+                },
+                "failure_count": {
+                  "type": "integer"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "pagination": {
+            "type": "object",
+            "required": [
+              "page",
+              "limit",
+              "total",
+              "total_pages"
+            ],
+            "properties": {
+              "page": {
+                "type": "integer"
+              },
+              "limit": {
+                "type": "integer"
+              },
+              "total": {
+                "type": "integer"
+              },
+              "total_pages": {
+                "type": "integer"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "WebhookDeliveryList": {
+        "type": "object",
+        "required": [
+          "object",
+          "data",
+          "pagination"
+        ],
+        "properties": {
+          "object": {
+            "type": "string",
+            "enum": [
+              "list"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "webhook_id",
+                "delivery_id",
+                "event_type",
+                "outcome",
+                "http_status",
+                "attempts",
+                "delivered_at",
+                "created_at"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "webhook_id": {
+                  "type": "string"
+                },
+                "delivery_id": {
+                  "type": "string"
+                },
+                "event_type": {
+                  "type": "string"
+                },
+                "outcome": {
+                  "type": "string",
+                  "enum": [
+                    "delivered",
+                    "failed"
+                  ]
+                },
+                "http_status": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "attempts": {
+                  "type": "integer"
+                },
+                "delivered_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date-time"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "pagination": {
+            "type": "object",
+            "required": [
+              "page",
+              "limit",
+              "total",
+              "total_pages"
+            ],
+            "properties": {
+              "page": {
+                "type": "integer"
+              },
+              "limit": {
+                "type": "integer"
+              },
+              "total": {
+                "type": "integer"
+              },
+              "total_pages": {
+                "type": "integer"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "DeletedWebhookEndpoint": {
+        "type": "object",
+        "required": [
+          "id",
+          "object",
+          "deleted"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "object": {
+            "type": "string",
+            "enum": [
+              "webhook_endpoint"
+            ]
+          },
+          "deleted": {
+            "type": "boolean",
+            "const": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateWebhookEndpointRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "url",
+          "events"
+        ],
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Public HTTPS receiver URL. Credentials, query strings, fragments, private or reserved network targets and redirects are rejected."
+          },
+          "events": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 10,
+            "items": {
+              "type": "string",
+              "enum": [
+                "task.completed",
+                "task.failed",
+                "task.timeout"
+              ]
+            },
+            "description": "Supported event subscriptions; duplicates are removed."
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 200
+          }
+        }
+      },
+      "UpdateWebhookEndpointRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "minProperties": 1,
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Public HTTPS receiver URL. Credentials, query strings, fragments, private or reserved network targets and redirects are rejected."
+          },
+          "events": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 10,
+            "items": {
+              "type": "string",
+              "enum": [
+                "task.completed",
+                "task.failed",
+                "task.timeout"
+              ]
+            },
+            "description": "Supported event subscriptions; duplicates are removed."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Resume or pause delivery. Resuming resets the consecutive failure count."
+          }
+        }
       }
     },
     "responses": {

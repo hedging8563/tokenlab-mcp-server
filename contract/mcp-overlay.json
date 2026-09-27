@@ -60,10 +60,10 @@
     "full": {
       "schema_mode": "portable",
       "compatibility_budget": {
-        "max_endpoint_tools": 79,
-        "max_input_schema_bytes": 72000,
+        "max_endpoint_tools": 87,
+        "max_input_schema_bytes": 78000,
         "max_input_schema_depth": 8,
-        "max_tools_list_bytes": 100000
+        "max_tools_list_bytes": 115000
       },
       "include_tags": [
         "Chat",
@@ -81,7 +81,8 @@
         "Text",
         "Decisions",
         "Worlds",
-        "Seedance Volc Compatible"
+        "Seedance Volc Compatible",
+        "Webhooks"
       ],
       "exclude_operations": [
         "geminiStreamGenerateContent",
@@ -136,7 +137,11 @@
     "composite_tools": [
       {
         "name": "compare_models",
-        "profiles": ["catalog", "core", "full"],
+        "profiles": [
+          "catalog",
+          "core",
+          "full"
+        ],
         "auth": "optional",
         "annotations": {
           "readOnlyHint": true,
@@ -147,7 +152,11 @@
       },
       {
         "name": "get_api_overview",
-        "profiles": ["catalog", "core", "full"],
+        "profiles": [
+          "catalog",
+          "core",
+          "full"
+        ],
         "auth": "optional",
         "annotations": {
           "readOnlyHint": true,
@@ -162,27 +171,68 @@
         "id": "discover",
         "authentication": "none",
         "tool_rows": [
-          ["list_models", "get_model", "get_pricing"],
-          ["get_model_pricing", "compare_models", "get_api_overview"]
+          [
+            "list_models",
+            "get_model",
+            "get_pricing"
+          ],
+          [
+            "get_model_pricing",
+            "compare_models",
+            "get_api_overview"
+          ]
         ]
       },
       {
         "id": "create",
         "authentication": "api_key",
         "tool_rows": [
-          ["create_chat_completion", "create_response", "create_anthropic_message", "create_gemini_content"],
-          ["create_image", "create_image_file", "edit_image", "edit_image_file"],
-          ["create_video", "create_music", "create_3d_model", "create_speech", "transcribe_audio", "translate_audio"]
+          [
+            "create_chat_completion",
+            "create_response",
+            "create_anthropic_message",
+            "create_gemini_content"
+          ],
+          [
+            "create_image",
+            "create_image_file",
+            "edit_image",
+            "edit_image_file"
+          ],
+          [
+            "create_video",
+            "create_music",
+            "create_3d_model",
+            "create_speech",
+            "transcribe_audio",
+            "translate_audio"
+          ]
         ]
       },
       {
         "id": "operate",
         "authentication": "api_key",
         "tool_rows": [
-          ["upload_file", "list_files", "retrieve_file"],
-          ["retrieve_file_content", "delete_file", "get_task_status", "cancel_task"],
-          ["create_embedding", "create_multimodal_embedding", "rerank_documents", "translate_text"],
-          ["evaluate_decisions"]
+          [
+            "upload_file",
+            "list_files",
+            "retrieve_file"
+          ],
+          [
+            "retrieve_file_content",
+            "delete_file",
+            "get_task_status",
+            "cancel_task"
+          ],
+          [
+            "create_embedding",
+            "create_multimodal_embedding",
+            "rerank_documents",
+            "translate_text"
+          ],
+          [
+            "evaluate_decisions"
+          ]
         ]
       }
     ],
@@ -266,7 +316,9 @@
     },
     "geminiGenerateContent": {
       "tool_name": "create_gemini_content",
-      "omit_arguments": ["key"]
+      "omit_arguments": [
+        "key"
+      ]
     },
     "createChatCompletion": {
       "description": "Create an OpenAI-compatible chat completion. For inline image_url data URLs, declare the byte-accurate image MIME type. The MCP boundary corrects recognized PNG, JPEG, WebP, and GIF payloads declared as application/octet-stream and rejects unrecognized generic binary image payloads before sending a billable request.",
@@ -288,20 +340,40 @@
       "tool_name": "get_task_status",
       "task": {
         "mode": "status",
-        "id_fields": ["task_id", "id"],
+        "id_fields": [
+          "task_id",
+          "id"
+        ],
         "status_field": "status",
         "poll_url_field": "poll_url",
-        "terminal_statuses": ["completed", "succeeded", "failed", "cancelled", "canceled", "expired"]
+        "terminal_statuses": [
+          "completed",
+          "succeeded",
+          "failed",
+          "cancelled",
+          "canceled",
+          "expired"
+        ]
       }
     },
     "cancelAsyncTask": {
       "tool_name": "cancel_task",
       "task": {
         "mode": "status",
-        "id_fields": ["task_id", "id"],
+        "id_fields": [
+          "task_id",
+          "id"
+        ],
         "status_field": "status",
         "poll_url_field": "poll_url",
-        "terminal_statuses": ["completed", "succeeded", "failed", "cancelled", "canceled", "expired"]
+        "terminal_statuses": [
+          "completed",
+          "succeeded",
+          "failed",
+          "cancelled",
+          "canceled",
+          "expired"
+        ]
       }
     },
     "createSystemOneDecision": {
@@ -328,10 +400,20 @@
       },
       "task": {
         "mode": "hybrid",
-        "id_fields": ["task_id", "id"],
+        "id_fields": [
+          "task_id",
+          "id"
+        ],
         "status_field": "status",
         "poll_url_field": "poll_url",
-        "terminal_statuses": ["completed", "succeeded", "failed", "cancelled", "canceled", "expired"]
+        "terminal_statuses": [
+          "completed",
+          "succeeded",
+          "failed",
+          "cancelled",
+          "canceled",
+          "expired"
+        ]
       }
     },
     "editImage": {
@@ -345,57 +427,147 @@
       },
       "task": {
         "mode": "hybrid",
-        "id_fields": ["task_id", "id"],
+        "id_fields": [
+          "task_id",
+          "id"
+        ],
         "status_field": "status",
         "poll_url_field": "poll_url",
-        "terminal_statuses": ["completed", "succeeded", "failed", "cancelled", "canceled", "expired"]
+        "terminal_statuses": [
+          "completed",
+          "succeeded",
+          "failed",
+          "cancelled",
+          "canceled",
+          "expired"
+        ]
       }
     },
     "createVideo": {
       "task": {
         "mode": "async",
-        "id_fields": ["task_id", "id"],
+        "id_fields": [
+          "task_id",
+          "id"
+        ],
         "status_field": "status",
         "poll_url_field": "poll_url",
-        "terminal_statuses": ["completed", "succeeded", "failed", "cancelled", "canceled", "expired"]
+        "terminal_statuses": [
+          "completed",
+          "succeeded",
+          "failed",
+          "cancelled",
+          "canceled",
+          "expired"
+        ]
       }
     },
     "createMusic": {
       "task": {
         "mode": "async",
-        "id_fields": ["task_id", "id"],
+        "id_fields": [
+          "task_id",
+          "id"
+        ],
         "status_field": "status",
         "poll_url_field": "poll_url",
-        "terminal_statuses": ["completed", "succeeded", "failed", "cancelled", "canceled", "expired"]
+        "terminal_statuses": [
+          "completed",
+          "succeeded",
+          "failed",
+          "cancelled",
+          "canceled",
+          "expired"
+        ]
       }
     },
     "create3D": {
       "tool_name": "create_3d_model",
       "task": {
         "mode": "async",
-        "id_fields": ["task_id", "id"],
+        "id_fields": [
+          "task_id",
+          "id"
+        ],
         "status_field": "status",
         "poll_url_field": "poll_url",
-        "terminal_statuses": ["completed", "succeeded", "failed", "cancelled", "canceled", "expired"]
+        "terminal_statuses": [
+          "completed",
+          "succeeded",
+          "failed",
+          "cancelled",
+          "canceled",
+          "expired"
+        ]
       }
     },
     "createWorld": {
       "task": {
         "mode": "async",
-        "id_fields": ["task_id", "id"],
+        "id_fields": [
+          "task_id",
+          "id"
+        ],
         "status_field": "status",
         "poll_url_field": "poll_url",
-        "terminal_statuses": ["completed", "succeeded", "failed", "cancelled", "canceled", "expired"]
+        "terminal_statuses": [
+          "completed",
+          "succeeded",
+          "failed",
+          "cancelled",
+          "canceled",
+          "expired"
+        ]
       }
     },
     "getWorldStatus": {
       "task": {
         "mode": "status",
-        "id_fields": ["task_id", "id"],
+        "id_fields": [
+          "task_id",
+          "id"
+        ],
         "status_field": "status",
         "poll_url_field": "poll_url",
-        "terminal_statuses": ["completed", "succeeded", "failed", "cancelled", "canceled", "expired"]
+        "terminal_statuses": [
+          "completed",
+          "succeeded",
+          "failed",
+          "cancelled",
+          "canceled",
+          "expired"
+        ]
       }
+    },
+    "rotateWebhookSecret": {
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      },
+      "description": "Replace the signing secret and return the new secret once. In-flight deliveries may use the previous secret. Requires TOKENLAB_MANAGEMENT_TOKEN (mt-...) for the workspace; sk-... keys are not accepted."
+    },
+    "listWebhooks": {
+      "description": "List workspace webhooks. Requires TOKENLAB_MANAGEMENT_TOKEN (mt-...) for the workspace; sk-... keys are not accepted."
+    },
+    "createWebhook": {
+      "description": "Create a workspace webhook; save the returned signing secret. Requires TOKENLAB_MANAGEMENT_TOKEN (mt-...) for the workspace; sk-... keys are not accepted."
+    },
+    "getWebhook": {
+      "description": "Read a webhook without revealing its secret. Requires TOKENLAB_MANAGEMENT_TOKEN (mt-...) for the workspace; sk-... keys are not accepted."
+    },
+    "updateWebhook": {
+      "description": "Update URL, events, description or active state. Resuming resets failures. Requires TOKENLAB_MANAGEMENT_TOKEN (mt-...) for the workspace; sk-... keys are not accepted."
+    },
+    "deleteWebhook": {
+      "description": "Delete a webhook and its delivery history. Requires TOKENLAB_MANAGEMENT_TOKEN (mt-...) for the workspace; sk-... keys are not accepted."
+    },
+    "testWebhook": {
+      "description": "Send webhook.test; inspect outcome to confirm receipt. Requires TOKENLAB_MANAGEMENT_TOKEN (mt-...) for the workspace; sk-... keys are not accepted."
+    },
+    "listWebhookDeliveries": {
+      "description": "List delivery outcomes, HTTP statuses and cumulative attempts. Requires TOKENLAB_MANAGEMENT_TOKEN (mt-...) for the workspace; sk-... keys are not accepted."
     }
   }
 }

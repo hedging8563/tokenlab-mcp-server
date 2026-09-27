@@ -362,7 +362,8 @@ for (const [operationId, indexed] of operations) {
         method: indexed.method,
         path: indexed.path,
         content_type: contentType,
-        auth: publicAuth.has(operationId) ? "optional" : "required",
+        auth: (indexed.operation.security || spec.security || []).some((requirement) => Object.hasOwn(requirement, "ManagementTokenAuth"))
+          ? "management" : publicAuth.has(operationId) ? "optional" : "required",
         tags,
         profiles,
         description,
@@ -516,6 +517,7 @@ const publicContract = {
     command: "npx",
     args: ["-y", packageJson.name],
     api_key_environment_variable: "TOKENLAB_API_KEY",
+    management_token_environment_variable: "TOKENLAB_MANAGEMENT_TOKEN",
     tool_profile_environment_variable: "TOKENLAB_MCP_TOOL_PROFILE",
     tool_schema_mode_environment_variable: "TOKENLAB_MCP_SCHEMA_MODE"
   },

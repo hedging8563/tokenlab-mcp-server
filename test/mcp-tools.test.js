@@ -284,9 +284,9 @@ test("strict schema mode remains provider-valid and decodes canonical arguments"
   const listed = await client.listTools();
   const { tools } = listed;
 
-  assert.equal(tools.length, 81);
+  assert.equal(tools.length, 89);
   assert.ok(
-    Buffer.byteLength(JSON.stringify(listed)) <= 100_000,
+    Buffer.byteLength(JSON.stringify(listed)) <= manifest.profile_config.full.compatibility_budget.max_tools_list_bytes,
     "full strict tools/list must remain inside its compatibility byte budget"
   );
   for (const tool of tools) {
@@ -379,7 +379,7 @@ test("survives the OpenCode Google AI SDK tool conversion used by Gemini", async
   });
 
   const declarations = requestBody.tools[0].functionDeclarations;
-  assert.equal(declarations.length, 81);
+  assert.equal(declarations.length, 89);
   assert.ok(
     Buffer.byteLength(JSON.stringify(requestBody.tools)) <= 85_000,
     "Gemini function declarations must remain inside the tested portable payload budget"
@@ -1016,4 +1016,36 @@ test("discovers decision models through the declared catalog category", async (t
   assert.notEqual(result.isError, true);
   assert.equal(api.requests.length, 1);
   assert.equal(api.requests[0].url, "/v1/models?category=decision&view=compact");
+});
+
+test('webhook tools use a separate workspace management token', async t => {
+  const api = await startMockApi(t);
+  const client = await startMcpClient(t, { TOKENLAB_API_BASE: api.baseUrl, TOKENLAB_API_KEY: 'sk-inference', TOKENLAB_MANAGEMENT_TOKEN: 'mt-management', TOKENLAB_MCP_TOOL_PROFILE: 'full' });
+  const tools = (await client.listTools()).tools;
+  for (const name of ['list_webhooks','create_webhook','get_webhook','update_webhook','delete_webhook','rotate_webhook_secret','test_webhook','list_webhook_deliveries']) {
+    assert.ok(tools.some(tool => tool.name === name), name);
+  }
+  assert.equal(tools.find(tool => tool.name === 'rotate_webhook_secret').annotations.destructiveHint, true);
+  parseTextResult(await client.callTool({ name: 'list_webhooks', arguments: {} }));
+  assert.equal(api.requests.at(-1).authorization, 'Bearer mt-management');
+  assert.equal(api.requests.at(-1).url, '/v1/management/webhooks');
+  parseTextResult(await client.callTool({ name: 'get_task_status', arguments: { id: 'ldtask_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' } }));
+  assert.equal(api.requests.at(-1).authorization, 'Bearer sk-inference');
+});
+
+test('inference credentials never substitute for a missing management token', async t => {
+  const api = await startMockApi(t);
+  const client = await startMcpClient(t, { TOKENLAB_API_BASE: api.baseUrl, TOKENLAB_API_KEY: 'sk-inference', TOKENLAB_MANAGEMENT_TOKEN: '', TOKENLAB_MCP_TOOL_PROFILE: 'full' });
+  const result = await client.callTool({ name: 'list_webhooks', arguments: {} });
+  assert.equal(result.isError, true);
+  assert.match(result.content[0].text, /TOKENLAB_MANAGEMENT_TOKEN/);
+  assert.equal(api.requests.length, 0);
+});
+
+test('webhook management works without an inference key', async t => {
+  const api = await startMockApi(t);
+  const client = await startMcpClient(t, { TOKENLAB_API_BASE: api.baseUrl, TOKENLAB_API_KEY: '', TOKENLAB_MANAGEMENT_TOKEN: 'mt-management', TOKENLAB_MCP_TOOL_PROFILE: 'full' });
+  parseTextResult(await client.callTool({ name: 'create_webhook', arguments: { url: 'https://app.example/webhooks', events: ['task.completed'] } }));
+  assert.equal(api.requests[0].authorization, 'Bearer mt-management');
+  assert.equal(api.requests[0].body.url, 'https://app.example/webhooks');
 });

@@ -5,7 +5,7 @@
     "id": "tokenlab-mcp-server",
     "name": "@tokenlabai/mcp-server",
     "title": "TokenLab MCP Server",
-    "version": "0.6.23",
+    "version": "0.6.24",
     "registry_name": "io.github.hedging8563/tokenlab",
     "source_url": "https://github.com/hedging8563/tokenlab-mcp-server",
     "landing_url": "https://tokenlab.sh/mcp",
@@ -18,6 +18,7 @@
       "@tokenlabai/mcp-server"
     ],
     "api_key_environment_variable": "TOKENLAB_API_KEY",
+    "management_token_environment_variable": "TOKENLAB_MANAGEMENT_TOKEN",
     "tool_profile_environment_variable": "TOKENLAB_MCP_TOOL_PROFILE",
     "tool_schema_mode_environment_variable": "TOKENLAB_MCP_SCHEMA_MODE"
   },
@@ -26,8 +27,8 @@
     "openapi": "3.1.0",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "9a7ddbe7794fc5fd5dbcd8bada586b23d0162a5c71c1b61e24f480625431ea51",
-    "tool_manifest_sha256": "8cd927c48966d041ae2143127397c640f3710c45147a1e75e4aa54be3a6e1238"
+    "sha256": "d97424b25ac07384916c65e9ac3369e595f53fe9d7dea1eaa3a6cf6be4305a6d",
+    "tool_manifest_sha256": "b19575a929c6cf3e8c1a2869ce968a62d99327a279ad63bb761410957c816308"
   },
   "profiles": {
     "catalog": {
@@ -93,10 +94,10 @@
     "full": {
       "is_default": false,
       "schema_mode": "portable",
-      "endpoint_tools": 79,
+      "endpoint_tools": 87,
       "composite_tools": 2,
-      "total_tools": 81,
-      "input_schema_bytes": 70001,
+      "total_tools": 89,
+      "input_schema_bytes": 72210,
       "max_input_schema_depth": 8,
       "tool_names": [
         "cancel_anthropic_message_batch",
@@ -124,6 +125,7 @@
         "create_video",
         "create_visual_validate_session",
         "create_volc_compatible_seedance_task",
+        "create_webhook",
         "create_world",
         "delete_anthropic_message_batch",
         "delete_file",
@@ -131,6 +133,7 @@
         "delete_seedance_material_asset",
         "delete_seedance_material_asset_group",
         "delete_volc_compatible_seedance_task",
+        "delete_webhook",
         "delete_world",
         "dispatch_volc_compatible_seedance_action_get",
         "dispatch_volc_compatible_seedance_action_post",
@@ -154,6 +157,7 @@
         "get_video_task",
         "get_visual_validate_result",
         "get_volc_compatible_seedance_task",
+        "get_webhook",
         "get_world",
         "get_world_media_asset",
         "get_world_status",
@@ -165,6 +169,8 @@
         "list_seedance_material_asset_groups",
         "list_seedance_material_assets",
         "list_volc_compatible_seedance_tasks",
+        "list_webhook_deliveries",
+        "list_webhooks",
         "list_worlds",
         "prepare_world_media_asset_upload",
         "rerank_documents",
@@ -174,11 +180,14 @@
         "retrieve_file",
         "retrieve_file_content",
         "retrieve_response",
+        "rotate_webhook_secret",
+        "test_webhook",
         "transcribe_audio",
         "translate_audio",
         "translate_text",
         "update_seedance_material_asset",
         "update_seedance_material_asset_group",
+        "update_webhook",
         "upload_file"
       ]
     }

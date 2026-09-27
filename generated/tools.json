@@ -6,7 +6,7 @@
     "openapi": "3.1.0",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "9a7ddbe7794fc5fd5dbcd8bada586b23d0162a5c71c1b61e24f480625431ea51"
+    "sha256": "d97424b25ac07384916c65e9ac3369e595f53fe9d7dea1eaa3a6cf6be4305a6d"
   },
   "default_profile": "core",
   "profiles": [
@@ -36,10 +36,10 @@
     "full": {
       "schema_mode": "portable",
       "compatibility_budget": {
-        "max_endpoint_tools": 79,
-        "max_input_schema_bytes": 72000,
+        "max_endpoint_tools": 87,
+        "max_input_schema_bytes": 78000,
         "max_input_schema_depth": 8,
-        "max_tools_list_bytes": 100000
+        "max_tools_list_bytes": 115000
       }
     }
   },
@@ -55,12 +55,12 @@
       "max_input_schema_depth": 8
     },
     "full": {
-      "endpoint_tools": 79,
-      "input_schema_bytes": 70001,
+      "endpoint_tools": 87,
+      "input_schema_bytes": 72210,
       "max_input_schema_depth": 8
     }
   },
-  "tool_count": 79,
+  "tool_count": 87,
   "tools": [
     {
       "name": "cancel_anthropic_message_batch",
@@ -4372,6 +4372,73 @@
       }
     },
     {
+      "name": "create_webhook",
+      "title": "Create webhook endpoint",
+      "operation_id": "createWebhook",
+      "method": "POST",
+      "path": "/v1/management/webhooks",
+      "content_type": "application/json",
+      "auth": "management",
+      "tags": [
+        "Webhooks"
+      ],
+      "profiles": [
+        "full"
+      ],
+      "description": "Create a workspace webhook; save the returned signing secret. Requires TOKENLAB_MANAGEMENT_TOKEN (mt-...) for the workspace; sk-... keys are not accepted.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Public HTTPS receiver URL. Credentials, query strings, fragments, private or reserved network targets and redirects are rejected."
+          },
+          "events": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 10,
+            "items": {
+              "type": "string",
+              "enum": [
+                "task.completed",
+                "task.failed",
+                "task.timeout"
+              ]
+            },
+            "description": "Supported event subscriptions; duplicates are removed."
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "url",
+          "events"
+        ],
+        "additionalProperties": false
+      },
+      "bindings": {
+        "path": [],
+        "query": [],
+        "header": [],
+        "body": [
+          "url",
+          "events",
+          "description"
+        ],
+        "files": []
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
       "name": "create_world",
       "title": "Create world generation task",
       "operation_id": "createWorld",
@@ -4835,6 +4902,52 @@
       "bindings": {
         "path": [
           "id"
+        ],
+        "query": [],
+        "header": [],
+        "body": [],
+        "files": []
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "delete_webhook",
+      "title": "Delete webhook endpoint",
+      "operation_id": "deleteWebhook",
+      "method": "DELETE",
+      "path": "/v1/management/webhooks/{webhookId}",
+      "content_type": null,
+      "auth": "management",
+      "tags": [
+        "Webhooks"
+      ],
+      "profiles": [
+        "full"
+      ],
+      "description": "Delete a webhook and its delivery history. Requires TOKENLAB_MANAGEMENT_TOKEN (mt-...) for the workspace; sk-... keys are not accepted.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "webhookId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "webhookId"
+        ],
+        "additionalProperties": false
+      },
+      "bindings": {
+        "path": [
+          "webhookId"
         ],
         "query": [],
         "header": [],
@@ -6744,6 +6857,52 @@
       }
     },
     {
+      "name": "get_webhook",
+      "title": "Retrieve webhook endpoint",
+      "operation_id": "getWebhook",
+      "method": "GET",
+      "path": "/v1/management/webhooks/{webhookId}",
+      "content_type": null,
+      "auth": "management",
+      "tags": [
+        "Webhooks"
+      ],
+      "profiles": [
+        "full"
+      ],
+      "description": "Read a webhook without revealing its secret. Requires TOKENLAB_MANAGEMENT_TOKEN (mt-...) for the workspace; sk-... keys are not accepted.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "webhookId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "webhookId"
+        ],
+        "additionalProperties": false
+      },
+      "bindings": {
+        "path": [
+          "webhookId"
+        ],
+        "query": [],
+        "header": [],
+        "body": [],
+        "files": []
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
       "name": "get_world",
       "title": "Get World Labs world",
       "operation_id": "getWorld",
@@ -7460,6 +7619,116 @@
       }
     },
     {
+      "name": "list_webhook_deliveries",
+      "title": "List webhook deliveries",
+      "operation_id": "listWebhookDeliveries",
+      "method": "GET",
+      "path": "/v1/management/webhooks/{webhookId}/deliveries",
+      "content_type": null,
+      "auth": "management",
+      "tags": [
+        "Webhooks"
+      ],
+      "profiles": [
+        "full"
+      ],
+      "description": "List delivery outcomes, HTTP statuses and cumulative attempts. Requires TOKENLAB_MANAGEMENT_TOKEN (mt-...) for the workspace; sk-... keys are not accepted.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "webhookId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 50
+          }
+        },
+        "required": [
+          "webhookId"
+        ],
+        "additionalProperties": false
+      },
+      "bindings": {
+        "path": [
+          "webhookId"
+        ],
+        "query": [
+          "page",
+          "limit"
+        ],
+        "header": [],
+        "body": [],
+        "files": []
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "list_webhooks",
+      "title": "List webhook endpoints",
+      "operation_id": "listWebhooks",
+      "method": "GET",
+      "path": "/v1/management/webhooks",
+      "content_type": null,
+      "auth": "management",
+      "tags": [
+        "Webhooks"
+      ],
+      "profiles": [
+        "full"
+      ],
+      "description": "List workspace webhooks. Requires TOKENLAB_MANAGEMENT_TOKEN (mt-...) for the workspace; sk-... keys are not accepted.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 50
+          }
+        },
+        "additionalProperties": false
+      },
+      "bindings": {
+        "path": [],
+        "query": [
+          "page",
+          "limit"
+        ],
+        "header": [],
+        "body": [],
+        "files": []
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
       "name": "list_worlds",
       "title": "List World Labs worlds",
       "operation_id": "listWorlds",
@@ -8041,6 +8310,98 @@
       }
     },
     {
+      "name": "rotate_webhook_secret",
+      "title": "Rotate webhook signing secret",
+      "operation_id": "rotateWebhookSecret",
+      "method": "POST",
+      "path": "/v1/management/webhooks/{webhookId}/rotate-secret",
+      "content_type": null,
+      "auth": "management",
+      "tags": [
+        "Webhooks"
+      ],
+      "profiles": [
+        "full"
+      ],
+      "description": "Replace the signing secret and return the new secret once. In-flight deliveries may use the previous secret. Requires TOKENLAB_MANAGEMENT_TOKEN (mt-...) for the workspace; sk-... keys are not accepted.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "webhookId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "webhookId"
+        ],
+        "additionalProperties": false
+      },
+      "bindings": {
+        "path": [
+          "webhookId"
+        ],
+        "query": [],
+        "header": [],
+        "body": [],
+        "files": []
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "test_webhook",
+      "title": "Send a test webhook",
+      "operation_id": "testWebhook",
+      "method": "POST",
+      "path": "/v1/management/webhooks/{webhookId}/test",
+      "content_type": null,
+      "auth": "management",
+      "tags": [
+        "Webhooks"
+      ],
+      "profiles": [
+        "full"
+      ],
+      "description": "Send webhook.test; inspect outcome to confirm receipt. Requires TOKENLAB_MANAGEMENT_TOKEN (mt-...) for the workspace; sk-... keys are not accepted.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "webhookId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "webhookId"
+        ],
+        "additionalProperties": false
+      },
+      "bindings": {
+        "path": [
+          "webhookId"
+        ],
+        "query": [],
+        "header": [],
+        "body": [],
+        "files": []
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
       "name": "transcribe_audio",
       "title": "Create transcription",
       "operation_id": "createTranscription",
@@ -8462,6 +8823,87 @@
         "readOnlyHint": false,
         "destructiveHint": false,
         "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "update_webhook",
+      "title": "Update webhook endpoint",
+      "operation_id": "updateWebhook",
+      "method": "PATCH",
+      "path": "/v1/management/webhooks/{webhookId}",
+      "content_type": "application/json",
+      "auth": "management",
+      "tags": [
+        "Webhooks"
+      ],
+      "profiles": [
+        "full"
+      ],
+      "description": "Update URL, events, description or active state. Resuming resets failures. Requires TOKENLAB_MANAGEMENT_TOKEN (mt-...) for the workspace; sk-... keys are not accepted.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "webhookId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Public HTTPS receiver URL. Credentials, query strings, fragments, private or reserved network targets and redirects are rejected."
+          },
+          "events": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 10,
+            "items": {
+              "type": "string",
+              "enum": [
+                "task.completed",
+                "task.failed",
+                "task.timeout"
+              ]
+            },
+            "description": "Supported event subscriptions; duplicates are removed."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 200
+          },
+          "is_active": {
+            "type": "boolean",
+            "description": "Resume or pause delivery. Resuming resets the consecutive failure count."
+          }
+        },
+        "required": [
+          "webhookId"
+        ],
+        "additionalProperties": false
+      },
+      "bindings": {
+        "path": [
+          "webhookId"
+        ],
+        "query": [],
+        "header": [],
+        "body": [
+          "url",
+          "events",
+          "description",
+          "is_active"
+        ],
+        "files": []
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
         "openWorldHint": true
       }
     },
