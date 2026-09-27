@@ -26,8 +26,8 @@
     "openapi": "3.1.0",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "362cbbc42f0a7eb5bae17f34d390b3834b457bc2525b98ea6b3b8f04d63b4660",
-    "tool_manifest_sha256": "be6ff566ca0a8957964ef3cb0a376a9390cc2b2aa0f6858ba64239418e9bfa7e"
+    "sha256": "9a7ddbe7794fc5fd5dbcd8bada586b23d0162a5c71c1b61e24f480625431ea51",
+    "tool_manifest_sha256": "8cd927c48966d041ae2143127397c640f3710c45147a1e75e4aa54be3a6e1238"
   },
   "profiles": {
     "catalog": {
@@ -36,7 +36,7 @@
       "endpoint_tools": 4,
       "composite_tools": 2,
       "total_tools": 6,
-      "input_schema_bytes": 1553,
+      "input_schema_bytes": 1564,
       "max_input_schema_depth": 4,
       "tool_names": [
         "compare_models",
@@ -53,7 +53,7 @@
       "endpoint_tools": 30,
       "composite_tools": 2,
       "total_tools": 32,
-      "input_schema_bytes": 43779,
+      "input_schema_bytes": 43790,
       "max_input_schema_depth": 8,
       "tool_names": [
         "cancel_task",
@@ -96,7 +96,7 @@
       "endpoint_tools": 79,
       "composite_tools": 2,
       "total_tools": 81,
-      "input_schema_bytes": 69990,
+      "input_schema_bytes": 70001,
       "max_input_schema_depth": 8,
       "tool_names": [
         "cancel_anthropic_message_batch",

@@ -1008,3 +1008,12 @@ test("System One preserves structured questions and all three typed decision ans
   assert.deepEqual(api.requests[0].body, body);
   assert.deepEqual(result, expected);
 });
+
+test("discovers decision models through the declared catalog category", async (t) => {
+  const api = await startMockApi(t, () => ({ object: "list", data: [] }));
+  const client = await startMcpClient(t, { TOKENLAB_API_BASE: api.baseUrl });
+  const result = await client.callTool({ name: "list_models", arguments: { category: "decision" } });
+  assert.notEqual(result.isError, true);
+  assert.equal(api.requests.length, 1);
+  assert.equal(api.requests[0].url, "/v1/models?category=decision&view=compact");
+});

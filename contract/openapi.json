@@ -1537,7 +1537,8 @@
                 "stt",
                 "rerank",
                 "3d",
-                "music"
+                "music",
+                "decision"
               ]
             }
           },
@@ -3731,7 +3732,8 @@
                 "translation",
                 "music",
                 "3d",
-                "realtime"
+                "realtime",
+                "systemone"
               ]
             },
             "description": "Filter by public request scene."
@@ -3839,7 +3841,8 @@
                 "translation",
                 "music",
                 "3d",
-                "realtime"
+                "realtime",
+                "systemone"
               ]
             },
             "description": "Filter by public request scene."

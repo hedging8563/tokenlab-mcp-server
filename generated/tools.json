@@ -6,7 +6,7 @@
     "openapi": "3.1.0",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "362cbbc42f0a7eb5bae17f34d390b3834b457bc2525b98ea6b3b8f04d63b4660"
+    "sha256": "9a7ddbe7794fc5fd5dbcd8bada586b23d0162a5c71c1b61e24f480625431ea51"
   },
   "default_profile": "core",
   "profiles": [
@@ -46,17 +46,17 @@
   "profile_metrics": {
     "catalog": {
       "endpoint_tools": 4,
-      "input_schema_bytes": 1553,
+      "input_schema_bytes": 1564,
       "max_input_schema_depth": 4
     },
     "core": {
       "endpoint_tools": 30,
-      "input_schema_bytes": 43779,
+      "input_schema_bytes": 43790,
       "max_input_schema_depth": 8
     },
     "full": {
       "endpoint_tools": 79,
-      "input_schema_bytes": 69990,
+      "input_schema_bytes": 70001,
       "max_input_schema_depth": 8
     }
   },
@@ -7167,7 +7167,8 @@
               "stt",
               "rerank",
               "3d",
-              "music"
+              "music",
+              "decision"
             ],
             "description": "Filter by model category."
           },
