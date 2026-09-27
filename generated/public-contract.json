@@ -5,7 +5,7 @@
     "id": "tokenlab-mcp-server",
     "name": "@tokenlabai/mcp-server",
     "title": "TokenLab MCP Server",
-    "version": "0.6.22",
+    "version": "0.6.23",
     "registry_name": "io.github.hedging8563/tokenlab",
     "source_url": "https://github.com/hedging8563/tokenlab-mcp-server",
     "landing_url": "https://tokenlab.sh/mcp",
@@ -26,8 +26,8 @@
     "openapi": "3.1.0",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "e9a1b65ef97e819c8273e3b4b7727d1901b59218d4e8b33829c77aad344ffd6a",
-    "tool_manifest_sha256": "d6651795fdcbcc1c144f5b3895fa6ee6bd50c7de1a0606582fbaadb74f1833c4"
+    "sha256": "362cbbc42f0a7eb5bae17f34d390b3834b457bc2525b98ea6b3b8f04d63b4660",
+    "tool_manifest_sha256": "be6ff566ca0a8957964ef3cb0a376a9390cc2b2aa0f6858ba64239418e9bfa7e"
   },
   "profiles": {
     "catalog": {
@@ -50,10 +50,10 @@
     "core": {
       "is_default": true,
       "schema_mode": "portable",
-      "endpoint_tools": 29,
+      "endpoint_tools": 30,
       "composite_tools": 2,
-      "total_tools": 31,
-      "input_schema_bytes": 43184,
+      "total_tools": 32,
+      "input_schema_bytes": 43779,
       "max_input_schema_depth": 8,
       "tool_names": [
         "cancel_task",
@@ -73,6 +73,7 @@
         "delete_file",
         "edit_image",
         "edit_image_file",
+        "evaluate_decisions",
         "get_api_overview",
         "get_model",
         "get_model_pricing",
@@ -92,10 +93,10 @@
     "full": {
       "is_default": false,
       "schema_mode": "portable",
-      "endpoint_tools": 78,
+      "endpoint_tools": 79,
       "composite_tools": 2,
-      "total_tools": 80,
-      "input_schema_bytes": 69395,
+      "total_tools": 81,
+      "input_schema_bytes": 69990,
       "max_input_schema_depth": 8,
       "tool_names": [
         "cancel_anthropic_message_batch",
@@ -135,6 +136,7 @@
         "dispatch_volc_compatible_seedance_action_post",
         "edit_image",
         "edit_image_file",
+        "evaluate_decisions",
         "gemini_batch_embed_contents",
         "gemini_count_tokens",
         "gemini_embed_content",
@@ -246,9 +248,12 @@
           "create_multimodal_embedding",
           "rerank_documents",
           "translate_text"
+        ],
+        [
+          "evaluate_decisions"
         ]
       ],
-      "tool_count": 11
+      "tool_count": 12
     }
   ],
   "features": {

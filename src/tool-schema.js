@@ -90,8 +90,8 @@ function portableSchemaNode(schema, propertyDepth) {
       );
       continue;
     }
-    if (key === "items") {
-      projected.items = portableSchemaNode(value, propertyDepth + 1);
+    if (key === "items" || (key === "additionalProperties" && value && typeof value === "object")) {
+      projected[key] = portableSchemaNode(value, propertyDepth + 1);
       continue;
     }
     if (["oneOf", "anyOf", "allOf"].includes(key)) {

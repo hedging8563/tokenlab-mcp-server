@@ -284,7 +284,7 @@ test("strict schema mode remains provider-valid and decodes canonical arguments"
   const listed = await client.listTools();
   const { tools } = listed;
 
-  assert.equal(tools.length, 80);
+  assert.equal(tools.length, 81);
   assert.ok(
     Buffer.byteLength(JSON.stringify(listed)) <= 100_000,
     "full strict tools/list must remain inside its compatibility byte budget"
@@ -379,7 +379,7 @@ test("survives the OpenCode Google AI SDK tool conversion used by Gemini", async
   });
 
   const declarations = requestBody.tools[0].functionDeclarations;
-  assert.equal(declarations.length, 80);
+  assert.equal(declarations.length, 81);
   assert.ok(
     Buffer.byteLength(JSON.stringify(requestBody.tools)) <= 85_000,
     "Gemini function declarations must remain inside the tested portable payload budget"
@@ -825,7 +825,7 @@ test("ships an executable npm binary on each platform", async (t) => {
   try {
     await client.connect(transport);
     const { tools } = await client.listTools();
-    assert.equal(tools.length, 31);
+    assert.equal(tools.length, 32);
     assert.ok(tools.some((tool) => tool.name === "create_response"));
   } finally {
     await client.close();
@@ -978,4 +978,33 @@ test("keeps recovery metadata when a composite catalog read has unavailable pric
     assert.match(model.pricing.diagnostic, /Poll again after Retry-After/);
     assert.doesNotMatch(JSON.stringify(model.pricing), /cookie-secret/);
   }
+});
+
+test("System One preserves structured questions and all three typed decision answers", async (t) => {
+  const expected = {
+    model: "jev-1.13",
+    answers: {
+      refund: { type: "noul", noul: 0.92 },
+      team: { type: "choice", choice: "billing", probabilities: { billing: 0.92, other: 0.08 }, confidence: 0.84 },
+      urgency: { type: "score", score: 1.25, probabilities: { "0": 0, "1": 0.75, "2": 0.25 }, confidence: 0.5 }
+    },
+    usage: { input_tokens: 300, output_tokens: 50 }
+  };
+  const api = await startMockApi(t, () => expected);
+  const client = await startMcpClient(t, { TOKENLAB_API_BASE: api.baseUrl, TOKENLAB_API_KEY: "test-decision-key" });
+  const body = {
+    model: "jev-1.13",
+    state: { ticket: { text: "I was charged twice; please refund the duplicate." } },
+    questions: {
+      refund: { type: "noul", instructions: "Is a refund explicitly requested?" },
+      team: { type: "choice", instructions: { task: "Choose the responsible team" }, criteria: { billing: "Payments and refunds", other: null } },
+      urgency: { type: "score", instructions: ["Rate urgency"], criteria: ["Routine enquiry", "Money affected", "Safety emergency"] }
+    }
+  };
+  const result = parseTextResult(await client.callTool({ name: "evaluate_decisions", arguments: body }));
+  assert.equal(api.requests.length, 1);
+  assert.equal(api.requests[0].url, "/v1/systemone");
+  assert.equal(api.requests[0].authorization, "Bearer test-decision-key");
+  assert.deepEqual(api.requests[0].body, body);
+  assert.deepEqual(result, expected);
 });

@@ -553,6 +553,12 @@ let synchronizedReadme = replaceProjection(
 );
 synchronizedReadme = replaceProjection(
   synchronizedReadme,
+  /the full profile returns \d+ tools/,
+  `the full profile returns ${fullProfile.total_tools} tools`,
+  "README full profile total"
+);
+synchronizedReadme = replaceProjection(
+  synchronizedReadme,
   /\| `catalog` \| \d+ \| \d+ \|/,
   `| \`catalog\` | ${catalogProfile.endpoint_tools} | ${catalogProfile.total_tools} |`,
   "README catalog profile counts"

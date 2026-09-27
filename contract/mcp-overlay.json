@@ -21,7 +21,7 @@
     "core": {
       "schema_mode": "portable",
       "compatibility_budget": {
-        "max_endpoint_tools": 29,
+        "max_endpoint_tools": 30,
         "max_input_schema_bytes": 48000,
         "max_input_schema_depth": 8,
         "max_tools_list_bytes": 60000
@@ -35,6 +35,7 @@
         "createResponse",
         "createAnthropicMessage",
         "geminiGenerateContent",
+        "createSystemOneDecision",
         "createEmbedding",
         "createMultimodalEmbedding",
         "rerankDocuments",
@@ -59,7 +60,7 @@
     "full": {
       "schema_mode": "portable",
       "compatibility_budget": {
-        "max_endpoint_tools": 78,
+        "max_endpoint_tools": 79,
         "max_input_schema_bytes": 72000,
         "max_input_schema_depth": 8,
         "max_tools_list_bytes": 100000
@@ -78,6 +79,7 @@
         "Files",
         "Batches",
         "Text",
+        "Decisions",
         "Worlds",
         "Seedance Volc Compatible"
       ],
@@ -179,7 +181,8 @@
         "tool_rows": [
           ["upload_file", "list_files", "retrieve_file"],
           ["retrieve_file_content", "delete_file", "get_task_status", "cancel_task"],
-          ["create_embedding", "create_multimodal_embedding", "rerank_documents", "translate_text"]
+          ["create_embedding", "create_multimodal_embedding", "rerank_documents", "translate_text"],
+          ["evaluate_decisions"]
         ]
       }
     ],
@@ -300,6 +303,10 @@
         "poll_url_field": "poll_url",
         "terminal_statuses": ["completed", "succeeded", "failed", "cancelled", "canceled", "expired"]
       }
+    },
+    "createSystemOneDecision": {
+      "tool_name": "evaluate_decisions",
+      "description": "Evaluate typed Noul probability, Choice, and Score questions against shared state using the native System One endpoint. Discover a decision model with list_models/get_model first. Returns synchronous structured decisions, not chat text. A decision does not authorize an external action."
     },
     "createTranslation": {
       "tool_name": "translate_text"

@@ -4,21 +4,21 @@
 [![npm](https://img.shields.io/npm/v/%40tokenlabai%2Fmcp-server)](https://www.npmjs.com/package/@tokenlabai/mcp-server)
 [![npm downloads](https://img.shields.io/npm/dm/%40tokenlabai%2Fmcp-server)](https://www.npmjs.com/package/@tokenlabai/mcp-server)
 
-OpenAPI-generated Model Context Protocol server for TokenLab public model discovery, pricing, native LLM endpoints, multimodal generation, async tasks, files, embeddings, rerank, translation, resources, prompts, and the broader developer API.
+OpenAPI-generated Model Context Protocol server for TokenLab public model discovery, pricing, native LLM endpoints, typed decisions, multimodal generation, async tasks, files, embeddings, rerank, translation, resources, prompts, and the broader developer API.
 
-It exposes public catalog tools for agents that need to choose models, inspect supported request formats, or compare pricing before calling TokenLab APIs. Credentialed tools cover text inference, image generation and editing, video, music, 3D, async task polling, embeddings, rerank, and text translation.
+It exposes public catalog tools for agents that need to choose models, inspect supported request formats, or compare pricing before calling TokenLab APIs. Credentialed tools cover text inference, image generation and editing, video, music, 3D, async task polling, embeddings, rerank, typed decisions, and text translation.
 
 ## Generated Tool Profiles
 
-The checked-in `generated/tools.json` manifest is generated from TokenLab's public OpenAPI document plus the small MCP-only overlay in `contract/mcp-overlay.json`. Version 0.6.22 generates 78 endpoint tools; with the two MCP-only composite discovery tools, the full profile returns 80 tools from `tools/list`.
+The checked-in `generated/tools.json` manifest is generated from TokenLab's public OpenAPI document plus the small MCP-only overlay in `contract/mcp-overlay.json`. Version 0.6.23 generates 79 endpoint tools; with the two MCP-only composite discovery tools, the full profile returns 81 tools from `tools/list`.
 
 | Profile | Endpoint tools | Total registered tools | Model-facing schema | Coverage |
 | --- | ---: | ---: | --- | --- |
 | `catalog` | 4 | 6 | Exact | Public model discovery and pricing only; no API key required |
-| `core` (default) | 29 | 31 | Portable | Catalog and pricing; Chat Completions, Responses, Anthropic Messages, Gemini generateContent; images, video, music, 3D, speech and transcription; async tasks; files; embeddings, rerank, and translation |
-| `full` | 78 | 80 | Portable | Every allowlisted developer API operation in the checked-in OpenAPI snapshot, including core plus response lifecycle, batches, worlds, and native model discovery |
+| `core` (default) | 30 | 32 | Portable | Catalog and pricing; Chat Completions, Responses, Anthropic Messages, Gemini generateContent; System One typed decisions; images, video, music, 3D, speech and transcription; async tasks; files; embeddings, rerank, and translation |
+| `full` | 79 | 81 | Portable | Every allowlisted developer API operation in the checked-in OpenAPI snapshot, including core plus response lifecycle, batches, worlds, and native model discovery |
 
-The total registered count is the number returned by `tools/list`. All profiles include `compare_models` and `get_api_overview`, producing totals of 6, 31, and 80 tools. Realtime and streaming-only operations are excluded because stdio MCP tool calls return one final result. API operations that accept `stream` fix it internally to `false` without exposing a boolean `const` to provider adapters, and the Gemini query-string API key is intentionally hidden from tool arguments.
+The total registered count is the number returned by `tools/list`. All profiles include `compare_models` and `get_api_overview`, producing totals of 6, 32, and 81 tools. Realtime and streaming-only operations are excluded because stdio MCP tool calls return one final result. API operations that accept `stream` fix it internally to `false` without exposing a boolean `const` to provider adapters, and the Gemini query-string API key is intentionally hidden from tool arguments.
 
 The portable projection keeps every top-level argument but bounds deeply nested model-facing shapes. The server still validates calls against the complete generated OpenAPI schema before issuing an API request. Compatibility budgets keep `core` at no more than 60 KB and depth 8, and `full` at no more than 100 KB and depth 8 for the complete `tools/list` response. Tests also run the full profile through the Google AI SDK version used by the observed OpenCode/Gemini failure.
 
@@ -105,7 +105,7 @@ Use `delivery.mode` instead of assuming all image requests are synchronous. For 
 ## Environment
 
 - `TOKENLAB_API_BASE`: optional, defaults to `https://api.tokenlab.sh`
-- `TOKENLAB_API_KEY`: optional; required for text inference, multimodal generation, async task, embedding, rerank, and translation tools
+- `TOKENLAB_API_KEY`: optional; required for text inference, multimodal generation, async task, embedding, rerank, decision, and translation tools
 - `TOKENLAB_MCP_TOOL_PROFILE`: optional, `catalog`, `core` (default), or `full`
 - `TOKENLAB_MCP_SCHEMA_MODE`: optional, `portable`, `exact`, or `strict`; defaults to the selected profile's tested mode
 - `TOKENLAB_REQUEST_TIMEOUT_MS`: optional request timeout in milliseconds, defaults to `120000`
@@ -134,7 +134,7 @@ This repository includes `server.json` for the official MCP Registry.
 
 Release metadata:
 
-- npm package: `@tokenlabai/mcp-server@0.6.22`
+- npm package: `@tokenlabai/mcp-server@0.6.23`
 - MCP registry name: `io.github.hedging8563/tokenlab`
 - `package.json.mcpName`: `io.github.hedging8563/tokenlab`
 

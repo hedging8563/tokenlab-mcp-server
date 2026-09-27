@@ -6,7 +6,7 @@
     "openapi": "3.1.0",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "e9a1b65ef97e819c8273e3b4b7727d1901b59218d4e8b33829c77aad344ffd6a"
+    "sha256": "362cbbc42f0a7eb5bae17f34d390b3834b457bc2525b98ea6b3b8f04d63b4660"
   },
   "default_profile": "core",
   "profiles": [
@@ -27,7 +27,7 @@
     "core": {
       "schema_mode": "portable",
       "compatibility_budget": {
-        "max_endpoint_tools": 29,
+        "max_endpoint_tools": 30,
         "max_input_schema_bytes": 48000,
         "max_input_schema_depth": 8,
         "max_tools_list_bytes": 60000
@@ -36,7 +36,7 @@
     "full": {
       "schema_mode": "portable",
       "compatibility_budget": {
-        "max_endpoint_tools": 78,
+        "max_endpoint_tools": 79,
         "max_input_schema_bytes": 72000,
         "max_input_schema_depth": 8,
         "max_tools_list_bytes": 100000
@@ -50,17 +50,17 @@
       "max_input_schema_depth": 4
     },
     "core": {
-      "endpoint_tools": 29,
-      "input_schema_bytes": 43184,
+      "endpoint_tools": 30,
+      "input_schema_bytes": 43779,
       "max_input_schema_depth": 8
     },
     "full": {
-      "endpoint_tools": 78,
-      "input_schema_bytes": 69395,
+      "endpoint_tools": 79,
+      "input_schema_bytes": 69990,
       "max_input_schema_depth": 8
     }
   },
-  "tool_count": 78,
+  "tool_count": 79,
   "tools": [
     {
       "name": "cancel_anthropic_message_batch",
@@ -5605,6 +5605,268 @@
           "canceled",
           "expired"
         ]
+      }
+    },
+    {
+      "name": "evaluate_decisions",
+      "title": "Evaluate decision questions",
+      "operation_id": "createSystemOneDecision",
+      "method": "POST",
+      "path": "/v1/systemone",
+      "content_type": "application/json",
+      "auth": "required",
+      "tags": [
+        "Decisions"
+      ],
+      "profiles": [
+        "core",
+        "full"
+      ],
+      "description": "Evaluate typed Noul probability, Choice, and Score questions against shared state using the native System One endpoint. Discover a decision model with list_models/get_model first. Returns synchronous structured decisions, not chat text. A decision does not authorize an external action.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "X-TokenLab-Delivery-Policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "verified",
+              "official"
+            ],
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+          },
+          "model": {
+            "type": "string",
+            "minLength": 1
+          },
+          "state": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "additionalProperties": true
+              },
+              {
+                "type": "array",
+                "items": {}
+              }
+            ]
+          },
+          "questions": {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "required": [
+                    "type",
+                    "instructions"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "noul"
+                      ]
+                    },
+                    "instructions": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "additionalProperties": true
+                        },
+                        {
+                          "type": "array",
+                          "items": {}
+                        }
+                      ]
+                    },
+                    "criteria": {
+                      "type": "object",
+                      "properties": {
+                        "true": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "object",
+                              "additionalProperties": true
+                            },
+                            {
+                              "type": "array",
+                              "items": {}
+                            }
+                          ]
+                        },
+                        "false": {
+                          "oneOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "object",
+                              "additionalProperties": true
+                            },
+                            {
+                              "type": "array",
+                              "items": {}
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "true",
+                        "false"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "type",
+                    "instructions",
+                    "criteria"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "choice"
+                      ]
+                    },
+                    "instructions": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "additionalProperties": true
+                        },
+                        {
+                          "type": "array",
+                          "items": {}
+                        }
+                      ]
+                    },
+                    "criteria": {
+                      "type": "object",
+                      "minProperties": 1,
+                      "maxProperties": 255,
+                      "additionalProperties": {
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "additionalProperties": true
+                          },
+                          {
+                            "type": "array",
+                            "items": {}
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "type",
+                    "instructions",
+                    "criteria"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "score"
+                      ]
+                    },
+                    "instructions": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "additionalProperties": true
+                        },
+                        {
+                          "type": "array",
+                          "items": {}
+                        }
+                      ]
+                    },
+                    "criteria": {
+                      "type": "array",
+                      "minItems": 2,
+                      "maxItems": 10,
+                      "items": {
+                        "oneOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "object",
+                            "additionalProperties": true
+                          },
+                          {
+                            "type": "array",
+                            "items": {}
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            }
+          }
+        },
+        "required": [
+          "model",
+          "state",
+          "questions"
+        ],
+        "additionalProperties": false
+      },
+      "bindings": {
+        "path": [],
+        "query": [],
+        "header": [
+          "X-TokenLab-Delivery-Policy"
+        ],
+        "body": [
+          "model",
+          "state",
+          "questions"
+        ],
+        "files": []
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
       }
     },
     {
