@@ -153,8 +153,8 @@ Use the `catalog` profile when no credentialed tools are needed. Keep `TOKENLAB_
 ## Links
 
 - Website: https://tokenlab.sh/mcp
-- Docs: https://docs.tokenlab.sh
-- OpenAPI: https://docs.tokenlab.sh/openapi.json
+- Docs: https://tokenlab.sh/docs
+- OpenAPI: https://tokenlab.sh/docs/openapi.json
 - Model catalog: https://api.tokenlab.sh/v1/models
 - Skills: https://github.com/hedging8563/tokenlab-skills
 
@@ -164,4 +164,4 @@ Use the `full` profile to configure workspace webhooks with `list_webhooks`, `cr
 
 Set `TOKENLAB_MANAGEMENT_TOKEN=mt-...` separately from `TOKENLAB_API_KEY=sk-...`. Create the management token at [Dashboard → API → Management Tokens](https://tokenlab.sh/dashboard/api?tab=tokens). It authorizes management operations only within its workspace and is not limited to webhooks. The inference key cannot substitute for it; the `whsec_...` returned by creation/rotation is for receiver signature verification only. Keep all credentials out of tool arguments and prompts.
 
-Webhook notifications avoid continuous task polling. On a polling fallback, stop on terminal status, 401/403/404 or `retryable: false`; back off on transient failures. See the [complete webhook guide](https://docs.tokenlab.sh/guides/webhooks) for payloads, signing, deduplication and delivery history.
+Webhook notifications avoid continuous task polling. On a polling fallback, stop on terminal status, 401/403/404 or `retryable: false`; back off on transient failures. See the [complete webhook guide](https://tokenlab.sh/docs/en/guides/webhooks) for payloads, signing, deduplication and delivery history.
