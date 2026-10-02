@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "TokenLab AI Gateway",
-    "description": "Organization balance, API key management, and key-level usage/billing via management token",
+    "description": "TokenLab public AI API: model discovery, generation, files, cached content, asynchronous tasks, and management-token account reporting.",
     "version": "1.0.0",
     "termsOfService": "https://tokenlab.sh/tos",
     "contact": {
@@ -75,6 +75,10 @@
     {
       "name": "Webhooks",
       "description": "Workspace webhook management with Management Tokens (mt-...). Inference API keys do not grant management access."
+    },
+    {
+      "name": "Gemini Resources",
+      "description": "Workspace-owned Gemini files, uploads, and cached content"
     }
   ],
   "security": [
@@ -8271,6 +8275,1127 @@
           }
         ]
       }
+    },
+    "/v1beta/files:register": {
+      "post": {
+        "tags": [
+          "Gemini Resources"
+        ],
+        "operationId": "geminiRegisterFiles",
+        "summary": "Register Gemini files",
+        "description": "Registers files from a supported source using Gemini JSON. The service validates the source and request fields. Resources can only be read, referenced, changed, or deleted in their owning Workspace. Missing, expired, or inaccessible resources return a Gemini-format error.",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "GeminiApiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key alternative to Bearer or x-goog-api-key."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Reuse the same key and request body when recovering a create response. A different body with the same key returns a conflict."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/GeminiFileResource"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "file": {
+                          "$ref": "#/components/schemas/GeminiFileResource"
+                        },
+                        "files": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/GeminiFileResource"
+                          }
+                        }
+                      },
+                      "additionalProperties": true
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "401": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "403": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "404": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "409": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "429": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "502": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "503": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GeminiFileRegisterRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1beta/files": {
+      "post": {
+        "tags": [
+          "Gemini Resources"
+        ],
+        "operationId": "geminiCreateFile",
+        "summary": "Create Gemini file metadata",
+        "description": "Creates a Gemini file resource from JSON metadata. Upload file bytes through /upload/v1beta/files. Resources can only be read, referenced, changed, or deleted in their owning Workspace. Missing, expired, or inaccessible resources return a Gemini-format error.",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "GeminiApiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key alternative to Bearer or x-goog-api-key."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Reuse the same key and request body when recovering a create response. A different body with the same key returns a conflict."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/GeminiFileResource"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "file": {
+                          "$ref": "#/components/schemas/GeminiFileResource"
+                        },
+                        "files": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/GeminiFileResource"
+                          }
+                        }
+                      },
+                      "additionalProperties": true
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "401": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "403": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "404": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "409": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "429": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "502": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "503": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GeminiFileCreateRequest"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Gemini Resources"
+        ],
+        "operationId": "geminiListFiles",
+        "summary": "List Gemini files",
+        "description": "Lists files belonging to the current Workspace. Use nextPageToken to continue. Resources can only be read, referenced, changed, or deleted in their owning Workspace. Missing, expired, or inaccessible resources return a Gemini-format error.",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "GeminiApiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key alternative to Bearer or x-goog-api-key."
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Requested page size; page_size is also accepted."
+          },
+          {
+            "name": "pageToken",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Opaque nextPageToken from the previous response. page_token is also accepted."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "files": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/GeminiFileResource"
+                      }
+                    },
+                    "nextPageToken": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "files"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "401": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "403": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "404": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "409": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "429": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "502": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "503": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          }
+        }
+      }
+    },
+    "/v1beta/files/{fileId}": {
+      "get": {
+        "tags": [
+          "Gemini Resources"
+        ],
+        "operationId": "geminiGetFile",
+        "summary": "Get Gemini file",
+        "description": "Reads metadata for a Gemini file. Resources can only be read, referenced, changed, or deleted in their owning Workspace. Missing, expired, or inaccessible resources return a Gemini-format error.",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "GeminiApiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Suffix of the returned files/{fileId} name."
+          },
+          {
+            "name": "key",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key alternative to Bearer or x-goog-api-key."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeminiFileResource"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "401": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "403": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "404": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "409": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "429": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "502": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "503": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Gemini Resources"
+        ],
+        "operationId": "geminiDeleteFile",
+        "summary": "Delete Gemini file",
+        "description": "Deletes a Gemini file. Save anything needed before deletion. Resources can only be read, referenced, changed, or deleted in their owning Workspace. Missing, expired, or inaccessible resources return a Gemini-format error.",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "GeminiApiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "key",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key alternative to Bearer or x-goog-api-key."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "401": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "403": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "404": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "409": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "429": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "502": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "503": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          }
+        }
+      }
+    },
+    "/v1beta/cachedContents": {
+      "post": {
+        "tags": [
+          "Gemini Resources"
+        ],
+        "operationId": "geminiCreateCachedContent",
+        "summary": "Create Gemini cached content",
+        "description": "Creates cached content for a current TokenLab Gemini model. Supported fields, resource references, and lifetime depend on the service and model; lowerCamelCase and the corresponding proto snake_case names are accepted. Resources can only be read, referenced, changed, or deleted in their owning Workspace. Missing, expired, or inaccessible resources return a Gemini-format error.",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "GeminiApiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key alternative to Bearer or x-goog-api-key."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Reuse the same key and request body when recovering a create response. A different body with the same key returns a conflict."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeminiCachedContentResource"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "401": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "403": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "404": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "409": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "429": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "502": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "503": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GeminiCachedContentRequest"
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Gemini Resources"
+        ],
+        "operationId": "geminiListCachedContents",
+        "summary": "List Gemini cached content",
+        "description": "Lists cached content belonging to the current Workspace. Use nextPageToken to continue. Resources can only be read, referenced, changed, or deleted in their owning Workspace. Missing, expired, or inaccessible resources return a Gemini-format error.",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "GeminiApiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key alternative to Bearer or x-goog-api-key."
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Requested page size; page_size is also accepted."
+          },
+          {
+            "name": "pageToken",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Opaque nextPageToken from the previous response. page_token is also accepted."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "cachedContents"
+                  ],
+                  "properties": {
+                    "cachedContents": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/GeminiCachedContentResource"
+                      }
+                    },
+                    "nextPageToken": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "401": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "403": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "404": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "409": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "429": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "502": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "503": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          }
+        }
+      }
+    },
+    "/v1beta/cachedContents/{cacheId}": {
+      "get": {
+        "tags": [
+          "Gemini Resources"
+        ],
+        "operationId": "geminiGetCachedContent",
+        "summary": "Get Gemini cached content",
+        "description": "Reads cached content metadata. Resources can only be read, referenced, changed, or deleted in their owning Workspace. Missing, expired, or inaccessible resources return a Gemini-format error.",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "GeminiApiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "cacheId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Suffix of the returned cachedContents/{cacheId} name."
+          },
+          {
+            "name": "key",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key alternative to Bearer or x-goog-api-key."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeminiCachedContentResource"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "401": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "403": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "404": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "409": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "429": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "502": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "503": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Gemini Resources"
+        ],
+        "operationId": "geminiUpdateCachedContent",
+        "summary": "Update Gemini cached content",
+        "description": "Updates the cache lifetime. Invalid lifetime or unsupported fields return a Gemini-format error. Resources can only be read, referenced, changed, or deleted in their owning Workspace. Missing, expired, or inaccessible resources return a Gemini-format error.",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "GeminiApiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "cacheId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "key",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key alternative to Bearer or x-goog-api-key."
+          },
+          {
+            "name": "updateMask",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Gemini field mask when required by the service."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeminiCachedContentResource"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "401": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "403": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "404": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "409": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "429": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "502": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "503": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GeminiCachedContentUpdateRequest"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Gemini Resources"
+        ],
+        "operationId": "geminiDeleteCachedContent",
+        "summary": "Delete Gemini cached content",
+        "description": "Deletes cached content. It cannot be used by subsequent generation after deletion. Resources can only be read, referenced, changed, or deleted in their owning Workspace. Missing, expired, or inaccessible resources return a Gemini-format error.",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "GeminiApiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "cacheId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "key",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key alternative to Bearer or x-goog-api-key."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "401": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "403": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "404": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "409": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "429": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "502": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "503": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          }
+        }
+      }
+    },
+    "/upload/v1beta/files": {
+      "post": {
+        "tags": [
+          "Gemini Resources"
+        ],
+        "operationId": "geminiUploadFile",
+        "summary": "Upload Gemini file",
+        "description": "Uploads bytes or starts a resumable upload. For resumable start, send metadata and read X-Goog-Upload-URL. Continue only at that returned URL. The upload URL grants access to that upload, expires after one hour, and must be kept private. Resources can only be read, referenced, changed, or deleted in their owning Workspace. Missing, expired, or inaccessible resources return a Gemini-format error.",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "GeminiApiKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "API key alternative to Bearer or x-goog-api-key."
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Reuse the same key and request body when recovering a create response. A different body with the same key returns a conflict."
+          },
+          {
+            "name": "X-Goog-Upload-Protocol",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Upload protocol such as resumable."
+          },
+          {
+            "name": "X-Goog-Upload-Command",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Upload command such as start or upload, finalize."
+          },
+          {
+            "name": "X-Goog-Upload-Header-Content-Length",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Expected file byte length when starting a resumable upload."
+          },
+          {
+            "name": "X-Goog-Upload-Header-Content-Type",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "File MIME type when starting a resumable upload."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "file": {
+                      "$ref": "#/components/schemas/GeminiFileResource"
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              }
+            },
+            "headers": {
+              "X-Goog-Upload-URL": {
+                "description": "Private resumable upload URL; returned for resumable start. Use it as supplied.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "401": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "403": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "404": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "409": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "429": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "502": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "503": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GeminiFileCreateRequest"
+              }
+            },
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            },
+            "*/*": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "x-mint": {
+          "metadata": {
+            "playground": "none"
+          }
+        }
+      }
+    },
+    "/upload/v1beta/files/session/{sessionId}": {
+      "post": {
+        "tags": [
+          "Gemini Resources"
+        ],
+        "operationId": "geminiContinueFileUpload",
+        "summary": "Continue Gemini file upload",
+        "description": "Sends bytes or commands to the exact URL returned by resumable start. The session in the URL authorizes this upload; an API key is not required. Keep the URL private. A missing or expired session returns 404; a session that can no longer be continued returns 410. A nonterminal chunk can return 308, so do not treat that response as a page redirect.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Goog-Upload-Command",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Upload command such as upload, finalize."
+          },
+          {
+            "name": "X-Goog-Upload-Offset",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Zero-based byte offset of the chunk."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "file": {
+                      "$ref": "#/components/schemas/GeminiFileResource"
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "308": {
+            "description": "Upload chunk accepted; more data or finalization is needed."
+          },
+          "400": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "401": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "403": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "404": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "409": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "410": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "429": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "502": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          },
+          "503": {
+            "$ref": "#/components/responses/GeminiResourceError"
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            },
+            "*/*": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "x-mint": {
+          "metadata": {
+            "playground": "none"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -8286,6 +9411,12 @@
         "scheme": "bearer",
         "bearerFormat": "Management Token",
         "description": "Management token authentication. Create or manage Management Tokens in [Dashboard > API > Management Tokens](https://tokenlab.sh/dashboard/api?tab=tokens)."
+      },
+      "GeminiApiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-goog-api-key",
+        "description": "TokenLab API key for Gemini requests."
       }
     },
     "schemas": {
@@ -16269,6 +17400,157 @@
             "additionalProperties": false
           }
         ]
+      },
+      "GeminiFileResource": {
+        "type": "object",
+        "description": "A Gemini file in the current Workspace. Fields are returned when available.",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "File resource name such as files/{fileId}."
+          },
+          "displayName": {
+            "type": "string",
+            "description": "Human-readable file name."
+          },
+          "mimeType": {
+            "type": "string",
+            "description": "Media MIME type."
+          },
+          "sizeBytes": {
+            "type": "string",
+            "description": "File byte size as a decimal string."
+          },
+          "uri": {
+            "type": "string",
+            "description": "File URI to use in Gemini content parts."
+          },
+          "state": {
+            "type": "string",
+            "description": "Processing state reported by the service. Wait until the file is ready before generation."
+          },
+          "createTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updateTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expirationTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "error": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "GeminiFileCreateRequest": {
+        "type": "object",
+        "description": "Gemini file metadata request. Supported fields and values are validated by the service. File bytes are uploaded through /upload/v1beta/files.",
+        "properties": {
+          "file": {
+            "$ref": "#/components/schemas/GeminiFileResource"
+          }
+        },
+        "additionalProperties": true
+      },
+      "GeminiFileRegisterRequest": {
+        "type": "object",
+        "description": "Gemini file registration request. Use only sources and fields accepted by the service; registration does not upload local bytes.",
+        "additionalProperties": true
+      },
+      "GeminiCachedContentRequest": {
+        "type": "object",
+        "required": [
+          "model"
+        ],
+        "properties": {
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Current TokenLab model ID that supports Gemini cached content."
+          },
+          "displayName": {
+            "type": "string",
+            "description": "Human-readable cache name."
+          },
+          "ttl": {
+            "type": "string",
+            "description": "Positive duration such as 3600s. Supported lifetime is validated by the service."
+          },
+          "expireTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Requested expiration time; use ttl or expireTime as supported by the service."
+          },
+          "contents": {
+            "$ref": "#/components/schemas/GeminiRequest/properties/contents"
+          },
+          "systemInstruction": {
+            "$ref": "#/components/schemas/GeminiRequest/properties/systemInstruction"
+          },
+          "tools": {
+            "$ref": "#/components/schemas/GeminiRequest/properties/tools"
+          },
+          "toolConfig": {
+            "$ref": "#/components/schemas/GeminiRequest/properties/toolConfig"
+          }
+        },
+        "additionalProperties": true
+      },
+      "GeminiCachedContentResource": {
+        "type": "object",
+        "description": "Cached content belonging to the current Workspace. Use the returned name as cachedContent in Gemini generation.",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Resource name such as cachedContents/{cacheId}."
+          },
+          "model": {
+            "type": "string",
+            "description": "TokenLab model ID associated with the cached content."
+          },
+          "displayName": {
+            "type": "string",
+            "description": "Human-readable cache name."
+          },
+          "createTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updateTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expireTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "usageMetadata": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
+      "GeminiCachedContentUpdateRequest": {
+        "type": "object",
+        "description": "Update cached content lifetime using the fields accepted by the service.",
+        "properties": {
+          "ttl": {
+            "type": "string",
+            "description": "Positive duration such as 3600s."
+          },
+          "expireTime": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": true
       }
     },
     "responses": {
@@ -16491,6 +17773,16 @@
                   }
                 }
               }
+            }
+          }
+        }
+      },
+      "GeminiResourceError": {
+        "description": "Gemini-format resource error",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/GeminiErrorResponse"
             }
           }
         }
