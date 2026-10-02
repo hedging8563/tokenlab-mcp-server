@@ -29,7 +29,7 @@ test("Glama ownership metadata names the repository maintainer", () => {
 
 test("official Registry description stays inside the publication contract", () => {
   assert.ok(registryMetadata.description.length <= 100);
-  assert.match(registryMetadata.description, /31 default and 80 full-profile tools/);
+  assert.match(registryMetadata.description, /32 default and 89 full-profile tools/);
 });
 
 test("README distinguishes endpoint tools from registered tools", () => {
