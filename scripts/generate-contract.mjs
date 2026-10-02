@@ -345,7 +345,7 @@ for (const [operationId, indexed] of operations) {
         || `${override.tool_name || snakeCase(operationId)}${suffix}`;
       const { schema, bindings } = buildInputSchema(operationId, indexed.pathItem, indexed.operation, contentType, override);
       applyInputOverrides(schema, bindings, override);
-      const description = override.description || [indexed.operation.summary, indexed.operation.description]
+      const description = override.description || [indexed.operation.description || indexed.operation.summary]
         .filter(Boolean)
         .join(" ")
         .replace(/\s+/g, " ")

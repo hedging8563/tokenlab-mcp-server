@@ -2,11 +2,11 @@
   "schema_version": 1,
   "generated_at": null,
   "source": {
-    "url": "https://docs.tokenlab.sh/openapi.json",
+    "url": "https://tokenlab.sh/docs/openapi.json",
     "openapi": "3.1.0",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "d97424b25ac07384916c65e9ac3369e595f53fe9d7dea1eaa3a6cf6be4305a6d"
+    "sha256": "6f856ccd3e30cb184351f5a43f9009747d8d1343b865c6939e225f8f35f070a8"
   },
   "default_profile": "core",
   "profiles": [
@@ -51,12 +51,12 @@
     },
     "core": {
       "endpoint_tools": 30,
-      "input_schema_bytes": 43790,
+      "input_schema_bytes": 44697,
       "max_input_schema_depth": 8
     },
     "full": {
       "endpoint_tools": 87,
-      "input_schema_bytes": 72210,
+      "input_schema_bytes": 73117,
       "max_input_schema_depth": 8
     }
   },
@@ -76,7 +76,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Cancel message batch (Anthropic-compatible) Cancels a native Anthropic Message Batch when the provider still allows cancellation.",
+      "description": "Cancels an Anthropic Message Batch when cancellation is still available for that batch.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -166,7 +166,7 @@
         "core",
         "full"
       ],
-      "description": "Cancel async task Cancels a queued asynchronous task when cancellation is supported for the selected task. Cancellation currently supports queued Seedance video tasks (`seedance-1.5-pro`, `seedance-2.0`, and `seedance-2.0-fast`) while they are still waiting to run. Tasks that are already processing, completed, failed, expired, or unsupported are not cancelled.",
+      "description": "Cancels a queued asynchronous task when cancellation is supported for the selected task. Cancellation currently supports queued Seedance video tasks (`seedance-1.5-pro`, `seedance-2.0`, and `seedance-2.0-fast`) while they are still waiting to run. Tasks that are already processing, completed, failed, expired, or unsupported are not cancelled.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -228,7 +228,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Compact response context (OpenAI Responses API) Compacts Responses input and returns the native `response.compaction` contract. The request model must be available on a same-protocol Responses path.",
+      "description": "Compacts Responses input and returns the native `response.compaction` contract. The request model must be available on a same-protocol Responses path.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -240,7 +240,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "model": {
             "type": "string",
@@ -313,7 +313,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Count message tokens (Anthropic-compatible) Counts input tokens for an Anthropic-compatible messages request without creating a model response. Authentication is required; the operation is not billed.",
+      "description": "Counts input tokens for an Anthropic-compatible messages request without creating a model response. Authentication is required; the operation is not billed.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -484,7 +484,7 @@
         "core",
         "full"
       ],
-      "description": "Create 3D model generation task Creates a 3D model generation task using Tripo3D. Returns a task ID for polling.",
+      "description": "Creates a 3D model generation task using Tripo3D. Returns a task ID for polling.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -496,7 +496,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "model": {
             "type": "string",
@@ -536,7 +536,7 @@
           },
           "seed": {
             "type": "integer",
-            "description": "Seed for deterministic-compatible providers."
+            "description": "Seed for repeatable generation where supported by the model."
           },
           "user": {
             "type": "string",
@@ -606,7 +606,7 @@
         "core",
         "full"
       ],
-      "description": "Create message (Anthropic-compatible) Creates a model response using Anthropic's native request format. Supports Claude models with vision and streaming. **Authentication:** Use `x-api-key` header or `Authorization: Bearer` header.",
+      "description": "Creates a model response using Anthropic's native request format. Supports Claude models with vision and streaming. **Authentication:** Use `x-api-key` header or `Authorization: Bearer` header.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -618,7 +618,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "model": {
             "type": "string",
@@ -756,7 +756,7 @@
           },
           "service_tier": {
             "type": "string",
-            "description": "Service tier hint for compatible providers."
+            "description": "Service tier hint where supported by the model."
           }
         },
         "required": [
@@ -815,7 +815,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Create message batch (Anthropic-compatible) Creates a native Anthropic Message Batch. Requests use the same Anthropic message parameters as /v1/messages.",
+      "description": "Creates a native Anthropic Message Batch. Requests use the same Anthropic message parameters as /v1/messages.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -827,7 +827,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "requests": {
             "type": "array",
@@ -992,7 +992,7 @@
                     },
                     "service_tier": {
                       "type": "string",
-                      "description": "Service tier hint for compatible providers."
+                      "description": "Service tier hint where supported by the model."
                     }
                   }
                 }
@@ -1038,7 +1038,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Create batch Creates an OpenAI-compatible batch job.",
+      "description": "Creates an OpenAI-compatible batch job.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -1050,7 +1050,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "input_file_id": {
             "type": "string"
@@ -1149,7 +1149,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "model": {
             "type": "string",
@@ -1596,14 +1596,14 @@
           "prediction": {
             "type": "object",
             "additionalProperties": true,
-            "description": "Prediction hints for providers that support draft or speculative decoding."
+            "description": "Prediction hints for models that support draft or speculative decoding."
           },
           "service_tier": {
             "type": [
               "string",
               "null"
             ],
-            "description": "Service tier hint for compatible providers."
+            "description": "Service tier hint where supported by the model."
           }
         },
         "required": [
@@ -1676,7 +1676,7 @@
         "core",
         "full"
       ],
-      "description": "Create embeddings Creates an embedding vector representing the input text.",
+      "description": "Creates an embedding vector representing the input text.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -1688,7 +1688,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "model": {
             "type": "string",
@@ -1785,7 +1785,7 @@
         "core",
         "full"
       ],
-      "description": "Generate content (Gemini-compatible) Generates content using the native Gemini GenerateContent shape. This route is exposed only when the model details advertise Gemini requests and a same-protocol route is currently available. ProtoJSON lowerCamelCase and original proto snake_case field names are preserved. Unknown fields are forwarded best-effort and support is determined by the selected provider. **Authentication:** Use `?key=` query parameter, `x-goog-api-key` header, or `Authorization: Bearer` header.",
+      "description": "Generates content using the Gemini GenerateContent request shape. The model details must advertise Gemini requests and the model must be available. ProtoJSON lowerCamelCase and original proto snake_case field names are preserved. Unknown fields are accepted on a best-effort basis; model-specific support is not guaranteed. **Authentication:** Use `?key=` query parameter, `x-goog-api-key` header, or `Authorization: Bearer` header.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -1797,7 +1797,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "model": {
             "type": "string",
@@ -2051,7 +2051,7 @@
               },
               "responseModalities": {
                 "type": "array",
-                "description": "Requested output modalities for compatible native Gemini routes.",
+                "description": "Requested output modalities for supported Gemini models.",
                 "items": {
                   "type": "string"
                 }
@@ -2286,7 +2286,7 @@
         "core",
         "full"
       ],
-      "description": "Create image Creates an image given a prompt.",
+      "description": "Creates an image given a prompt.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -2298,7 +2298,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "prompt": {
             "type": "string",
@@ -2361,7 +2361,7 @@
           },
           "quality": {
             "type": "string",
-            "description": "Image quality. Defaults and accepted values are model-specific. For gpt-image-2, omit this field or use auto for automatic quality, or send low, medium, or high. Other image families may use provider-specific values."
+            "description": "Image quality. Defaults and accepted values are model-specific. For gpt-image-2, omit this field or use auto for automatic quality, or send low, medium, or high. Other models may accept different values; check the model details."
           },
           "style": {
             "type": "string",
@@ -2374,6 +2374,10 @@
           "expand_prompt": {
             "type": "boolean",
             "description": "Ask compatible models to expand or enhance the prompt."
+          },
+          "prompt_extend": {
+            "type": "boolean",
+            "description": "For z-image-turbo, enable prompt expansion. Defaults to false. Enabling it uses the model's prompt-expansion price."
           },
           "negative_prompt": {
             "type": "string",
@@ -2472,6 +2476,7 @@
           "quality",
           "style",
           "expand_prompt",
+          "prompt_extend",
           "negative_prompt",
           "seed",
           "response_format",
@@ -2530,7 +2535,7 @@
         "core",
         "full"
       ],
-      "description": "Create image Creates an image given a prompt.",
+      "description": "Creates an image given a prompt.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -2542,7 +2547,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "model": {
             "type": "string",
@@ -2588,6 +2593,10 @@
           },
           "expand_prompt": {
             "type": "boolean"
+          },
+          "prompt_extend": {
+            "type": "boolean",
+            "description": "For z-image-turbo, enable prompt expansion. Defaults to false. Enabling it uses the model's prompt-expansion price."
           },
           "negative_prompt": {
             "type": "string"
@@ -2677,6 +2686,7 @@
           "n",
           "quality",
           "expand_prompt",
+          "prompt_extend",
           "negative_prompt",
           "seed",
           "response_format",
@@ -2738,7 +2748,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Create image variation Generates image variations from a multipart image upload.",
+      "description": "Generates image variations from a multipart image upload.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -2750,7 +2760,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "image": {
             "type": "string",
@@ -2820,7 +2830,7 @@
         "core",
         "full"
       ],
-      "description": "Create multimodal embeddings Creates embeddings for multimodal input items. Text input is generally available; image input may require feature enablement.",
+      "description": "Creates embeddings for multimodal input items. Text input is generally available; image input may require feature enablement.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -2832,7 +2842,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "model": {
             "type": "string",
@@ -2939,7 +2949,7 @@
         "core",
         "full"
       ],
-      "description": "Create music generation task Creates a music generation task using Suno. Returns a task ID for polling.",
+      "description": "Creates a music generation task using Suno. Returns a task ID for polling.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -2951,7 +2961,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "model": {
             "type": "string",
@@ -3085,7 +3095,7 @@
         "core",
         "full"
       ],
-      "description": "Create response (OpenAI Responses API) Creates a response using the native OpenAI Responses API shape. The model details must advertise the Responses request format and a same-protocol route must be currently available; model names and providers do not imply availability. Unknown request fields are forwarded on a best-effort basis and remain subject to the selected provider's support.",
+      "description": "Creates a response using the OpenAI Responses API request shape. The model details must advertise the Responses request format and the model must be available. Unknown fields are accepted on a best-effort basis; model-specific support is not guaranteed.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -3097,7 +3107,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "model": {
             "type": "string",
@@ -3152,7 +3162,7 @@
             "properties": {
               "include_obfuscation": {
                 "type": "boolean",
-                "description": "When true, request obfuscated tokens in Responses stream events from compatible upstreams."
+                "description": "When true, request obfuscated tokens in Responses stream events where supported."
               }
             },
             "additionalProperties": true,
@@ -3170,7 +3180,7 @@
               "string",
               "null"
             ],
-            "description": "Service tier hint for compatible providers."
+            "description": "Service tier hint where supported by the model."
           },
           "truncation": {
             "type": "string",
@@ -3277,7 +3287,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Create Seedance material asset Uploads one Seedance material asset URL into a TokenLab material group. Image materials must use supported dimensions; an invalid source is rejected with 400 seedance_material_source_invalid instead of remaining in PROCESSING. Real-person assets require the group_id mapped from Result.GroupId returned by GetVisualValidateResult.",
+      "description": "Uploads one Seedance material asset URL into a TokenLab material group. Image materials must use supported dimensions; an invalid source is rejected with 400 seedance_material_source_invalid instead of remaining in PROCESSING. Real-person assets require the group_id mapped from Result.GroupId returned by GetVisualValidateResult.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -3372,7 +3382,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Create Seedance material asset group Creates a TokenLab Seedance virtual-avatar material group. Real-person material groups are created by GetVisualValidateResult after the H5 validation succeeds.",
+      "description": "Creates a TokenLab Seedance virtual-avatar material group. Real-person material groups are created by GetVisualValidateResult after the H5 validation succeeds.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -3451,7 +3461,7 @@
         "core",
         "full"
       ],
-      "description": "Create speech Generates audio from the input text (Text-to-Speech).",
+      "description": "Generates audio from the input text (Text-to-Speech).",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -3463,7 +3473,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "model": {
             "type": "string",
@@ -3493,11 +3503,11 @@
                 "additionalProperties": false
               }
             ],
-            "description": "Voice selector for OpenAI-compatible, Gemini, xAI, and MiniMax-compatible routes. Some MiniMax routes also accept voice_id."
+            "description": "Voice selector for OpenAI-compatible, Gemini, xAI, and MiniMax-compatible speech models. Some MiniMax models also accept voice_id."
           },
           "voice_id": {
             "type": "string",
-            "description": "Provider-native voice selector for MiniMax-compatible speech models."
+            "description": "Voice selector for MiniMax-compatible speech models."
           },
           "instructions": {
             "type": "string",
@@ -3511,7 +3521,7 @@
           },
           "language_code": {
             "type": "string",
-            "description": "Optional language code for Gemini, xAI, and compatible TTS routes."
+            "description": "Optional language code for Gemini, xAI, and compatible TTS models."
           },
           "response_format": {
             "type": "string",
@@ -3536,7 +3546,7 @@
             "type": "number",
             "minimum": 0,
             "maximum": 2,
-            "description": "Sampling temperature for Gemini-compatible TTS routes."
+            "description": "Sampling temperature for Gemini-compatible TTS models."
           }
         },
         "required": [
@@ -3587,7 +3597,7 @@
         "core",
         "full"
       ],
-      "description": "Create video generation task Creates an asynchronous video generation task. The response returns a canonical task ID and usually a preferred `poll_url`; clients should poll `poll_url` first, or use `/v1/tasks/{id}` as the fixed status endpoint.",
+      "description": "Creates an asynchronous video generation task. The response returns a canonical task ID and usually a preferred `poll_url`; clients should poll `poll_url` first, or use `/v1/tasks/{id}` as the fixed status endpoint.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -3599,7 +3609,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "prompt": {
             "type": "string",
@@ -3676,7 +3686,7 @@
           },
           "output_audio": {
             "type": "boolean",
-            "description": "Canonical model-dependent audio output toggle. Veo 3 and Seedance requests default to true when omitted. Kling 3.0 Video accepts this selector for non-element-reference requests and maps it to the compatible sound control; omitted Kling requests default to silent output. Do not combine output_audio=true with kling_elements. The aliases outputAudio and generate_audio are accepted for compatibility and must match when provided together."
+            "description": "Audio-output selector for operations that declare it. Omission follows the model default; `false` requests silent output only when allowed. See the audio behavior above and the selected model detail."
           },
           "fps": {
             "type": "integer",
@@ -3799,7 +3809,7 @@
           "audio_url": {
             "type": "string",
             "format": "uri",
-            "description": "Publicly reachable audio URL for model-specific audio-conditioned video flows."
+            "description": "Public audio URL for an audio-driven or reference-audio operation supported by the selected model."
           },
           "task_id": {
             "type": "string",
@@ -3834,7 +3844,7 @@
           },
           "video_urls": {
             "type": "array",
-            "description": "Compatibility array for video-conditioned flows when multiple input videos are supported by the routed model family. Seedance 2.5 accepts up to 10 aggregate video inputs; other video models retain the shared limit of 3 references unless the model details specify a lower limit.",
+            "description": "Compatibility array for video-conditioned flows when multiple input videos are supported by the selected model. Seedance 2.5 accepts up to 10 aggregate video inputs; other video models retain the shared limit of 3 references unless the model details specify a lower limit.",
             "minItems": 1,
             "maxItems": 10,
             "items": {
@@ -3844,7 +3854,7 @@
           },
           "audio_urls": {
             "type": "array",
-            "description": "Compatibility array for audio-conditioned flows when multiple audio references are supported by the routed model family. Seedance 2.5 accepts up to 10 aggregate audio inputs and permits pure-audio reference requests without a prompt; other video models retain the shared limit of 3 references unless the model details specify a lower limit.",
+            "description": "Compatibility array for audio-conditioned flows when multiple audio references are supported by the selected model. Seedance 2.5 accepts up to 10 aggregate audio inputs and permits pure-audio reference requests without a prompt; other video models retain the shared limit of 3 references unless the model details specify a lower limit.",
             "minItems": 1,
             "maxItems": 10,
             "items": {
@@ -3917,11 +3927,27 @@
           "draft": {
             "type": "boolean",
             "default": false,
-            "description": "Seedance 1.5 Pro draft workflow flag. Only supported by draft-capable Seedance routes; draft=true creates a low-cost draft task."
+            "description": "Seedance 1.5 Pro draft workflow flag. Only supported by Seedance models supporting drafts; draft=true creates a low-cost draft task."
           },
           "draft_task_id": {
             "type": "string",
             "description": "Seedance 1.5 Pro draft promotion task ID. Provide this instead of draft=true to create the final video from a previous draft task."
+          },
+          "audio": {
+            "type": "boolean",
+            "description": "Audio-output selector for operations that declare it. Omission follows the model default; `false` requests silent output only when allowed. See the audio behavior above and the selected model detail."
+          },
+          "bgm": {
+            "type": "boolean",
+            "description": "Optional audio control. Accepted only when declared by the selected model and operation; availability may differ by operation."
+          },
+          "audio_type": {
+            "type": "string",
+            "description": "Optional audio control. Accepted only when declared by the selected model and operation; availability may differ by operation."
+          },
+          "voice_id": {
+            "type": "string",
+            "description": "Optional audio control. Accepted only when declared by the selected model and operation; availability may differ by operation."
           }
         },
         "additionalProperties": false
@@ -3979,7 +4005,11 @@
           "camera_fixed",
           "return_last_frame",
           "draft",
-          "draft_task_id"
+          "draft_task_id",
+          "audio",
+          "bgm",
+          "audio_type",
+          "voice_id"
         ],
         "files": []
       },
@@ -4033,7 +4063,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "CallbackURL": {
             "type": "string",
@@ -4091,7 +4121,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Create Seedance task (Volc wire-compatible) Creates a Seedance 2.0 video task with the official Volc REST body and response shape. Authentication uses a TokenLab Bearer API key. TokenLab additionally accepts an optional Idempotency-Key header so a client can recover the same task ID after a lost create response.",
+      "description": "Creates a Seedance 2.0 video task with the official Volc REST body and response shape. Authentication uses a TokenLab Bearer API key. TokenLab additionally accepts an optional Idempotency-Key header so a client can recover the same task ID after a lost create response.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -4103,7 +4133,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "Idempotency-Key": {
             "type": "string",
@@ -4268,7 +4298,7 @@
             "minimum": -1,
             "maximum": 4294967295,
             "default": -1,
-            "description": "Random seed. -1 lets the model choose a seed. Forwarded on a best-effort basis for routes that accept it."
+            "description": "Random seed. -1 lets the model choose a seed. Accepted on a best-effort basis where supported by the model."
           },
           "execution_expires_after": {
             "type": "integer",
@@ -4452,7 +4482,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Create world generation task Creates a World Labs Marble world generation task for TokenLab-supported Marble models. Returns a task ID for polling. TokenLab supports native world_prompt media_asset references when the media asset was prepared through TokenLab.",
+      "description": "Creates a World Labs Marble world generation task for TokenLab-supported Marble models. Returns a task ID for polling. TokenLab supports native world_prompt media_asset references when the media asset was prepared through TokenLab.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -4464,7 +4494,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "model": {
             "type": "string",
@@ -4636,7 +4666,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Delete message batch (Anthropic-compatible) Deletes a native Anthropic Message Batch when the provider supports deletion.",
+      "description": "Deletes an Anthropic Message Batch when deletion is supported for that batch.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -4682,7 +4712,7 @@
         "core",
         "full"
       ],
-      "description": "Delete file Deletes a batch file or a bound image/reference file. When the request includes anthropic-beta: files-api-2025-04-14, the route uses Anthropic Files API mode for the bound workspace.",
+      "description": "Deletes a batch file or a bound image/reference file. When the request includes anthropic-beta: files-api-2025-04-14, the route uses Anthropic Files API mode for the bound workspace.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -4733,7 +4763,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Delete response Deletes a stored Responses API response. This operation is deletion, not cancellation of an in-progress response.",
+      "description": "Deletes a stored Responses API response. This operation is deletion, not cancellation of an in-progress response.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -4778,7 +4808,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Delete Seedance material asset Deletes a Seedance material asset owned by the authenticated organization.",
+      "description": "Deletes a Seedance material asset owned by the authenticated organization.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -4831,7 +4861,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Delete Seedance material asset group Deletes a TokenLab Seedance material group and its material assets. The operation is irreversible when accepted.",
+      "description": "Deletes a TokenLab Seedance material group and its material assets. The operation is irreversible when accepted.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -4975,7 +5005,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Delete World Labs world Deletes a World Labs world generated through TokenLab. This permanently deletes the world and associated assets when World Labs accepts the deletion. TokenLab keeps task status records for usage history.",
+      "description": "Deletes a World Labs world generated through TokenLab. This permanently deletes the world and associated assets when World Labs accepts the deletion. TokenLab keeps task status records for usage history.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -5020,7 +5050,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Seedance Action dispatcher (GET) Dispatches Volc-style Action requests. Use Version=2024-01-01 or omit Version.",
+      "description": "Dispatches Volc-style Action requests. Use Version=2024-01-01 or omit Version.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -5075,7 +5105,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Seedance Action dispatcher (POST) Dispatches Volc-style Action requests with TokenLab Bearer authentication. Real-person validation and material asset Actions use Version=2024-01-01 and are POST-only. The same POST contract is also available at the API root for endpoint-only migration from Volcengine.",
+      "description": "Dispatches Volc-style Action requests with TokenLab Bearer authentication. Real-person validation and material asset Actions use Version=2024-01-01 and are POST-only. The same POST contract is also available at the API root for endpoint-only migration from Volcengine.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -5087,7 +5117,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "Action": {
             "type": "string",
@@ -5311,7 +5341,7 @@
         "core",
         "full"
       ],
-      "description": "Edit image Edits an image using multipart image uploads, JSON image URLs, or the official JSON images array for supported GPT Image models.",
+      "description": "Edits an image using multipart image uploads, JSON image URLs, or the official JSON images array for supported GPT Image models.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -5323,7 +5353,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "model": {
             "type": "string",
@@ -5545,7 +5575,7 @@
         "core",
         "full"
       ],
-      "description": "Edit image Edits an image using multipart image uploads, JSON image URLs, or the official JSON images array for supported GPT Image models.",
+      "description": "Edits an image using multipart image uploads, JSON image URLs, or the official JSON images array for supported GPT Image models.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -5557,7 +5587,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "image": {
             "oneOf": [
@@ -5747,7 +5777,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "model": {
             "type": "string",
@@ -5996,7 +6026,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Batch embed contents (Gemini-compatible) Creates multiple embeddings using the native Gemini BatchEmbedContents contract.",
+      "description": "Creates multiple embeddings using the native Gemini BatchEmbedContents contract.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -6008,7 +6038,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "model": {
             "type": "string"
@@ -6066,7 +6096,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Count tokens (Gemini-compatible) Counts tokens using the native Gemini CountTokens contract. Unknown fields and either official ProtoJSON field-name spelling are forwarded best-effort.",
+      "description": "Counts tokens using the native Gemini CountTokens contract. Unknown fields and either official ProtoJSON field-name spelling are forwarded best-effort.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -6134,7 +6164,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Embed content (Gemini-compatible) Creates an embedding using the native Gemini EmbedContent contract.",
+      "description": "Creates an embedding using the native Gemini EmbedContent contract.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -6146,7 +6176,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "model": {
             "type": "string"
@@ -6221,7 +6251,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Get 3D task status Retrieves the status and result of a 3D generation task.",
+      "description": "Retrieves the status and result of a 3D generation task.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -6265,7 +6295,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Get Gemini-native model Retrieves model metadata through the Gemini-compatible v1beta surface.",
+      "description": "Retrieves model metadata through the Gemini-compatible v1beta surface.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -6309,7 +6339,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Get image task status Compatibility alias for polling public async image task IDs such as `ldtask_...`. Prefer the `poll_url` returned by create responses, or use `/v1/tasks/{id}` as the canonical fixed status endpoint. This route uses the same authorization, ownership checks, billing headers, terminal snapshots, and response shape as the image-specific status handler.",
+      "description": "Compatibility alias for polling public async image task IDs such as `ldtask_...`. Prefer the `poll_url` returned by create responses, or use `/v1/tasks/{id}` as the canonical fixed status endpoint. This route uses the same authorization, ownership checks, billing headers, terminal snapshots, and response shape as the image-specific status handler.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -6357,7 +6387,7 @@
         "core",
         "full"
       ],
-      "description": "Get model Retrieves current model details, including supported operations, request parameters, request endpoints, selector limits, and pricing when available. Non-chat integrations should read these current model-specific request details before creating a request.",
+      "description": "Retrieves current model details, including supported operations, request parameters, request endpoints, selector limits, and pricing when available. Non-chat integrations should read these current model-specific request details before creating a request.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -6404,7 +6434,7 @@
         "core",
         "full"
       ],
-      "description": "Get model pricing Retrieves pricing-only detail for one model. Use this endpoint for price explanation, not for non-chat request construction.",
+      "description": "Retrieves pricing-only detail for one model. Use this endpoint for price explanation, not for non-chat request construction.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -6449,7 +6479,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Get music task status Retrieves the status and result of a music generation task.",
+      "description": "Retrieves the status and result of a music generation task.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -6495,7 +6525,7 @@
         "core",
         "full"
       ],
-      "description": "List model pricing Returns the public pricing surface for active models, with optional provider and tag filters.",
+      "description": "Returns the public pricing surface for active models, with optional provider and tag filters.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -6542,7 +6572,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Get Seedance material asset Retrieves one TokenLab Seedance material asset and its asynchronous ingestion status.",
+      "description": "Retrieves one TokenLab Seedance material asset and its asynchronous ingestion status.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -6595,7 +6625,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Get Seedance material asset group Retrieves one TokenLab Seedance material group.",
+      "description": "Retrieves one TokenLab Seedance material group.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -6649,7 +6679,7 @@
         "core",
         "full"
       ],
-      "description": "Get async task status Retrieves the status and result of an asynchronous generation task. Prefer the `poll_url` returned by the create response; `/v1/tasks/{id}` is the canonical fixed status endpoint for video, music, and 3D jobs.",
+      "description": "Retrieves the status and result of an asynchronous generation task. Prefer the `poll_url` returned by the create response; `/v1/tasks/{id}` is the canonical fixed status endpoint for video, music, and 3D jobs.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -6711,7 +6741,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Get video task status Retrieves the status and result of a video generation task. New clients should prefer the `poll_url` returned by create responses, or use `/v1/tasks/{id}` as the canonical fixed status endpoint. The `/v1/videos/generations/{id}` path remains for backward compatibility.",
+      "description": "Retrieves the status and result of a video generation task. New clients should prefer the `poll_url` returned by create responses, or use `/v1/tasks/{id}` as the canonical fixed status endpoint. The `/v1/videos/generations/{id}` path remains for backward compatibility.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -6768,7 +6798,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "BytedToken": {
             "type": "string",
@@ -6916,7 +6946,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Get World Labs world Retrieves a World Labs world generated through TokenLab. The world ID must be owned by the authenticated organization.",
+      "description": "Retrieves a World Labs world generated through TokenLab. The world ID must be owned by the authenticated organization.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -6961,7 +6991,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Get World Labs media asset Retrieves metadata for a World Labs media asset prepared through TokenLab. The media asset must belong to the authenticated organization.",
+      "description": "Retrieves metadata for a World Labs media asset prepared through TokenLab. The media asset must belong to the authenticated organization.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -7006,7 +7036,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Get world generation status Retrieves the status and result of a World Labs Marble world generation task.",
+      "description": "Retrieves the status and result of a World Labs Marble world generation task.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -7068,7 +7098,7 @@
       "profiles": [
         "full"
       ],
-      "description": "List message batches (Anthropic-compatible) Lists native Anthropic Message Batches for the authenticated organization.",
+      "description": "Lists native Anthropic Message Batches for the authenticated organization.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -7251,7 +7281,7 @@
       "profiles": [
         "full"
       ],
-      "description": "List Gemini-native models Lists enabled models through the Gemini-compatible v1beta model discovery surface.",
+      "description": "Lists enabled models through the Gemini-compatible v1beta model discovery surface.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -7300,7 +7330,7 @@
         "core",
         "full"
       ],
-      "description": "List models Lists the currently available models. Use `view=compact` for model selection and `view=full` for the existing OpenAI-compatible discovery shape. Native API calls default to `full`; integrations may choose `compact` as their default. Non-chat recommendations are available through `recommended_for`.",
+      "description": "Lists the currently available models. Use `view=compact` for model selection and `view=full` for the existing OpenAI-compatible discovery shape. Native API calls default to `full`; integrations may choose `compact` as their default. Non-chat recommendations are available through `recommended_for`.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -7395,7 +7425,7 @@
       "profiles": [
         "full"
       ],
-      "description": "List Seedance material asset groups Lists Seedance material groups owned by the authenticated organization. Real-person groups are returned after GetVisualValidateResult succeeds.",
+      "description": "Lists Seedance material groups owned by the authenticated organization. Real-person groups are returned after GetVisualValidateResult succeeds.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -7468,7 +7498,7 @@
       "profiles": [
         "full"
       ],
-      "description": "List Seedance material assets Lists Seedance material assets owned by the authenticated organization. Use library_type, group_id, and status filters to find assets for a generation workflow.",
+      "description": "Lists Seedance material assets owned by the authenticated organization. Use library_type, group_id, and status filters to find assets for a generation workflow.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -7548,7 +7578,7 @@
       "profiles": [
         "full"
       ],
-      "description": "List Seedance tasks (Volc-compatible) Lists recent Seedance compatibility tasks for the authenticated organization.",
+      "description": "Lists recent Seedance compatibility tasks for the authenticated organization.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -7742,7 +7772,7 @@
       "profiles": [
         "full"
       ],
-      "description": "List World Labs worlds Lists World Labs worlds created through TokenLab for the authenticated organization. Results only include resources created through TokenLab.",
+      "description": "Lists World Labs worlds created through TokenLab for the authenticated organization. Results only include resources created through TokenLab.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -7871,7 +7901,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Prepare World Labs media asset upload Creates a World Labs media asset record and returns a signed upload URL. Use the returned media_asset_id from native world_prompt objects with source=media_asset. Media assets can only be used by the organization that created them.",
+      "description": "Creates a World Labs media asset record and returns a signed upload URL. Use the returned media_asset_id from native world_prompt objects with source=media_asset. Media assets can only be used by the organization that created them.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -7945,7 +7975,7 @@
         "core",
         "full"
       ],
-      "description": "Rerank documents Reranks documents by relevance to a query using semantic similarity.",
+      "description": "Reranks documents by relevance to a query using semantic similarity.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -7957,7 +7987,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "model": {
             "type": "string",
@@ -8025,7 +8055,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Retrieve message batch (Anthropic-compatible) Retrieves the status and metadata for a native Anthropic Message Batch.",
+      "description": "Retrieves the status and metadata for a native Anthropic Message Batch.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -8070,7 +8100,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Retrieve message batch results (Anthropic-compatible) Downloads JSONL results for a completed native Anthropic Message Batch.",
+      "description": "Downloads JSONL results for a completed native Anthropic Message Batch.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -8255,7 +8285,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Retrieve response Retrieves a stored Responses API response by TokenLab response id. Ownership checks return 404 when the response is missing or unavailable to the current API key.",
+      "description": "Retrieves a stored Responses API response by TokenLab response id. Ownership checks return 404 when the response is missing or unavailable to the current API key.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -8416,7 +8446,7 @@
         "core",
         "full"
       ],
-      "description": "Create transcription Transcribes audio into text (Speech-to-Text).",
+      "description": "Transcribes audio into text (Speech-to-Text).",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -8428,7 +8458,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "file": {
             "type": "string",
@@ -8523,7 +8553,7 @@
         "core",
         "full"
       ],
-      "description": "Translate audio Transcribes audio and translates the result to English.",
+      "description": "Transcribes audio and translates the result to English.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -8535,7 +8565,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "file": {
             "type": "string",
@@ -8601,7 +8631,7 @@
         "core",
         "full"
       ],
-      "description": "Translate text Translates text into a target language using the current translation request format.",
+      "description": "Translates text into a target language using the current translation request format.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -8613,7 +8643,7 @@
               "verified",
               "official"
             ],
-            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation."
+            "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "model": {
             "type": "string"
@@ -8682,7 +8712,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Update Seedance material asset Updates a Seedance material asset owned by the authenticated organization.",
+      "description": "Updates a Seedance material asset owned by the authenticated organization.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -8766,7 +8796,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Update Seedance material asset group Updates display metadata for a TokenLab Seedance material group.",
+      "description": "Updates display metadata for a TokenLab Seedance material group.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -8922,7 +8952,7 @@
         "core",
         "full"
       ],
-      "description": "Upload file Uploads a TokenLab/OpenAI-compatible batch or image file. With anthropic-beta: files-api-2025-04-14, uploads an Anthropic Files resource without a purpose field and returns Anthropic file metadata.",
+      "description": "Uploads a TokenLab/OpenAI-compatible batch or image file. With anthropic-beta: files-api-2025-04-14, uploads an Anthropic Files resource without a purpose field and returns Anthropic file metadata.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "openapi_url": "https://docs.tokenlab.sh/openapi.json",
+  "openapi_url": "https://tokenlab.sh/docs/openapi.json",
   "default_profile": "core",
   "profiles": {
     "catalog": {
@@ -119,7 +119,7 @@
   },
   "public_contract": {
     "landing_url": "https://tokenlab.sh/mcp",
-    "docs_url": "https://docs.tokenlab.sh/integrations/tokenlab-mcp-server",
+    "docs_url": "https://tokenlab.sh/docs/en/integrations/tokenlab-mcp-server",
     "recommended_client_name": "tokenlab",
     "live_model_contract": {
       "tool": "get_model",

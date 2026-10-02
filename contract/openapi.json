@@ -89,7 +89,7 @@
           "Chat"
         ],
         "summary": "Create chat completion",
-        "description": "Creates a model response from a Chat Completions request. Chat-native upstreams receive the request shape unchanged apart from routing and authentication fields; unknown fields are forwarded on a best-effort basis. Portable Chat requests may be compiled one-way to another protocol when a compatible physical endpoint is selected.",
+        "description": "Creates a model response from a Chat Completions request. Supported request formats are listed in each model’s details. Unknown fields are accepted on a best-effort basis; model-specific support is not guaranteed.",
         "operationId": "createChatCompletion",
         "requestBody": {
           "required": true,
@@ -528,6 +528,9 @@
                           "additionalProperties": true
                         }
                       ]
+                    },
+                    "error_details": {
+                      "$ref": "#/components/schemas/AsyncTaskErrorDetails"
                     }
                   }
                 }
@@ -1448,7 +1451,7 @@
             }
           },
           "400": {
-            "description": "Task type, provider, or model does not support cancellation",
+            "description": "This task does not support cancellation",
             "content": {
               "application/json": {
                 "schema": {
@@ -2000,7 +2003,7 @@
           "Anthropic"
         ],
         "summary": "Delete message batch (Anthropic-compatible)",
-        "description": "Deletes a native Anthropic Message Batch when the provider supports deletion.",
+        "description": "Deletes an Anthropic Message Batch when deletion is supported for that batch.",
         "operationId": "deleteAnthropicMessageBatch",
         "parameters": [
           {
@@ -2109,7 +2112,7 @@
           "Anthropic"
         ],
         "summary": "Cancel message batch (Anthropic-compatible)",
-        "description": "Cancels a native Anthropic Message Batch when the provider still allows cancellation.",
+        "description": "Cancels an Anthropic Message Batch when cancellation is still available for that batch.",
         "operationId": "cancelAnthropicMessageBatch",
         "parameters": [
           {
@@ -2160,7 +2163,7 @@
           "Gemini"
         ],
         "summary": "Generate content (Gemini-compatible)",
-        "description": "Generates content using the native Gemini GenerateContent shape. This route is exposed only when the model details advertise Gemini requests and a same-protocol route is currently available. ProtoJSON lowerCamelCase and original proto snake_case field names are preserved. Unknown fields are forwarded best-effort and support is determined by the selected provider.\n\n**Authentication:** Use `?key=` query parameter, `x-goog-api-key` header, or `Authorization: Bearer` header.",
+        "description": "Generates content using the Gemini GenerateContent request shape. The model details must advertise Gemini requests and the model must be available. ProtoJSON lowerCamelCase and original proto snake_case field names are preserved. Unknown fields are accepted on a best-effort basis; model-specific support is not guaranteed.\n\n**Authentication:** Use `?key=` query parameter, `x-goog-api-key` header, or `Authorization: Bearer` header.",
         "operationId": "geminiGenerateContent",
         "parameters": [
           {
@@ -2642,7 +2645,7 @@
           "Responses"
         ],
         "summary": "Create response (OpenAI Responses API)",
-        "description": "Creates a response using the native OpenAI Responses API shape. The model details must advertise the Responses request format and a same-protocol route must be currently available; model names and providers do not imply availability. Unknown request fields are forwarded on a best-effort basis and remain subject to the selected provider's support.",
+        "description": "Creates a response using the OpenAI Responses API request shape. The model details must advertise the Responses request format and the model must be available. Unknown fields are accepted on a best-effort basis; model-specific support is not guaranteed.",
         "operationId": "createResponse",
         "requestBody": {
           "required": true,
@@ -2710,7 +2713,7 @@
                     "properties": {
                       "include_obfuscation": {
                         "type": "boolean",
-                        "description": "When true, request obfuscated tokens in Responses stream events from compatible upstreams."
+                        "description": "When true, request obfuscated tokens in Responses stream events where supported."
                       }
                     },
                     "additionalProperties": true,
@@ -2728,7 +2731,7 @@
                       "string",
                       "null"
                     ],
-                    "description": "Service tier hint for compatible providers."
+                    "description": "Service tier hint where supported by the model."
                   },
                   "truncation": {
                     "type": "string",
@@ -3271,7 +3274,7 @@
                   },
                   "seed": {
                     "type": "integer",
-                    "description": "Seed for deterministic-compatible providers."
+                    "description": "Seed for repeatable generation where supported by the model."
                   },
                   "user": {
                     "type": "string",
@@ -3666,7 +3669,7 @@
           "Management"
         ],
         "summary": "Get API key usage",
-        "description": "Returns paginated key-level usage details without exposing provider-specific execution details.",
+        "description": "Returns paginated usage details for this API key.",
         "operationId": "getManagementApiKeyUsage",
         "security": [
           {
@@ -3796,7 +3799,7 @@
           "Management"
         ],
         "summary": "Get API key billing",
-        "description": "Returns aggregated key-level billing breakdowns without exposing provider-specific execution details.",
+        "description": "Returns aggregated billing breakdowns for this API key.",
         "operationId": "getManagementApiKeyBilling",
         "security": [
           {
@@ -5665,6 +5668,12 @@
                     "cost": {
                       "type": "object",
                       "additionalProperties": true
+                    },
+                    "error": {
+                      "$ref": "#/components/schemas/AsyncTaskError"
+                    },
+                    "error_details": {
+                      "$ref": "#/components/schemas/AsyncTaskErrorDetails"
                     }
                   },
                   "additionalProperties": true
@@ -5762,7 +5771,10 @@
                       "additionalProperties": true
                     },
                     "error": {
-                      "type": "string"
+                      "$ref": "#/components/schemas/AsyncTaskError"
+                    },
+                    "error_details": {
+                      "$ref": "#/components/schemas/AsyncTaskErrorDetails"
                     }
                   },
                   "additionalProperties": true
@@ -8511,14 +8523,14 @@
           "prediction": {
             "type": "object",
             "additionalProperties": true,
-            "description": "Prediction hints for providers that support draft or speculative decoding."
+            "description": "Prediction hints for models that support draft or speculative decoding."
           },
           "service_tier": {
             "type": [
               "string",
               "null"
             ],
-            "description": "Service tier hint for compatible providers."
+            "description": "Service tier hint where supported by the model."
           }
         },
         "additionalProperties": true
@@ -9098,7 +9110,7 @@
           },
           "quality": {
             "type": "string",
-            "description": "Image quality. Defaults and accepted values are model-specific. For gpt-image-2, omit this field or use auto for automatic quality, or send low, medium, or high. Other image families may use provider-specific values."
+            "description": "Image quality. Defaults and accepted values are model-specific. For gpt-image-2, omit this field or use auto for automatic quality, or send low, medium, or high. Other models may accept different values; check the model details."
           },
           "style": {
             "type": "string",
@@ -9111,6 +9123,10 @@
           "expand_prompt": {
             "type": "boolean",
             "description": "Ask compatible models to expand or enhance the prompt."
+          },
+          "prompt_extend": {
+            "type": "boolean",
+            "description": "For z-image-turbo, enable prompt expansion. Defaults to false. Enabling it uses the model's prompt-expansion price."
           },
           "negative_prompt": {
             "type": "string",
@@ -9242,6 +9258,10 @@
           "expand_prompt": {
             "type": "boolean"
           },
+          "prompt_extend": {
+            "type": "boolean",
+            "description": "For z-image-turbo, enable prompt expansion. Defaults to false. Enabling it uses the model's prompt-expansion price."
+          },
           "negative_prompt": {
             "type": "string"
           },
@@ -9338,6 +9358,24 @@
                 }
               }
             }
+          },
+          "task_id": {
+            "type": "string",
+            "description": "Task ID when the request runs as a task."
+          },
+          "status": {
+            "type": "string",
+            "description": "Task status when the request runs as a task."
+          },
+          "poll_url": {
+            "type": "string",
+            "description": "URL to poll for the task result."
+          },
+          "error": {
+            "$ref": "#/components/schemas/AsyncTaskError"
+          },
+          "error_details": {
+            "$ref": "#/components/schemas/AsyncTaskErrorDetails"
           }
         },
         "required": [
@@ -9380,11 +9418,11 @@
                 "additionalProperties": false
               }
             ],
-            "description": "Voice selector for OpenAI-compatible, Gemini, xAI, and MiniMax-compatible routes. Some MiniMax routes also accept voice_id."
+            "description": "Voice selector for OpenAI-compatible, Gemini, xAI, and MiniMax-compatible speech models. Some MiniMax models also accept voice_id."
           },
           "voice_id": {
             "type": "string",
-            "description": "Provider-native voice selector for MiniMax-compatible speech models."
+            "description": "Voice selector for MiniMax-compatible speech models."
           },
           "instructions": {
             "type": "string",
@@ -9398,7 +9436,7 @@
           },
           "language_code": {
             "type": "string",
-            "description": "Optional language code for Gemini, xAI, and compatible TTS routes.",
+            "description": "Optional language code for Gemini, xAI, and compatible TTS models.",
             "example": "en-US"
           },
           "response_format": {
@@ -9425,7 +9463,7 @@
             "type": "number",
             "minimum": 0,
             "maximum": 2,
-            "description": "Sampling temperature for Gemini-compatible TTS routes."
+            "description": "Sampling temperature for Gemini-compatible TTS models."
           }
         },
         "additionalProperties": false
@@ -9619,7 +9657,7 @@
           },
           "output_audio": {
             "type": "boolean",
-            "description": "Canonical model-dependent audio output toggle. Veo 3 and Seedance requests default to true when omitted. Kling 3.0 Video accepts this selector for non-element-reference requests and maps it to the compatible sound control; omitted Kling requests default to silent output. Do not combine output_audio=true with kling_elements. The aliases outputAudio and generate_audio are accepted for compatibility and must match when provided together."
+            "description": "Audio-output selector for operations that declare it. Omission follows the model default; `false` requests silent output only when allowed. See the audio behavior above and the selected model detail."
           },
           "fps": {
             "type": "integer",
@@ -9742,7 +9780,7 @@
           "audio_url": {
             "type": "string",
             "format": "uri",
-            "description": "Publicly reachable audio URL for model-specific audio-conditioned video flows."
+            "description": "Public audio URL for an audio-driven or reference-audio operation supported by the selected model."
           },
           "task_id": {
             "type": "string",
@@ -9777,7 +9815,7 @@
           },
           "video_urls": {
             "type": "array",
-            "description": "Compatibility array for video-conditioned flows when multiple input videos are supported by the routed model family. Seedance 2.5 accepts up to 10 aggregate video inputs; other video models retain the shared limit of 3 references unless the model details specify a lower limit.",
+            "description": "Compatibility array for video-conditioned flows when multiple input videos are supported by the selected model. Seedance 2.5 accepts up to 10 aggregate video inputs; other video models retain the shared limit of 3 references unless the model details specify a lower limit.",
             "minItems": 1,
             "maxItems": 10,
             "items": {
@@ -9787,7 +9825,7 @@
           },
           "audio_urls": {
             "type": "array",
-            "description": "Compatibility array for audio-conditioned flows when multiple audio references are supported by the routed model family. Seedance 2.5 accepts up to 10 aggregate audio inputs and permits pure-audio reference requests without a prompt; other video models retain the shared limit of 3 references unless the model details specify a lower limit.",
+            "description": "Compatibility array for audio-conditioned flows when multiple audio references are supported by the selected model. Seedance 2.5 accepts up to 10 aggregate audio inputs and permits pure-audio reference requests without a prompt; other video models retain the shared limit of 3 references unless the model details specify a lower limit.",
             "minItems": 1,
             "maxItems": 10,
             "items": {
@@ -9860,11 +9898,27 @@
           "draft": {
             "type": "boolean",
             "default": false,
-            "description": "Seedance 1.5 Pro draft workflow flag. Only supported by draft-capable Seedance routes; draft=true creates a low-cost draft task."
+            "description": "Seedance 1.5 Pro draft workflow flag. Only supported by Seedance models supporting drafts; draft=true creates a low-cost draft task."
           },
           "draft_task_id": {
             "type": "string",
             "description": "Seedance 1.5 Pro draft promotion task ID. Provide this instead of draft=true to create the final video from a previous draft task."
+          },
+          "audio": {
+            "type": "boolean",
+            "description": "Audio-output selector for operations that declare it. Omission follows the model default; `false` requests silent output only when allowed. See the audio behavior above and the selected model detail."
+          },
+          "bgm": {
+            "type": "boolean",
+            "description": "Optional audio control. Accepted only when declared by the selected model and operation; availability may differ by operation."
+          },
+          "audio_type": {
+            "type": "string",
+            "description": "Optional audio control. Accepted only when declared by the selected model and operation; availability may differ by operation."
+          },
+          "voice_id": {
+            "type": "string",
+            "description": "Optional audio control. Accepted only when declared by the selected model and operation; availability may differ by operation."
           }
         }
       },
@@ -9910,15 +9964,10 @@
             }
           },
           "error": {
-            "type": "object",
-            "properties": {
-              "code": {
-                "type": "string"
-              },
-              "message": {
-                "type": "string"
-              }
-            }
+            "$ref": "#/components/schemas/AsyncTaskError"
+          },
+          "error_details": {
+            "$ref": "#/components/schemas/AsyncTaskErrorDetails"
           },
           "task_id": {
             "type": "string",
@@ -10036,6 +10085,9 @@
                 "additionalProperties": true
               }
             ]
+          },
+          "error_details": {
+            "$ref": "#/components/schemas/AsyncTaskErrorDetails"
           },
           "task_id": {
             "type": "string"
@@ -10918,7 +10970,7 @@
           },
           "service_tier": {
             "type": "string",
-            "description": "Service tier hint for compatible providers."
+            "description": "Service tier hint where supported by the model."
           }
         }
       },
@@ -11244,7 +11296,7 @@
               },
               "responseModalities": {
                 "type": "array",
-                "description": "Requested output modalities for compatible native Gemini routes.",
+                "description": "Requested output modalities for supported Gemini models.",
                 "items": {
                   "type": "string"
                 }
@@ -12188,7 +12240,7 @@
             "example": 1741425600
           }
         },
-        "description": "File metadata. Batch files include status; image/reference files may omit status depending on the upstream file provider."
+        "description": "File metadata. Batch files include status; image/reference files may omit status depending on the file purpose."
       },
       "FileListResponse": {
         "type": "object",
@@ -13006,7 +13058,7 @@
       },
       "AnthropicMessageBatch": {
         "type": "object",
-        "description": "Anthropic-compatible message batch object relayed from the provider.",
+        "description": "Anthropic-compatible message batch object.",
         "required": [
           "id",
           "type",
@@ -13039,7 +13091,7 @@
           "request_counts": {
             "type": "object",
             "additionalProperties": true,
-            "description": "Upstream request count summary for the batch"
+            "description": "Request count summary for the batch"
           },
           "ended_at": {
             "type": [
@@ -13075,7 +13127,7 @@
               "string",
               "null"
             ],
-            "description": "Upstream results URL, when available"
+            "description": "Results URL, when available"
           }
         },
         "additionalProperties": true
@@ -13272,7 +13324,7 @@
       },
       "ModelListTokenLabExtension": {
         "type": "object",
-        "description": "TokenLab discovery fields for the list route. Detail-only metadata such as capability flags, pricing provenance, full model details, and empty recommendation snapshots are omitted.",
+        "description": "TokenLab model discovery fields. Use the model details endpoint for the full supported request and pricing contract.",
         "properties": {
           "aliases": {
             "type": "array",
@@ -13396,14 +13448,14 @@
                   "deprecated",
                   "retired"
                 ],
-                "description": "Provider lifecycle stage for public discovery and display."
+                "description": "Model lifecycle stage for public discovery and display."
               },
               "reason": {
                 "type": [
                   "string",
                   "null"
                 ],
-                "description": "Short lifecycle reason or provider note."
+                "description": "Short model lifecycle explanation."
               },
               "replacement_model": {
                 "type": [
@@ -13718,14 +13770,14 @@
                   "deprecated",
                   "retired"
                 ],
-                "description": "Provider lifecycle stage for public discovery and display."
+                "description": "Model lifecycle stage for public discovery and display."
               },
               "reason": {
                 "type": [
                   "string",
                   "null"
                 ],
-                "description": "Short lifecycle reason or provider note."
+                "description": "Short model lifecycle explanation."
               },
               "replacement_model": {
                 "type": [
@@ -14253,6 +14305,61 @@
             "items": {
               "type": "string"
             }
+          },
+          "parameter_options": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": [
+                  "string",
+                  "number",
+                  "boolean"
+                ]
+              }
+            }
+          },
+          "parameter_value_constraints": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "enum": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "string",
+                      "boolean"
+                    ]
+                  }
+                },
+                "enumCaseInsensitive": {
+                  "type": "boolean"
+                },
+                "maxItems": {
+                  "type": "integer"
+                },
+                "maxInteger": {
+                  "type": "integer"
+                },
+                "when": {
+                  "type": "object",
+                  "properties": {
+                    "parameter": {
+                      "type": "string"
+                    },
+                    "equals": {
+                      "type": [
+                        "string",
+                        "boolean"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
           }
         },
         "additionalProperties": false
@@ -14675,7 +14782,7 @@
             "minimum": -1,
             "maximum": 4294967295,
             "default": -1,
-            "description": "Random seed. -1 lets the model choose a seed. Forwarded on a best-effort basis for routes that accept it."
+            "description": "Random seed. -1 lets the model choose a seed. Accepted on a best-effort basis where supported by the model."
           },
           "execution_expires_after": {
             "type": "integer",
@@ -15979,6 +16086,189 @@
             "description": "Resume or pause delivery. Resuming resets the consecutive failure count."
           }
         }
+      },
+      "TaskTimeoutWebhook": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "created",
+          "data"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Stable event ID for deduplication at the receiving endpoint."
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "task.timeout"
+            ]
+          },
+          "created": {
+            "type": "integer",
+            "description": "Event creation time in Unix seconds."
+          },
+          "data": {
+            "type": "object",
+            "required": [
+              "taskType",
+              "taskId",
+              "expectedTimeoutMs",
+              "actualWaitMs"
+            ],
+            "properties": {
+              "taskType": {
+                "type": "string",
+                "enum": [
+                  "video",
+                  "music",
+                  "3d",
+                  "world",
+                  "image",
+                  "audio"
+                ]
+              },
+              "taskId": {
+                "type": "string"
+              },
+              "expectedTimeoutMs": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Expected timeout threshold in milliseconds."
+              },
+              "actualWaitMs": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Actual elapsed wait in milliseconds."
+              },
+              "refundIssued": {
+                "type": "boolean",
+                "description": "True if the refund succeeded or had already been issued. False does not rule out a later refund."
+              },
+              "resolutionSource": {
+                "type": "string",
+                "enum": [
+                  "callback",
+                  "status_query",
+                  "background_poller",
+                  "timeout_detector",
+                  "create_response"
+                ]
+              },
+              "refundOutcome": {
+                "type": "string",
+                "enum": [
+                  "success",
+                  "already_refunded",
+                  "not_applicable",
+                  "failed_persisted",
+                  "failed_unrecoverable"
+                ],
+                "description": "Refund processing result at event creation."
+              }
+            },
+            "description": "Timeout event data. This event does not contain durationMs."
+          }
+        }
+      },
+      "AsyncTaskUpstreamError": {
+        "type": "object",
+        "description": "The upstream service's own error, present only for a task that ran on an Official route. Its `code` values are defined by the upstream service and may change; branch on `error_details.code` and `error_details.type`.",
+        "required": [
+          "message"
+        ],
+        "properties": {
+          "source": {
+            "type": "string",
+            "description": "Upstream service name, when known."
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "param": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AsyncTaskErrorDetails": {
+        "type": "object",
+        "description": "Why a task failed. A status read returns HTTP 200 even for a failed task; `status` here is the status of the failure itself.",
+        "required": [
+          "status",
+          "message",
+          "type",
+          "code",
+          "retryable"
+        ],
+        "properties": {
+          "projection_version": {
+            "type": "integer",
+            "description": "`2` means `message` is the final reason for the failure."
+          },
+          "status": {
+            "type": "integer",
+            "minimum": 400,
+            "maximum": 599
+          },
+          "message": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "param": {
+            "type": "string",
+            "description": "The request field at fault, omitted when no specific field is known."
+          },
+          "retryable": {
+            "type": "boolean"
+          },
+          "upstream": {
+            "$ref": "#/components/schemas/AsyncTaskUpstreamError"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AsyncTaskError": {
+        "description": "Why the task failed: a string, or an object with `message` and, when known, `type`, `code`, `param` and `retryable`.",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "object",
+            "required": [
+              "message"
+            ],
+            "properties": {
+              "message": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "code": {
+                "type": "string"
+              },
+              "param": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
       }
     },
     "responses": {
@@ -16090,7 +16380,7 @@
         }
       },
       "UpstreamError": {
-        "description": "Upstream Provider Error",
+        "description": "Service Error",
         "content": {
           "application/json": {
             "schema": {
@@ -16098,7 +16388,7 @@
             },
             "example": {
               "error": {
-                "message": "Upstream provider returned an error",
+                "message": "The service could not complete the request",
                 "type": "upstream_error"
               }
             }
@@ -16106,7 +16396,7 @@
         }
       },
       "AllChannelsFailed": {
-        "description": "All Channels Failed",
+        "description": "Service Unavailable",
         "content": {
           "application/json": {
             "schema": {
@@ -16114,7 +16404,7 @@
             },
             "example": {
               "error": {
-                "message": "All available channels failed to process the request",
+                "message": "The service is temporarily unable to process this request",
                 "type": "all_channels_failed"
               }
             }
@@ -16171,7 +16461,7 @@
         }
       },
       "DeliveryUnavailable": {
-        "description": "No eligible Delivery route is currently available, or all eligible routes failed.",
+        "description": "The requested Delivery tier is temporarily unavailable.",
         "content": {
           "application/json": {
             "schema": {
@@ -16179,7 +16469,7 @@
             },
             "examples": {
               "requestedTierUnavailable": {
-                "summary": "The requested Delivery tier has no eligible route",
+                "summary": "The requested Delivery tier is unavailable",
                 "value": {
                   "error": {
                     "message": "The requested Delivery tier is temporarily unavailable for model gpt-5.4.",
@@ -16191,7 +16481,7 @@
                 }
               },
               "eligibleRoutesFailed": {
-                "summary": "All eligible Delivery routes failed",
+                "summary": "The requested Delivery tier could not complete this request",
                 "value": {
                   "error": {
                     "message": "All available routes failed to process the request.",
@@ -16211,7 +16501,7 @@
         "name": "X-TokenLab-Delivery-Policy",
         "in": "header",
         "required": false,
-        "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, upstream acceptance, or persistent resource creation.",
+        "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation.",
         "schema": {
           "type": "string",
           "enum": [
@@ -16219,6 +16509,79 @@
             "verified",
             "official"
           ]
+        }
+      }
+    }
+  },
+  "webhooks": {
+    "taskTimeout": {
+      "post": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Task timeout notification",
+        "description": "Sent to a configured webhook endpoint subscribed to task.timeout. Verify the HMAC-SHA256 signature over the timestamp, a period, and the raw request body using the signing secret. Return 2xx promptly and deduplicate by event ID. See https://tokenlab.sh/docs/en/guides/webhooks for signature verification and delivery recovery.",
+        "operationId": "receiveTaskTimeoutWebhook",
+        "security": [],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Webhook-ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Matches the event id in the request body."
+          },
+          {
+            "in": "header",
+            "name": "X-Webhook-Timestamp",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]+$"
+            },
+            "description": "Delivery attempt timestamp in Unix seconds."
+          },
+          {
+            "in": "header",
+            "name": "X-Webhook-Signature",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^sha256=[a-f0-9]{64}$"
+            },
+            "description": "HMAC-SHA256 signature using the complete whsec_ signing secret."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskTimeoutWebhook"
+              },
+              "example": {
+                "id": "event-unique-id",
+                "type": "task.timeout",
+                "created": 1790000000,
+                "data": {
+                  "taskType": "image",
+                  "taskId": "ldtask_0123456789abcdef0123456789abcdef",
+                  "expectedTimeoutMs": 1800000,
+                  "actualWaitMs": 1801000,
+                  "refundIssued": true,
+                  "resolutionSource": "timeout_detector",
+                  "refundOutcome": "success"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "2XX": {
+            "description": "Notification accepted by the receiving endpoint."
+          }
         }
       }
     }
