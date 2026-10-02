@@ -60,14 +60,10 @@ async function publishedVersions(packageName, registryName) {
   const encodedPackage = encodeURIComponent(packageName);
   const [npmPackage, registry] = await Promise.all([
     fetchJson(`https://registry.npmjs.org/${encodedPackage}/latest`),
-    fetchJson(`https://registry.modelcontextprotocol.io/v0.1/servers?search=${encodeURIComponent(registryName)}`)
+    fetchJson(`https://registry.modelcontextprotocol.io/v0.1/servers/${encodeURIComponent(registryName)}/versions/latest`)
   ]);
-  const matchingServers = (registry.servers || [])
-    .filter((entry) => entry?.server?.name === registryName)
-    .map((entry) => entry.server.version)
-    .filter(Boolean)
-    .sort(compareVersions);
-  const registryVersion = matchingServers.at(-1);
+  if (registry.server?.name !== registryName) throw new Error("Published MCP Registry identity does not match");
+  const registryVersion = registry.server.version;
   if (!npmPackage.version || !registryVersion) throw new Error("Published MCP release state is incomplete");
   return { npmVersion: npmPackage.version, registryVersion };
 }
