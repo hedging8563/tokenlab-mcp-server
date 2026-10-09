@@ -132,34 +132,6 @@
                     "stream": true
                   }
                 },
-                "live_translation": {
-                  "summary": "Stream audio translation",
-                  "value": {
-                    "model": "qwen3-livetranslate-flash",
-                    "messages": [
-                      {
-                        "role": "user",
-                        "content": [
-                          {
-                            "type": "input_audio",
-                            "input_audio": {
-                              "data": "https://example.com/sample.wav",
-                              "format": "wav"
-                            }
-                          }
-                        ]
-                      }
-                    ],
-                    "translation_options": {
-                      "source_lang": "zh",
-                      "target_lang": "en"
-                    },
-                    "modalities": [
-                      "text"
-                    ],
-                    "stream": true
-                  }
-                },
                 "function_calling": {
                   "summary": "Function calling",
                   "value": {
@@ -335,7 +307,7 @@
                 "text": {
                   "summary": "Text input",
                   "value": {
-                    "model": "jina-embeddings-v4",
+                    "model": "qwen3-vl-embedding",
                     "input": {
                       "text": "Describe this product for semantic search."
                     }
@@ -535,6 +507,9 @@
                     },
                     "error_details": {
                       "$ref": "#/components/schemas/AsyncTaskErrorDetails"
+                    },
+                    "media_retention": {
+                      "$ref": "#/components/schemas/MediaRetention"
                     }
                   }
                 }
@@ -592,18 +567,18 @@
                 "basic": {
                   "summary": "Basic TTS",
                   "value": {
-                    "model": "tts-1",
+                    "model": "grok-tts",
                     "input": "Hello, welcome to TokenLab!",
-                    "voice": "alloy"
+                    "voice": "eve"
                   }
                 },
-                "hd": {
-                  "summary": "HD quality TTS",
+                "voice_and_speed": {
+                  "summary": "Voice and speed",
                   "value": {
-                    "model": "tts-1-hd",
-                    "input": "This is high quality speech synthesis.",
-                    "voice": "nova",
-                    "response_format": "mp3",
+                    "model": "qwen3-tts-flash",
+                    "input": "This is a speech synthesis example.",
+                    "voice": "Cherry",
+                    "response_format": "wav",
                     "speed": 1
                   }
                 }
@@ -761,7 +736,7 @@
                 "image_to_video": {
                   "summary": "Image-to-Video",
                   "value": {
-                    "model": "hailuo-2.3-standard",
+                    "model": "hailuo-2.3",
                     "prompt": "Make this image come alive with gentle movement",
                     "operation": "image-to-video",
                     "image_url": "https://example.com/image.jpg",
@@ -1780,7 +1755,7 @@
           "Anthropic"
         ],
         "summary": "Count message tokens (Anthropic-compatible)",
-        "description": "Counts input tokens for an Anthropic-compatible messages request without creating a model response. Authentication is required; the operation is not billed.",
+        "description": "Counts input tokens for an Anthropic-compatible messages request without creating a model response. Authentication is required; the operation is not billed. Verified upstream counting is preferred. Upstream availability failures return a local estimate marked by X-TokenLab-Count-Tokens-Source: local_estimate. Platform authentication, permission and input errors remain errors. Bound files unreadable locally require upstream counting.",
         "operationId": "countAnthropicMessageTokens",
         "requestBody": {
           "required": true,
@@ -2735,7 +2710,7 @@
                       "string",
                       "null"
                     ],
-                    "description": "Service tier hint where supported by the model."
+                    "description": "TokenLab serves this request at the standard service tier. auto and default are forwarded. Other values, such as flex, priority, fast and ultrafast, are ignored and billed at the standard price."
                   },
                   "truncation": {
                     "type": "string",
@@ -3236,9 +3211,6 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "prompt"
-                ],
                 "properties": {
                   "model": {
                     "type": "string",
@@ -3246,7 +3218,7 @@
                   },
                   "prompt": {
                     "type": "string",
-                    "description": "3D model description"
+                    "description": "3D model description. Required for every model that takes a prompt; an image-to-3D model whose contract lists no prompt is called without one."
                   },
                   "image": {
                     "type": "string",
@@ -4539,7 +4511,8 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "file"
+                  "file",
+                  "model"
                 ],
                 "properties": {
                   "file": {
@@ -4547,8 +4520,7 @@
                     "format": "binary"
                   },
                   "model": {
-                    "type": "string",
-                    "default": "whisper-1"
+                    "type": "string"
                   },
                   "prompt": {
                     "type": "string"
@@ -4617,7 +4589,7 @@
             "schema": {
               "type": "string"
             },
-            "example": "gpt-realtime"
+            "example": "grok-voice-latest"
           }
         ],
         "responses": {
@@ -5779,6 +5751,9 @@
                     },
                     "error_details": {
                       "$ref": "#/components/schemas/AsyncTaskErrorDetails"
+                    },
+                    "media_retention": {
+                      "$ref": "#/components/schemas/MediaRetention"
                     }
                   },
                   "additionalProperties": true
@@ -9396,6 +9371,149 @@
           }
         }
       }
+    },
+    "/v1/media-results/{id}": {
+      "get": {
+        "tags": [
+          "Media Results"
+        ],
+        "summary": "Get a media result",
+        "description": "Returns a generated image, video, audio or downloadable 3D result. Result URLs have this form and stay valid for 30 days from when the result is first recorded. Use the URL exactly as you received it: its token grants access, and no API key is needed.",
+        "operationId": "getMediaResult",
+        "security": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Result ID, followed by the file extension, for example `.png`, `.mp4`, `.mp3` or `.glb`.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "description": "Access token from the URL you received.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            }
+          },
+          {
+            "name": "metadata",
+            "in": "query",
+            "required": false,
+            "description": "Return the saving status as JSON instead of the file.",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The file, or the saving status when `metadata=true`.",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status",
+                    "expires_at",
+                    "kind"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "saving",
+                        "saved",
+                        "failed",
+                        "expired"
+                      ]
+                    },
+                    "expires_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "content_type": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "image",
+                        "video",
+                        "audio",
+                        "3d"
+                      ]
+                    }
+                  }
+                },
+                "example": {
+                  "status": "saved",
+                  "expires_at": "2026-11-06T08:00:00.000Z",
+                  "content_type": "video/mp4",
+                  "kind": "video"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "Redirect to a short-lived download URL for a saved image, video or audio file. The download URL lasts at most five minutes."
+          },
+          "404": {
+            "description": "`media_not_found`: the token or file extension does not match the result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "`media_expired`: the 30-day period has ended, or saving failed more than 24 hours ago.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "`media_unavailable`: the result is not available now. Retry after the `Retry-After` delay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "`media_unavailable`: the result is not available now. Retry after the `Retry-After` delay.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -9661,7 +9779,45 @@
               "string",
               "null"
             ],
-            "description": "Service tier hint where supported by the model."
+            "description": "TokenLab serves this request at the standard service tier. auto and default are forwarded. Other values, such as flex, priority, fast and ultrafast, are ignored and billed at the standard price."
+          },
+          "anthropic_options": {
+            "type": "object",
+            "description": "Options for Claude models.",
+            "properties": {
+              "prompt_caching": {
+                "type": "boolean",
+                "description": "Set true to cache the start of the prompt on Claude models. TokenLab marks the end of the system prompt and the latest user message as cache points, unless a message already has cache_control."
+              },
+              "prompt_caching_ttl": {
+                "type": "string",
+                "enum": [
+                  "5m",
+                  "1h"
+                ],
+                "description": "Cache lifetime. Defaults to 5m. If the serving route does not support 1h, the 5-minute cache is used and the request is not rejected."
+              }
+            },
+            "additionalProperties": true
+          },
+          "extra": {
+            "type": "object",
+            "description": "Extension options. extra.prompt_caching and extra.prompt_caching_ttl are the same as the anthropic_options fields.",
+            "properties": {
+              "prompt_caching": {
+                "type": "boolean",
+                "description": "Set true to cache the start of the prompt on Claude models. TokenLab marks the end of the system prompt and the latest user message as cache points, unless a message already has cache_control."
+              },
+              "prompt_caching_ttl": {
+                "type": "string",
+                "enum": [
+                  "5m",
+                  "1h"
+                ],
+                "description": "Cache lifetime. Defaults to 5m. If the serving route does not support 1h, the 5-minute cache is used and the request is not rejected."
+              }
+            },
+            "additionalProperties": true
           }
         },
         "additionalProperties": true
@@ -9824,6 +9980,14 @@
           "tool_call_id": {
             "type": "string",
             "description": "ID of the tool call being responded to"
+          },
+          "reasoning_details": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            },
+            "description": "Assistant messages only: the reasoning_details returned in an earlier response, sent back unchanged."
           }
         }
       },
@@ -9980,6 +10144,18 @@
                   "string",
                   "null"
                 ]
+              },
+              "reasoning_content": {
+                "type": "string",
+                "description": "Thinking text, when the model thinks. Some models return only a summary, or no text."
+              },
+              "reasoning_details": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "description": "Thinking blocks with their signatures. To continue a conversation with thinking, send them back unchanged in the assistant message."
               }
             }
           },
@@ -10176,14 +10352,13 @@
       "ImageGenerationRequest": {
         "type": "object",
         "required": [
-          "model",
-          "prompt"
+          "model"
         ],
         "properties": {
           "prompt": {
             "type": "string",
             "maxLength": 4000,
-            "description": "Image description"
+            "description": "Image description. Required for every model that takes a prompt; a tool whose contract lists no prompt (background removal, upscaling, vectorizing) is called without one."
           },
           "model": {
             "type": "string",
@@ -10237,7 +10412,7 @@
           },
           "size": {
             "type": "string",
-            "description": "Image size. Defaults are model-specific. For gpt-image-2, omit this field or use auto for automatic sizing, or send WIDTHxHEIGHT; custom dimensions must both be multiples of 16, longest edge <= 3840px, long/short ratio <= 3:1, and total pixels between 655,360 and 8,294,400."
+            "description": "Image size. Defaults are model-specific. For gpt-image-2, omit this field or use auto for automatic sizing, or send WIDTHxHEIGHT; custom dimensions must both be multiples of 16, longest edge <= 3840px, long/short ratio <= 3:1, and total pixels between 655,360 and 8,294,400. For Google image models with resolution tiers (gemini-3.1-flash-image, gemini-3-pro-image, gemini-3.1-flash-lite-image, gemini-nano-banana-2.1, nano-banana-2, nano-banana-2.1, nano-banana-pro), send an output size from the model's size table or a resolution tier: 1K, 2K, or 4K. TokenLab sends a tier as resolution. A tier that the model does not support, or a tier that is different from resolution, returns 400 invalid_image_size_contract. The recommended form for these models is aspect_ratio with resolution."
           },
           "quality": {
             "type": "string",
@@ -10273,8 +10448,7 @@
               "url",
               "b64_json"
             ],
-            "default": "url",
-            "description": "Response format"
+            "description": "How the images are returned. Omitted: when the model returns image bytes, each image is in data[].b64_json, and also in data[].url when TokenLab stored it; when the model returns a link, each image is in data[].url. url: only data[].url. b64_json: only data[].b64_json. Links are TokenLab media-result URLs that stay valid for 30 days."
           },
           "async": {
             "type": "boolean",
@@ -10339,8 +10513,7 @@
       "ImageGenerationMultipartRequest": {
         "type": "object",
         "required": [
-          "model",
-          "prompt"
+          "model"
         ],
         "properties": {
           "model": {
@@ -10350,7 +10523,7 @@
           "prompt": {
             "type": "string",
             "maxLength": 4000,
-            "description": "Image description"
+            "description": "Image description. Required for every model that takes a prompt; a tool whose contract lists no prompt (background removal, upscaling, vectorizing) is called without one."
           },
           "operation": {
             "type": "string",
@@ -10507,6 +10680,9 @@
           },
           "error_details": {
             "$ref": "#/components/schemas/AsyncTaskErrorDetails"
+          },
+          "media_retention": {
+            "$ref": "#/components/schemas/MediaRetention"
           }
         },
         "required": [
@@ -10517,14 +10693,14 @@
       "AudioSpeechRequest": {
         "type": "object",
         "required": [
+          "model",
           "input"
         ],
         "properties": {
           "model": {
             "type": "string",
-            "default": "tts-1",
-            "description": "TTS model. Query GET /v1/models?recommended_for=tts for the current shortlist.",
-            "example": "tts-1"
+            "description": "TTS model. There is no default model. Query GET /v1/models?recommended_for=tts for the current shortlist.",
+            "example": "grok-tts"
           },
           "input": {
             "type": "string",
@@ -10582,7 +10758,7 @@
               "sse"
             ],
             "default": "audio",
-            "description": "TokenLab delivery format. stream_format=sse is not supported for tts-1 or tts-1-hd."
+            "description": "TokenLab delivery format."
           },
           "speed": {
             "type": "number",
@@ -10613,8 +10789,8 @@
           },
           "model": {
             "type": "string",
-            "description": "Model to use (whisper-1)",
-            "example": "whisper-1"
+            "description": "Transcription model ID. There is no default model.",
+            "example": "whisper-large-v3"
           },
           "language": {
             "type": "string",
@@ -11145,6 +11321,9 @@
           "draft_task_id": {
             "type": "string",
             "description": "Seedance draft task identifier when returned by the adapter."
+          },
+          "media_retention": {
+            "$ref": "#/components/schemas/MediaRetention"
           }
         },
         "required": [
@@ -11274,6 +11453,9 @@
           },
           "fbx_url": {
             "type": "string"
+          },
+          "media_retention": {
+            "$ref": "#/components/schemas/MediaRetention"
           }
         }
       },
@@ -11603,21 +11785,44 @@
                 ]
               },
               "input_per_1m": {
-                "type": "string"
+                "type": "string",
+                "description": "TokenLab Verified price per 1M input tokens. Omitted when the model has no Verified supply (`deliveryAvailability.verified` is false)."
               },
               "output_per_1m": {
-                "type": "string"
+                "type": "string",
+                "description": "TokenLab Verified price per 1M output tokens. Omitted when the model has no Verified supply (`deliveryAvailability.verified` is false)."
               },
               "per_request": {
-                "type": "string"
+                "type": "string",
+                "description": "TokenLab Verified price per request. Omitted when the model has no Verified supply (`deliveryAvailability.verified` is false)."
               },
               "min_price": {
                 "type": "string",
-                "description": "Minimum TokenLab price for a structured pricing model."
+                "description": "Lowest TokenLab Verified price for a model with structured pricing. Omitted when the model has no Verified supply (`deliveryAvailability.verified` is false)."
               },
               "max_price": {
                 "type": "string",
-                "description": "Maximum TokenLab price for a structured pricing model."
+                "description": "Highest TokenLab Verified price for a model with structured pricing. Omitted when the model has no Verified supply (`deliveryAvailability.verified` is false)."
+              },
+              "official_input_per_1m": {
+                "type": "string",
+                "description": "Official price per 1M input tokens. Requests that Official delivers are billed at this price."
+              },
+              "official_output_per_1m": {
+                "type": "string",
+                "description": "Official price per 1M output tokens. Requests that Official delivers are billed at this price."
+              },
+              "official_per_request": {
+                "type": "string",
+                "description": "Official price per request. Requests that Official delivers are billed at this price."
+              },
+              "official_min_price": {
+                "type": "string",
+                "description": "Lowest Official price for a model with structured pricing."
+              },
+              "official_max_price": {
+                "type": "string",
+                "description": "Highest Official price for a model with structured pricing."
               },
               "has_complex_pricing": {
                 "type": "boolean"
@@ -11774,7 +11979,7 @@
               },
               "code": {
                 "type": "string",
-                "description": "Error code"
+                "description": "Error code. Branch on this value, not on `message`. 400 codes include `invalid_request_error`, `missing_required_parameter`, `invalid_value`, `invalid_image_url`, `unsupported_model_capability` and `unpriceable_selection`."
               },
               "param": {
                 "type": "string",
@@ -13275,6 +13480,44 @@
           "model": {
             "type": "string"
           },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "Current model availability by delivery tier; omitted when the source projection is unavailable.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "Whether this model has eligible TokenLab Verified delivery supply."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "Whether this model has eligible Official delivery supply."
+              },
+              "operations": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "verified": {
+                      "type": "boolean"
+                    },
+                    "official": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "verified",
+                    "official"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
+          },
           "pricing_unit": {
             "type": "string"
           },
@@ -13309,8 +13552,12 @@
             "additionalProperties": true
           },
           "scalar_pricing": {
-            "type": "object",
-            "additionalProperties": true
+            "$ref": "#/components/schemas/ScalarPricing",
+            "description": "TokenLab Verified price. The price fields are null when the model has no Verified supply (`deliveryAvailability.verified` is false)."
+          },
+          "official_scalar_pricing": {
+            "$ref": "#/components/schemas/ScalarPricing",
+            "description": "Official price. Requests that Official delivers are billed at this price."
           }
         },
         "additionalProperties": true
@@ -13785,6 +14032,44 @@
           "provider": {
             "type": "string"
           },
+          "deliveryAvailability": {
+            "type": "object",
+            "description": "Current model availability by delivery tier; omitted when the source projection is unavailable.",
+            "properties": {
+              "verified": {
+                "type": "boolean",
+                "description": "Whether this model has eligible TokenLab Verified delivery supply."
+              },
+              "official": {
+                "type": "boolean",
+                "description": "Whether this model has eligible Official delivery supply."
+              },
+              "operations": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "verified": {
+                      "type": "boolean"
+                    },
+                    "official": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "verified",
+                    "official"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "verified",
+              "official"
+            ],
+            "additionalProperties": false
+          },
           "is_lock_price": {
             "type": "boolean"
           },
@@ -13804,19 +14089,43 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "TokenLab Verified price per 1M input tokens. Omitted when the model has no Verified supply (`deliveryAvailability.verified` is false)."
           },
           "output_per_1m_tokens": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "TokenLab Verified price per 1M output tokens. Omitted when the model has no Verified supply (`deliveryAvailability.verified` is false)."
           },
           "lock_price_per_request": {
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "description": "TokenLab Verified price per request. Omitted when the model has no Verified supply (`deliveryAvailability.verified` is false)."
+          },
+          "official_input_per_1m_tokens": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Official price per 1M input tokens. Requests that Official delivers are billed at this price."
+          },
+          "official_output_per_1m_tokens": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Official price per 1M output tokens. Requests that Official delivers are billed at this price."
+          },
+          "official_lock_price_per_request": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Official price per request. Requests that Official delivers are billed at this price."
           },
           "has_complex_pricing": {
             "type": "boolean"
@@ -14326,7 +14635,7 @@
           "model": {
             "type": "string",
             "description": "Model to use for multimodal embeddings",
-            "example": "jina-embeddings-v4"
+            "example": "qwen3-vl-embedding"
           },
           "input": {
             "oneOf": [
@@ -14502,8 +14811,12 @@
             "additionalProperties": false
           },
           "pricing": {
-            "type": "object",
-            "additionalProperties": true
+            "$ref": "#/components/schemas/ScalarPricing",
+            "description": "TokenLab Verified price. The price fields are null when the model has no Verified supply (`deliveryAvailability.verified` is false)."
+          },
+          "official_pricing": {
+            "$ref": "#/components/schemas/ScalarPricing",
+            "description": "Official price. Requests that Official delivers are billed at this price."
           },
           "capabilities": {
             "type": "array",
@@ -14540,7 +14853,16 @@
               "object",
               "null"
             ],
-            "additionalProperties": true
+            "additionalProperties": true,
+            "description": "TokenLab Verified prompt-cache prices. Null or omitted when the model has no Verified supply (`deliveryAvailability.verified` is false)."
+          },
+          "official_cache_pricing": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true,
+            "description": "Official prompt-cache prices. Null or omitted when none are published."
           },
           "has_complex_pricing": {
             "type": "boolean"
@@ -14754,6 +15076,7 @@
         "required": [
           "aliases",
           "pricing",
+          "official_pricing",
           "capabilities",
           "max_input_tokens",
           "max_output_tokens",
@@ -14815,8 +15138,12 @@
             "additionalProperties": false
           },
           "pricing": {
-            "type": "object",
-            "additionalProperties": true
+            "$ref": "#/components/schemas/ScalarPricing",
+            "description": "TokenLab Verified price. The price fields are null when the model has no Verified supply (`deliveryAvailability.verified` is false)."
+          },
+          "official_pricing": {
+            "$ref": "#/components/schemas/ScalarPricing",
+            "description": "Official price. Requests that Official delivers are billed at this price."
           },
           "capabilities": {
             "type": "array",
@@ -14853,7 +15180,16 @@
               "object",
               "null"
             ],
-            "additionalProperties": true
+            "additionalProperties": true,
+            "description": "TokenLab Verified prompt-cache prices. Null or omitted when the model has no Verified supply (`deliveryAvailability.verified` is false)."
+          },
+          "official_cache_pricing": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true,
+            "description": "Official prompt-cache prices. Null or omitted when none are published."
           },
           "has_complex_pricing": {
             "type": "boolean"
@@ -16684,6 +17020,18 @@
                   "null"
                 ]
               },
+              "webSearch": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "groundedPrompt": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
               "structured": {
                 "anyOf": [
                   {
@@ -17551,6 +17899,111 @@
           }
         },
         "additionalProperties": true
+      },
+      "MediaRetention": {
+        "type": "object",
+        "description": "Saving status of the media results in this response. Present when the status is known within the response time limit; when it is absent, the media URLs still work.",
+        "required": [
+          "days",
+          "items"
+        ],
+        "properties": {
+          "days": {
+            "type": "integer",
+            "description": "Days a media-result URL stays valid after the result is first recorded.",
+            "example": 30
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "url",
+                "kind",
+                "status",
+                "expires_at"
+              ],
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "image",
+                    "video",
+                    "audio",
+                    "3d"
+                  ]
+                },
+                "content_type": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "saving",
+                    "saved",
+                    "failed",
+                    "expired"
+                  ]
+                },
+                "expires_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "ScalarPricing": {
+        "type": "object",
+        "description": "One scalar price layer in USD. Token prices are per 1M tokens.",
+        "properties": {
+          "input_per_1m": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Price per 1M input tokens. Null for per-request pricing."
+          },
+          "output_per_1m": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Price per 1M output tokens. Null for per-request pricing."
+          },
+          "per_request": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Price per request. Null for per-token pricing."
+          },
+          "is_lock_price": {
+            "type": "boolean",
+            "description": "Whether the model is priced per request."
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "USD"
+            ]
+          }
+        },
+        "required": [
+          "input_per_1m",
+          "output_per_1m",
+          "per_request",
+          "is_lock_price",
+          "currency"
+        ],
+        "additionalProperties": true
       }
     },
     "responses": {
@@ -17561,18 +18014,77 @@
             "schema": {
               "$ref": "#/components/schemas/ValidationError"
             },
-            "example": {
-              "error": {
-                "message": "model: Model is required",
-                "type": "invalid_request_error",
-                "param": "model"
-              },
-              "validation_errors": [
-                {
-                  "field": "model",
-                  "message": "Model is required"
+            "examples": {
+              "validation": {
+                "summary": "Invalid field",
+                "value": {
+                  "error": {
+                    "message": "model: Model is required",
+                    "type": "invalid_request_error",
+                    "param": "model"
+                  },
+                  "validation_errors": [
+                    {
+                      "field": "model",
+                      "message": "Model is required"
+                    }
+                  ]
                 }
-              ]
+              },
+              "missingRequiredParameter": {
+                "summary": "Required field is missing",
+                "value": {
+                  "error": {
+                    "message": "model is required",
+                    "type": "invalid_request_error",
+                    "code": "missing_required_parameter",
+                    "param": "model"
+                  }
+                }
+              },
+              "invalidValue": {
+                "summary": "Value the model does not accept",
+                "value": {
+                  "error": {
+                    "message": "reasoning_effort \"max\" is not supported for this model. Supported values: low, medium, high.",
+                    "type": "invalid_request_error",
+                    "code": "invalid_value",
+                    "param": "reasoning_effort"
+                  }
+                }
+              },
+              "invalidImageUrl": {
+                "summary": "Image URL cannot be used",
+                "value": {
+                  "error": {
+                    "message": "image_url could not be downloaded from the image URL: the connection to the image host timed out. The URL must be publicly reachable from the internet (hosts that serve only mainland China networks can be unreachable). Use a different image URL or send the image as a base64 data URL.",
+                    "type": "invalid_request_error",
+                    "code": "invalid_image_url",
+                    "param": "image_url"
+                  }
+                }
+              },
+              "unsupportedModelCapability": {
+                "summary": "No route of the Delivery tier supports a parameter",
+                "value": {
+                  "error": {
+                    "message": "Model gpt-4.1-mini cannot serve this request for operation 'chat' on the routes this request can use: web_search_options is not supported. Change these parameters, or choose another model or Delivery tier.",
+                    "type": "invalid_request_error",
+                    "code": "unsupported_model_capability"
+                  }
+                }
+              },
+              "unpriceableSelection": {
+                "summary": "Video request cannot be priced",
+                "value": {
+                  "error": {
+                    "message": "This image-to-video request cannot be priced without resolution. Set resolution explicitly if the operation accepts it.",
+                    "type": "invalid_request_error",
+                    "code": "unpriceable_selection",
+                    "param": "resolution"
+                  }
+                }
+              }
             }
           }
         }
@@ -17769,6 +18281,18 @@
                     "message": "All available routes failed to process the request.",
                     "type": "all_channels_failed",
                     "retryable": true,
+                    "request_id": "req_01JEXAMPLE"
+                  }
+                }
+              },
+              "pricingUnavailable": {
+                "summary": "TokenLab cannot price this request",
+                "value": {
+                  "error": {
+                    "message": "TokenLab cannot serve model gpt-image-2 with operation 'image-edit' right now because it cannot price this request on the routes this request can use. The request was not charged.",
+                    "type": "all_channels_failed",
+                    "code": "model_pricing_unavailable",
+                    "retryable": false,
                     "request_id": "req_01JEXAMPLE"
                   }
                 }

@@ -6,7 +6,7 @@
     "openapi": "3.1.0",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "01cd954024a6025b37c2cc3c353e942d030770dd145664357855af259ac8cfd1"
+    "sha256": "724c5ff2f1cd4a83c9459985b3cb4f92222cf232b29b2210b74882801e4edb99"
   },
   "default_profile": "core",
   "profiles": [
@@ -52,12 +52,12 @@
     },
     "core": {
       "endpoint_tools": 30,
-      "input_schema_bytes": 44030,
+      "input_schema_bytes": 45532,
       "max_input_schema_depth": 8
     },
     "full": {
       "endpoint_tools": 87,
-      "input_schema_bytes": 72450,
+      "input_schema_bytes": 73952,
       "max_input_schema_depth": 8
     }
   },
@@ -314,7 +314,7 @@
       "profiles": [
         "full"
       ],
-      "description": "Counts input tokens for an Anthropic-compatible messages request without creating a model response. Authentication is required; the operation is not billed.",
+      "description": "Counts input tokens for an Anthropic-compatible messages request without creating a model response. Authentication is required; the operation is not billed. Verified upstream counting is preferred. Upstream availability failures return a local estimate marked by X-TokenLab-Count-Tokens-Source: local_estimate. Platform authentication, permission and input errors remain errors. Bound files unreadable locally require upstream counting.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -505,7 +505,7 @@
           },
           "prompt": {
             "type": "string",
-            "description": "3D model description"
+            "description": "3D model description. Required for every model that takes a prompt; an image-to-3D model whose contract lists no prompt is called without one."
           },
           "image": {
             "type": "string",
@@ -544,9 +544,6 @@
             "description": "End-user identifier."
           }
         },
-        "required": [
-          "prompt"
-        ],
         "additionalProperties": false
       },
       "bindings": {
@@ -1349,6 +1346,14 @@
                 "tool_call_id": {
                   "type": "string",
                   "description": "ID of the tool call being responded to"
+                },
+                "reasoning_details": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "description": "Assistant messages only: the reasoning_details returned in an earlier response, sent back unchanged."
                 }
               }
             },
@@ -1604,7 +1609,45 @@
               "string",
               "null"
             ],
-            "description": "Service tier hint where supported by the model."
+            "description": "TokenLab serves this request at the standard service tier. auto and default are forwarded. Other values, such as flex, priority, fast and ultrafast, are ignored and billed at the standard price."
+          },
+          "anthropic_options": {
+            "type": "object",
+            "description": "Options for Claude models.",
+            "properties": {
+              "prompt_caching": {
+                "type": "boolean",
+                "description": "Set true to cache the start of the prompt on Claude models. TokenLab marks the end of the system prompt and the latest user message as cache points, unless a message already has cache_control."
+              },
+              "prompt_caching_ttl": {
+                "type": "string",
+                "enum": [
+                  "5m",
+                  "1h"
+                ],
+                "description": "Cache lifetime. Defaults to 5m. If the serving route does not support 1h, the 5-minute cache is used and the request is not rejected."
+              }
+            },
+            "additionalProperties": true
+          },
+          "extra": {
+            "type": "object",
+            "description": "Extension options. extra.prompt_caching and extra.prompt_caching_ttl are the same as the anthropic_options fields.",
+            "properties": {
+              "prompt_caching": {
+                "type": "boolean",
+                "description": "Set true to cache the start of the prompt on Claude models. TokenLab marks the end of the system prompt and the latest user message as cache points, unless a message already has cache_control."
+              },
+              "prompt_caching_ttl": {
+                "type": "string",
+                "enum": [
+                  "5m",
+                  "1h"
+                ],
+                "description": "Cache lifetime. Defaults to 5m. If the serving route does not support 1h, the 5-minute cache is used and the request is not rejected."
+              }
+            },
+            "additionalProperties": true
           }
         },
         "required": [
@@ -1648,7 +1691,9 @@
           "audio",
           "translation_options",
           "prediction",
-          "service_tier"
+          "service_tier",
+          "anthropic_options",
+          "extra"
         ],
         "files": []
       },
@@ -2272,7 +2317,7 @@
           "prompt": {
             "type": "string",
             "maxLength": 4000,
-            "description": "Image description"
+            "description": "Image description. Required for every model that takes a prompt; a tool whose contract lists no prompt (background removal, upscaling, vectorizing) is called without one."
           },
           "model": {
             "type": "string",
@@ -2326,7 +2371,7 @@
           },
           "size": {
             "type": "string",
-            "description": "Image size. Defaults are model-specific. For gpt-image-2, omit this field or use auto for automatic sizing, or send WIDTHxHEIGHT; custom dimensions must both be multiples of 16, longest edge <= 3840px, long/short ratio <= 3:1, and total pixels between 655,360 and 8,294,400."
+            "description": "Image size. Defaults are model-specific. For gpt-image-2, omit this field or use auto for automatic sizing, or send WIDTHxHEIGHT; custom dimensions must both be multiples of 16, longest edge <= 3840px, long/short ratio <= 3:1, and total pixels between 655,360 and 8,294,400. For Google image models with resolution tiers (gemini-3.1-flash-image, gemini-3-pro-image, gemini-3.1-flash-lite-image, gemini-nano-banana-2.1, nano-banana-2, nano-banana-2.1, nano-banana-pro), send an output size from the model's size table or a resolution tier: 1K, 2K, or 4K. TokenLab sends a tier as resolution. A tier that the model does not support, or a tier that is different from resolution, returns 400 invalid_image_size_contract. The recommended form for these models is aspect_ratio with resolution."
           },
           "quality": {
             "type": "string",
@@ -2362,8 +2407,7 @@
               "url",
               "b64_json"
             ],
-            "default": "url",
-            "description": "Response format"
+            "description": "How the images are returned. Omitted: when the model returns image bytes, each image is in data[].b64_json, and also in data[].url when TokenLab stored it; when the model returns a link, each image is in data[].url. url: only data[].url. b64_json: only data[].b64_json. Links are TokenLab media-result URLs that stay valid for 30 days."
           },
           "async": {
             "type": "boolean",
@@ -2421,8 +2465,7 @@
           }
         },
         "required": [
-          "model",
-          "prompt"
+          "model"
         ],
         "additionalProperties": false
       },
@@ -2525,7 +2568,7 @@
           "prompt": {
             "type": "string",
             "maxLength": 4000,
-            "description": "Image description"
+            "description": "Image description. Required for every model that takes a prompt; a tool whose contract lists no prompt (background removal, upscaling, vectorizing) is called without one."
           },
           "operation": {
             "type": "string",
@@ -2633,8 +2676,7 @@
           }
         },
         "required": [
-          "model",
-          "prompt"
+          "model"
         ],
         "additionalProperties": false
       },
@@ -3149,7 +3191,7 @@
               "string",
               "null"
             ],
-            "description": "Service tier hint where supported by the model."
+            "description": "TokenLab serves this request at the standard service tier. auto and default are forwarded. Other values, such as flex, priority, fast and ultrafast, are ignored and billed at the standard price."
           },
           "truncation": {
             "type": "string",
@@ -3446,8 +3488,7 @@
           },
           "model": {
             "type": "string",
-            "default": "tts-1",
-            "description": "TTS model. Query GET /v1/models?recommended_for=tts for the current shortlist."
+            "description": "TTS model. There is no default model. Query GET /v1/models?recommended_for=tts for the current shortlist."
           },
           "input": {
             "type": "string",
@@ -3503,7 +3544,7 @@
               "sse"
             ],
             "default": "audio",
-            "description": "TokenLab delivery format. stream_format=sse is not supported for tts-1 or tts-1-hd."
+            "description": "TokenLab delivery format."
           },
           "speed": {
             "type": "number",
@@ -3519,6 +3560,7 @@
           }
         },
         "required": [
+          "model",
           "input"
         ],
         "additionalProperties": false
@@ -8435,7 +8477,7 @@
           },
           "model": {
             "type": "string",
-            "description": "Model to use (whisper-1)"
+            "description": "Transcription model ID. There is no default model."
           },
           "language": {
             "type": "string",
@@ -8541,8 +8583,7 @@
             "description": "Pass local file path."
           },
           "model": {
-            "type": "string",
-            "default": "whisper-1"
+            "type": "string"
           },
           "prompt": {
             "type": "string"
@@ -8557,7 +8598,8 @@
           }
         },
         "required": [
-          "file"
+          "file",
+          "model"
         ],
         "additionalProperties": false
       },
