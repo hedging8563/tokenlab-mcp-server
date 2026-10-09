@@ -583,6 +583,15 @@ synchronizedReadme = replaceProjection(
   `producing totals of ${catalogProfile.total_tools}, ${coreProfile.total_tools}, and ${fullProfile.total_tools} tools`,
   "README profile totals"
 );
+const coreBudget = profileConfig.core.compatibility_budget;
+const fullBudget = profileConfig.full.compatibility_budget;
+const kilobytes = (bytes) => `${bytes / 1000} KB`;
+synchronizedReadme = replaceProjection(
+  synchronizedReadme,
+  /Compatibility budgets keep `core` at no more than [^.]+ for the complete `tools\/list` response\. Tests also run the full profile through the Google AI SDK version used by the observed OpenCode\/Gemini failure[^.]*\./,
+  `Compatibility budgets keep \`core\` at no more than ${kilobytes(coreBudget.max_tools_list_bytes)} and depth ${coreBudget.max_input_schema_depth}, and \`full\` at no more than ${kilobytes(fullBudget.max_tools_list_bytes)} and depth ${fullBudget.max_input_schema_depth} for the complete \`tools/list\` response. Tests also run the full profile through the Google AI SDK version used by the observed OpenCode/Gemini failure and keep its function declarations within ${kilobytes(fullBudget.max_gemini_declarations_bytes)}.`,
+  "README compatibility budgets"
+);
 const synchronizedInstall = replaceProjection(
   installText,
   /The default `core` profile exposes \d+ tools, and `full` exposes \d+\./,

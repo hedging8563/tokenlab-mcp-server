@@ -194,6 +194,16 @@ test("advertises exactly the generated profile plus composite discovery tools", 
   assert.deepEqual(byName.get_visual_validate_result.input_schema.required, ["BytedToken"]);
   assert.equal(byName.get_visual_validate_result.annotations.idempotentHint, true);
   assert.equal(byName.create_gemini_content.input_schema.properties.key, undefined);
+  for (const [alias, field] of [
+    ["system_instruction", "systemInstruction"],
+    ["generation_config", "generationConfig"],
+    ["safety_settings", "safetySettings"],
+    ["tool_config", "toolConfig"],
+    ["cached_content", "cachedContent"]
+  ]) {
+    assert.equal(byName.create_gemini_content.input_schema.properties[alias], undefined, `${alias} duplicates ${field}`);
+    assert.ok(byName.create_gemini_content.input_schema.properties[field], `${field} must stay available`);
+  }
   for (const name of [
     "compact_response",
     "create_chat_completion",
@@ -381,7 +391,8 @@ test("survives the OpenCode Google AI SDK tool conversion used by Gemini", async
   const declarations = requestBody.tools[0].functionDeclarations;
   assert.equal(declarations.length, 89);
   assert.ok(
-    Buffer.byteLength(JSON.stringify(requestBody.tools)) <= 85_000,
+    Buffer.byteLength(JSON.stringify(requestBody.tools))
+      <= manifest.profile_config.full.compatibility_budget.max_gemini_declarations_bytes,
     "Gemini function declarations must remain inside the tested portable payload budget"
   );
   assert.ok(
@@ -521,7 +532,8 @@ test("forwards generated JSON tools to their canonical public endpoints", async 
     }],
     ["create_gemini_content", {
       model: "gemini-3.5-flash",
-      contents: [{ role: "user", parts: [{ text: "Hello" }] }]
+      contents: [{ role: "user", parts: [{ text: "Hello" }] }],
+      systemInstruction: { parts: [{ text: "Answer briefly" }] }
     }],
     ["create_video", { model: "video-model", prompt: "Orbit a cube" }],
     ["create_music", { model: "music-model", prompt: "Ambient synth" }],
@@ -550,6 +562,7 @@ test("forwards generated JSON tools to their canonical public endpoints", async 
   assert.equal(api.requests[0].body.stream, false);
   assert.equal(api.requests[1].body.messages[0].content, "Hello");
   assert.equal(api.requests[2].body.contents[0].parts[0].text, "Hello");
+  assert.deepEqual(api.requests[2].body.systemInstruction, { parts: [{ text: "Answer briefly" }] });
 });
 
 test("keeps hidden stream false backward-compatible and rejects stream true locally", async (t) => {

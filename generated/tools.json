@@ -39,7 +39,8 @@
         "max_endpoint_tools": 87,
         "max_input_schema_bytes": 78000,
         "max_input_schema_depth": 8,
-        "max_tools_list_bytes": 115000
+        "max_tools_list_bytes": 115000,
+        "max_gemini_declarations_bytes": 90000
       }
     }
   },
@@ -51,12 +52,12 @@
     },
     "core": {
       "endpoint_tools": 30,
-      "input_schema_bytes": 44697,
+      "input_schema_bytes": 44030,
       "max_input_schema_depth": 8
     },
     "full": {
       "endpoint_tools": 87,
-      "input_schema_bytes": 73117,
+      "input_schema_bytes": 72450,
       "max_input_schema_depth": 8
     }
   },
@@ -2205,33 +2206,6 @@
           "cachedContent": {
             "type": "string",
             "description": "Gemini cached content resource name for compatible models."
-          },
-          "system_instruction": {
-            "type": "object",
-            "additionalProperties": true,
-            "description": "Original proto field-name spelling of systemInstruction."
-          },
-          "generation_config": {
-            "type": "object",
-            "additionalProperties": true,
-            "description": "Original proto field-name spelling of generationConfig."
-          },
-          "safety_settings": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": true
-            },
-            "description": "Original proto field-name spelling of safetySettings."
-          },
-          "tool_config": {
-            "type": "object",
-            "additionalProperties": true,
-            "description": "Original proto field-name spelling of toolConfig."
-          },
-          "cached_content": {
-            "type": "string",
-            "description": "Original proto field-name spelling of cachedContent."
           }
         },
         "required": [
@@ -2255,12 +2229,7 @@
           "safetySettings",
           "tools",
           "toolConfig",
-          "cachedContent",
-          "system_instruction",
-          "generation_config",
-          "safety_settings",
-          "tool_config",
-          "cached_content"
+          "cachedContent"
         ],
         "files": []
       },

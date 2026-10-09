@@ -63,7 +63,8 @@
         "max_endpoint_tools": 87,
         "max_input_schema_bytes": 78000,
         "max_input_schema_depth": 8,
-        "max_tools_list_bytes": 115000
+        "max_tools_list_bytes": 115000,
+        "max_gemini_declarations_bytes": 90000
       },
       "include_tags": [
         "Chat",
@@ -317,7 +318,12 @@
     "geminiGenerateContent": {
       "tool_name": "create_gemini_content",
       "omit_arguments": [
-        "key"
+        "key",
+        "system_instruction",
+        "generation_config",
+        "safety_settings",
+        "tool_config",
+        "cached_content"
       ]
     },
     "createChatCompletion": {
