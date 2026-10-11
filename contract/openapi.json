@@ -1396,7 +1396,7 @@
           "Tasks"
         ],
         "summary": "Cancel async task",
-        "description": "Cancels a queued asynchronous task when cancellation is supported for the selected task. Cancellation currently supports queued Seedance video tasks (`seedance-1.5-pro`, `seedance-2.0`, and `seedance-2.0-fast`) while they are still waiting to run. Tasks that are already processing, completed, failed, expired, or unsupported are not cancelled.",
+        "description": "Cancels a queued asynchronous task when cancellation is supported for the selected task. Cancellation currently supports queued Seedance video tasks (`seedance-2.0` and `seedance-2.0-fast`) while they are still waiting to run. Tasks that are already processing, completed, failed, expired, or unsupported are not cancelled.",
         "operationId": "cancelAsyncTask",
         "parameters": [
           {
@@ -10895,7 +10895,7 @@
           },
           "model": {
             "type": "string",
-            "description": "Model to use (e.g., veo3.1, kling-v1)"
+            "description": "Model to use (e.g., veo3.1, kling-v3.0)"
           },
           "operation": {
             "type": "string",
@@ -11018,7 +11018,7 @@
           },
           "kling_elements": {
             "type": "array",
-            "description": "Kling 3.0 element references for kling-3.0-video image-conditioned requests. Define 1-3 elements and reference them in the prompt with @name. Each element requires 2-4 image URLs in element_input_urls. Do not combine kling_elements with output_audio=true; omit output_audio or set it to false for element-reference requests.",
+            "description": "Element references for image-conditioned requests on models that explicitly support this field. Define 1-3 elements and reference them in the prompt with @name. Each element requires 2-4 image URLs in element_input_urls. Do not combine kling_elements with output_audio=true; omit output_audio or set it to false for element-reference requests.",
             "minItems": 1,
             "maxItems": 3,
             "items": {
