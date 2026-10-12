@@ -218,7 +218,8 @@
           "create_chat_completion",
           "create_response",
           "create_anthropic_message",
-          "create_gemini_content"
+          "create_gemini_content",
+          "evaluate_decisions"
         ],
         [
           "create_image",
@@ -235,7 +236,7 @@
           "translate_audio"
         ]
       ],
-      "tool_count": 14
+      "tool_count": 15
     },
     {
       "id": "operate",
@@ -257,12 +258,9 @@
           "create_multimodal_embedding",
           "rerank_documents",
           "translate_text"
-        ],
-        [
-          "evaluate_decisions"
         ]
       ],
-      "tool_count": 12
+      "tool_count": 11
     }
   ],
   "features": {

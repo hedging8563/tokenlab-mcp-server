@@ -192,7 +192,8 @@
             "create_chat_completion",
             "create_response",
             "create_anthropic_message",
-            "create_gemini_content"
+            "create_gemini_content",
+            "evaluate_decisions"
           ],
           [
             "create_image",
@@ -230,9 +231,6 @@
             "create_multimodal_embedding",
             "rerank_documents",
             "translate_text"
-          ],
-          [
-            "evaluate_decisions"
           ]
         ]
       }
