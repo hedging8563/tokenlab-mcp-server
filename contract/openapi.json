@@ -1544,7 +1544,8 @@
                 "stt",
                 "embedding",
                 "rerank",
-                "translation"
+                "translation",
+                "decision"
               ]
             }
           },

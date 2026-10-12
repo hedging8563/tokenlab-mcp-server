@@ -6,7 +6,7 @@
     "openapi": "3.1.0",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "fbb73007a46879b161a5db3a272bb5c9c2e8dc042deeecb08dfce454666f6c83"
+    "sha256": "6e43bd4a516c4f1c374bca82e345c493ca40cd8733957a32958adc264a817bb8"
   },
   "default_profile": "core",
   "profiles": [
@@ -47,17 +47,17 @@
   "profile_metrics": {
     "catalog": {
       "endpoint_tools": 4,
-      "input_schema_bytes": 1564,
+      "input_schema_bytes": 1575,
       "max_input_schema_depth": 4
     },
     "core": {
       "endpoint_tools": 30,
-      "input_schema_bytes": 45534,
+      "input_schema_bytes": 45545,
       "max_input_schema_depth": 8
     },
     "full": {
       "endpoint_tools": 87,
-      "input_schema_bytes": 73954,
+      "input_schema_bytes": 73965,
       "max_input_schema_depth": 8
     }
   },
@@ -7383,7 +7383,8 @@
               "stt",
               "embedding",
               "rerank",
-              "translation"
+              "translation",
+              "decision"
             ],
             "description": "Sort supported non-chat models for a task category and include recommendation evidence."
           },
