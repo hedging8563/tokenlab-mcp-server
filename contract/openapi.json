@@ -4746,13 +4746,13 @@
                       "type": "string",
                       "format": "uri"
                     },
-                    "description": "Multiple source image URLs. GPT Image edits accept up to 16 source images; xAI Grok Imagine edit models accept at most 3 source images."
+                    "description": "Multiple source image URLs. GPT Image edits accept up to 16 source images; xAI Grok Imagine Image 2.0 edits accept at most 5 source images; the other xAI Grok Imagine edit models accept at most 3."
                   },
                   "images": {
                     "type": "array",
                     "minItems": 1,
                     "maxItems": 16,
-                    "description": "Official JSON image references for image edits. Provide exactly one of image_url or file_id for each item. GPT Image edits accept up to 16 source images; xAI Grok Imagine edit models accept at most 3 source images.",
+                    "description": "Official JSON image references for image edits. Provide exactly one of image_url or file_id for each item. GPT Image edits accept up to 16 source images; xAI Grok Imagine Image 2.0 edits accept at most 5 source images; the other xAI Grok Imagine edit models accept at most 3.",
                     "items": {
                       "type": "object",
                       "oneOf": [
@@ -4853,7 +4853,7 @@
                         }
                       }
                     ],
-                    "description": "Source image file(s). Repeat image for multiple source images. GPT Image edits accept up to 16 images; xAI Grok Imagine edit models accept at most 3 source images."
+                    "description": "Source image file(s). Repeat image for multiple source images. GPT Image edits accept up to 16 images; xAI Grok Imagine Image 2.0 edits accept at most 5 source images; the other xAI Grok Imagine edit models accept at most 3."
                   },
                   "mask": {
                     "type": "string",
@@ -4935,7 +4935,7 @@
                       "type": "string",
                       "format": "binary"
                     },
-                    "description": "Alternative repeated multipart field name for multiple source images. The same model-specific limits apply: GPT Image up to 16, xAI Grok Imagine up to 3."
+                    "description": "Alternative repeated multipart field name for multiple source images. The same model-specific limits apply: GPT Image up to 16, xAI Grok Imagine Image 2.0 up to 5, other xAI Grok Imagine edit models up to 3."
                   }
                 },
                 "additionalProperties": true,
