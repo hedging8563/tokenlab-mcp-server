@@ -48,3 +48,9 @@ test("README distinguishes endpoint tools from registered tools", () => {
     );
   }
 });
+
+test("official Registry entry lists the hosted streamable HTTP endpoint", () => {
+  assert.deepEqual(registryMetadata.remotes, [
+    { type: "streamable-http", url: "https://mcp.tokenlab.sh/mcp" }
+  ]);
+});
