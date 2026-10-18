@@ -52,12 +52,12 @@
     },
     "core": {
       "endpoint_tools": 30,
-      "input_schema_bytes": 45545,
+      "input_schema_bytes": 45346,
       "max_input_schema_depth": 8
     },
     "full": {
       "endpoint_tools": 87,
-      "input_schema_bytes": 73965,
+      "input_schema_bytes": 73766,
       "max_input_schema_depth": 8
     }
   },
@@ -5684,15 +5684,6 @@
           },
           "user": {
             "type": "string"
-          },
-          "image[]": {
-            "type": "array",
-            "minItems": 1,
-            "maxItems": 16,
-            "items": {
-              "type": "string"
-            },
-            "description": "Alternative repeated multipart field name for multiple source images. The same model-specific limits apply: GPT Image up to 16, xAI Grok Imagine Image 2.0 up to 5, other xAI Grok Imagine edit models up to 3. Pass local file paths."
           }
         },
         "required": [
@@ -5725,13 +5716,11 @@
           "moderation",
           "async",
           "stream",
-          "user",
-          "image[]"
+          "user"
         ],
         "files": [
           "image",
-          "mask",
-          "image[]"
+          "mask"
         ]
       },
       "default_arguments": {

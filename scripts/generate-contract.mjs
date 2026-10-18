@@ -292,6 +292,30 @@ function applyInputOverrides(schema, bindings, override) {
   }
 }
 
+const MCP_PROPERTY_NAME_PATTERN = /^[a-zA-Z0-9_.-]{1,64}$/;
+
+function assertMcpPropertyNames(value, context) {
+  if (Array.isArray(value)) {
+    value.forEach((entry, index) => assertMcpPropertyNames(entry, `${context}[${index}]`));
+    return;
+  }
+  if (!value || typeof value !== "object") return;
+
+  if (value.properties && typeof value.properties === "object" && !Array.isArray(value.properties)) {
+    for (const [name, property] of Object.entries(value.properties)) {
+      if (!MCP_PROPERTY_NAME_PATTERN.test(name)) {
+        throw new Error(`${context} has an invalid MCP property name: ${JSON.stringify(name)}`);
+      }
+      assertMcpPropertyNames(property, `${context}.properties.${name}`);
+    }
+  }
+
+  for (const [key, entry] of Object.entries(value)) {
+    if (key === "properties") continue;
+    assertMcpPropertyNames(entry, `${context}.${key}`);
+  }
+}
+
 function mergeOperationOverride(base, variant) {
   return {
     ...base,
@@ -344,7 +368,12 @@ for (const [operationId, indexed] of operations) {
       const toolName = override.tool_names_by_content_type?.[contentType]
         || `${override.tool_name || snakeCase(operationId)}${suffix}`;
       const { schema, bindings } = buildInputSchema(operationId, indexed.pathItem, indexed.operation, contentType, override);
-      applyInputOverrides(schema, bindings, override);
+      const contentTypeOmissions = override.omit_arguments_by_content_type?.[contentType] || [];
+      applyInputOverrides(schema, bindings, {
+        ...override,
+        omit_arguments: [...(override.omit_arguments || []), ...contentTypeOmissions]
+      });
+      assertMcpPropertyNames(schema, `${toolName}.input_schema`);
       const description = override.description || [indexed.operation.description || indexed.operation.summary]
         .filter(Boolean)
         .join(" ")

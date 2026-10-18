@@ -18,6 +18,7 @@ import {
 
 const manifest = JSON.parse(await readFile(new URL("../generated/tools.json", import.meta.url), "utf8"));
 const publicContract = JSON.parse(await readFile(new URL("../generated/public-contract.json", import.meta.url), "utf8"));
+const MCP_PROPERTY_NAME_PATTERN = /^[a-zA-Z0-9_.-]{1,64}$/;
 
 async function startMockApi(t, respond = () => ({ ok: true })) {
   const requests = [];
@@ -163,6 +164,13 @@ test("advertises exactly the generated profile plus composite discovery tools", 
   for (const tool of requiredCoreFamilies) assert.equal(core.has(tool), true, `${tool} must remain in core`);
 
   const byName = Object.fromEntries(manifest.tools.map((tool) => [tool.name, tool]));
+  for (const tool of manifest.tools) {
+    for (const propertyName of Object.keys(tool.input_schema.properties || {})) {
+      assert.match(propertyName, MCP_PROPERTY_NAME_PATTERN, `${tool.name} must expose provider-compatible property names`);
+    }
+  }
+  assert.ok(byName.edit_image_file.input_schema.properties.image, "edit_image_file must keep the repeated image argument");
+  assert.equal(byName.edit_image_file.input_schema.properties["image[]"], undefined, "multipart alias image[] must stay out of MCP schemas");
   assert.equal(byName.list_models.input_schema.properties.view.default, "compact");
   assert.deepEqual(byName.list_models.default_arguments, { view: "compact" });
   assert.deepEqual(byName.list_models.bindings.query, ["provider", "tag", "category", "recommended_for", "view"]);

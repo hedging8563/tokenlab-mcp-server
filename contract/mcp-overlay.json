@@ -426,6 +426,11 @@
         "application/json": "edit_image",
         "multipart/form-data": "edit_image_file"
       },
+      "omit_arguments_by_content_type": {
+        "multipart/form-data": [
+          "image[]"
+        ]
+      },
       "fixed_arguments": {
         "stream": false
       },
