@@ -984,6 +984,43 @@ test("keeps original public error diagnostics on generated and discovery paths w
   }
 });
 
+test("names the calling tool in X-TokenLab-Client-Source on every API request", async (t) => {
+  const api = await startMockApi(t, ({ url }) => ({ id: url.split("/").at(-1), tokenlab: {} }));
+  const client = await startMcpClient(t, { TOKENLAB_API_BASE: api.baseUrl, TOKENLAB_API_KEY: "test-key" });
+  const sources = async (call) => {
+    const before = api.requests.length;
+    const result = await call();
+    assert.equal(result.isError, undefined, result.content?.[0]?.text);
+    return api.requests.slice(before).map((request) => request.headers["x-tokenlab-client-source"]);
+  };
+
+  assert.deepEqual(
+    await sources(() => client.callTool({ name: "get_model", arguments: { model: "fixture" } })),
+    ["mcp-get_model"]
+  );
+  assert.deepEqual(
+    await sources(() => client.callTool({ name: "create_chat_completion", arguments: {
+      model: "fixture", messages: [{ role: "user", content: "fixture" }]
+    } })),
+    ["mcp-create_chat_completion"]
+  );
+  assert.deepEqual(
+    await sources(() => client.callTool({ name: "compare_models", arguments: { models: ["model-a", "model-b"] } })),
+    Array(4).fill("mcp-compare_models")
+  );
+  assert.deepEqual(
+    await sources(() => client.callTool({ name: "get_api_overview", arguments: {} })),
+    ["mcp-get_api_overview"]
+  );
+  assert.deepEqual(
+    await sources(() => client.readResource({ uri: "tokenlab://api/overview" })),
+    ["mcp-resource-api_overview"]
+  );
+  for (const request of api.requests) {
+    assert.match(request.headers["x-tokenlab-client-source"], /^[a-z0-9_-]{1,64}$/);
+  }
+});
+
 test("keeps recovery metadata when a composite catalog read has unavailable pricing", async (t) => {
   const api = await startMockApi(t, ({ url }) => url.endsWith("/pricing")
     ? { status: 429, headers: { "Retry-After": "9", "X-Request-ID": "req_pricing", "Set-Cookie": "private=cookie-secret" }, json: { error: { code: "rate_limit_exceeded", message: "Wait", hint: "Poll again after Retry-After" } } }
