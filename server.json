@@ -2,18 +2,18 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.hedging8563/tokenlab",
   "title": "TokenLab MCP Server",
-  "description": "TokenLab MCP server: 32 default and 89 full-profile tools for models, media, tasks, and files.",
+  "description": "TokenLab MCP server: generate images and video, call models. 32 default and 89 full-profile tools.",
   "repository": {
     "url": "https://github.com/hedging8563/tokenlab-mcp-server",
     "source": "github"
   },
-  "version": "0.6.31",
+  "version": "0.6.32",
   "websiteUrl": "https://tokenlab.sh/mcp",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@tokenlabai/mcp-server",
-      "version": "0.6.31",
+      "version": "0.6.32",
       "transport": {
         "type": "stdio"
       },
@@ -75,12 +75,6 @@
           "format": "string"
         }
       ]
-    }
-  ],
-  "remotes": [
-    {
-      "type": "streamable-http",
-      "url": "https://mcp.tokenlab.sh/mcp"
     }
   ]
 }

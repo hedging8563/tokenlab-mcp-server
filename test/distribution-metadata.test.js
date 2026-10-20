@@ -49,8 +49,12 @@ test("README distinguishes endpoint tools from registered tools", () => {
   }
 });
 
-test("official Registry entry lists the hosted streamable HTTP endpoint", () => {
-  assert.deepEqual(registryMetadata.remotes, [
-    { type: "streamable-http", url: "https://mcp.tokenlab.sh/mcp" }
-  ]);
+// mcp.tokenlab.sh/mcp is the separate model explorer app with three
+// catalog tools, not this server, so the entry lists only the npm package.
+test("official Registry entry lists only the npm stdio package", () => {
+  assert.equal(registryMetadata.remotes, undefined);
+  assert.deepEqual(
+    registryMetadata.packages.map(({ registryType, transport }) => [registryType, transport.type]),
+    [["npm", "stdio"]]
+  );
 });
