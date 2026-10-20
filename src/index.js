@@ -192,9 +192,12 @@ function taskAwareResult(tool, response, meta) {
   const status = typeof statusValue === "string" ? statusValue.toLowerCase() : undefined;
   const taskId = tool.task.id_fields.map((field) => response[field]).find((value) => typeof value === "string" && value);
   const pollUrlValue = response[tool.task.poll_url_field];
-  const pollUrl = typeof pollUrlValue === "string" && pollUrlValue
-    ? pollUrlValue
-    : taskId ? `/v1/tasks/${encodeURIComponent(taskId)}` : undefined;
+  // /v1/tasks/{id} reads every task type. A create response can still name a
+  // per-modality compatibility route (Worlds does), so use its poll_url only
+  // when the response has no task id to build the fixed URL from.
+  const pollUrl = taskId
+    ? `/v1/tasks/${encodeURIComponent(taskId)}`
+    : typeof pollUrlValue === "string" && pollUrlValue ? pollUrlValue : undefined;
   const terminal = Boolean(status && tool.task.terminal_statuses.includes(status));
   const asyncDelivery = tool.task.mode !== "hybrid" || Boolean(taskId || pollUrl || status);
 

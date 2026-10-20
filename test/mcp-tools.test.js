@@ -765,6 +765,53 @@ test("uses overlay task semantics for hybrid, async, status, and cancellation re
   assert.equal(cancelled.delivery.next_tool, undefined);
 });
 
+test("points every async delivery at /v1/tasks/{id}, including World create and status responses", async (t) => {
+  const api = await startMockApi(t, ({ method, url }) => {
+    if (method === "POST" && url === "/v1/worlds/generations") {
+      return { id: "ldtask_world", task_id: "ldtask_world", status: "pending", poll_url: "/v1/worlds/generations/ldtask_world" };
+    }
+    if (method === "GET" && url === "/v1/worlds/generations/ldtask_world") {
+      return { id: "ldtask_world", task_id: "ldtask_world", status: "processing", poll_url: "/v1/worlds/generations/ldtask_world" };
+    }
+    if (method === "POST" && url === "/v1/videos/generations") {
+      return { id: "kie_task:abc/1", status: "pending", poll_url: "/v1/videos/generations/kie_task%3Aabc%2F1" };
+    }
+    if (method === "POST" && url === "/v1/music/generations") {
+      return { status: "pending", poll_url: "/v1/tasks/no-task-id" };
+    }
+    return { ok: true };
+  });
+  const client = await startMcpClient(t, {
+    TOKENLAB_API_BASE: api.baseUrl,
+    TOKENLAB_API_KEY: "test-key",
+    TOKENLAB_MCP_TOOL_PROFILE: "full"
+  });
+
+  const created = parseTextResult(await client.callTool({
+    name: "create_world",
+    arguments: { model: "marble-1.0", prompt: "A quiet harbor" }
+  }));
+  const status = parseTextResult(await client.callTool({ name: "get_world_status", arguments: { id: "ldtask_world" } }));
+  const video = parseTextResult(await client.callTool({
+    name: "create_video",
+    arguments: { model: "video-model", prompt: "Orbit the cube" }
+  }));
+  const music = parseTextResult(await client.callTool({
+    name: "create_music",
+    arguments: { model: "music-model", prompt: "Slow piano" }
+  }));
+
+  assert.equal(created.delivery.task_id, "ldtask_world");
+  assert.equal(created.delivery.poll_url, "/v1/tasks/ldtask_world");
+  assert.equal(created.delivery.next_tool, "get_task_status");
+  assert.equal(created.response.poll_url, "/v1/worlds/generations/ldtask_world", "the API response stays unchanged");
+  assert.equal(status.delivery.poll_url, "/v1/tasks/ldtask_world");
+  assert.equal(status.delivery.next_tool, "get_task_status");
+  assert.equal(video.delivery.poll_url, "/v1/tasks/kie_task%3Aabc%2F1");
+  assert.equal(music.delivery.task_id, undefined);
+  assert.equal(music.delivery.poll_url, "/v1/tasks/no-task-id", "poll_url is the fallback only when the response has no task id");
+});
+
 test("turns OpenAPI binary fields into bounded local-file multipart uploads", async (t) => {
   const temp = await mkdtemp(join(tmpdir(), "tokenlab-mcp-test-"));
   const imagePath = join(temp, "source.png");
