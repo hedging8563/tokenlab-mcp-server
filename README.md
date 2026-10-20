@@ -10,7 +10,7 @@ It exposes public catalog tools for agents that need to choose models, inspect s
 
 ## Generated Tool Profiles
 
-The checked-in `generated/tools.json` manifest is generated from TokenLab's public OpenAPI document plus the small MCP-only overlay in `contract/mcp-overlay.json`. Version 0.6.32 generates 87 endpoint tools; with the two MCP-only composite discovery tools, the full profile returns 89 tools from `tools/list`.
+The checked-in `generated/tools.json` manifest is generated from TokenLab's public OpenAPI document plus the small MCP-only overlay in `contract/mcp-overlay.json`. Version 0.6.33 generates 87 endpoint tools; with the two MCP-only composite discovery tools, the full profile returns 89 tools from `tools/list`.
 
 | Profile | Endpoint tools | Total registered tools | Model-facing schema | Coverage |
 | --- | ---: | ---: | --- | --- |
@@ -134,7 +134,7 @@ This repository includes `server.json` for the official MCP Registry.
 
 Release metadata:
 
-- npm package: `@tokenlabai/mcp-server@0.6.32`
+- npm package: `@tokenlabai/mcp-server@0.6.33`
 - MCP registry name: `io.github.hedging8563/tokenlab`
 - `package.json.mcpName`: `io.github.hedging8563/tokenlab`
 
@@ -149,6 +149,8 @@ The same workflow can be run manually from `main` to republish only the current 
 ## Security
 
 Use the `catalog` profile when no credentialed tools are needed. Keep `TOKENLAB_API_KEY` in the local MCP client's secret environment, enable human confirmation for billable and destructive calls, and review tool annotations before granting persistent approval. Do not send a TokenLab API key to an untrusted hosted MCP server.
+
+Each API request sends `X-TokenLab-Client-Source: mcp-<tool name>` (for example `mcp-create_image`) so TokenLab can count which tools are used. Reading the `tokenlab://api/overview` resource sends `mcp-resource-api_overview`. The header holds only the lowercased tool name, cut to 64 characters, and no tool arguments.
 
 ## Links
 

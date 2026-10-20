@@ -97,6 +97,12 @@ function textResult(value, meta) {
   };
 }
 
+// TokenLab request logs keep X-TokenLab-Client-Source only when it matches
+// ^[a-z0-9_-]{1,64}$, so the value is lowercased and cut to 64 characters.
+function clientSource(name) {
+  return `mcp-${name}`.toLowerCase().replace(/[^a-z0-9_-]/g, "_").slice(0, 64);
+}
+
 function credentialForTool(tool) {
   return tool.auth === "management" ? MANAGEMENT_TOKEN : API_KEY;
 }
@@ -322,7 +328,8 @@ async function executeGeneratedTool(tool, input) {
 
   const headers = {
     Accept: "application/json, audio/*, image/*, video/*, application/octet-stream",
-    "User-Agent": `tokenlab-mcp-server/${VERSION}`
+    "User-Agent": `tokenlab-mcp-server/${VERSION}`,
+    "X-TokenLab-Client-Source": clientSource(tool.name)
   };
   for (const [name, value] of Object.entries(headerArguments)) {
     if (value !== undefined) headers[name] = String(value);
@@ -394,8 +401,8 @@ async function compareModels({ models, include_raw }) {
   const compared = await Promise.all(models.map(async (model) => {
     const encoded = encodeURIComponent(model);
     const [details, pricing] = await Promise.all([
-      executePublicJson(`/v1/models/${encoded}`),
-      executePublicJson(`/v1/models/${encoded}/pricing`).catch((error) => (
+      executePublicJson(`/v1/models/${encoded}`, "compare_models"),
+      executePublicJson(`/v1/models/${encoded}/pricing`, "compare_models").catch((error) => (
         error instanceof TokenLabHttpError ? { ...error.details, diagnostic: error.message } : { error: error.message }
       ))
     ]);
@@ -495,7 +502,7 @@ const registeredTools = [
     },
     validationSchema: apiOverviewSchema,
     normalizeInput: (input) => normalizeToolInputForSchemaMode(input, apiOverviewSchema, TOOL_SCHEMA_MODE),
-    execute: async () => textResult(await executePublicText("/llms.txt"))
+    execute: async () => textResult(await executePublicText("/llms.txt", "get_api_overview"))
   }
 ];
 
@@ -560,7 +567,7 @@ server.registerResource(
     mimeType: "text/plain"
   },
   async (uri) => ({
-    contents: [{ uri: uri.href, mimeType: "text/plain", text: await executePublicText("/llms.txt") }]
+    contents: [{ uri: uri.href, mimeType: "text/plain", text: await executePublicText("/llms.txt", "resource-api_overview") }]
   })
 );
 
@@ -643,9 +650,13 @@ server.registerPrompt(
   })
 );
 
-async function executePublicJson(path) {
+async function executePublicJson(path, sourceName) {
   const response = await fetch(`${API_BASE}${path}`, {
-    headers: { Accept: "application/json", "User-Agent": `tokenlab-mcp-server/${VERSION}` },
+    headers: {
+      Accept: "application/json",
+      "User-Agent": `tokenlab-mcp-server/${VERSION}`,
+      "X-TokenLab-Client-Source": clientSource(sourceName)
+    },
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS)
   });
   const text = await response.text();
@@ -653,9 +664,13 @@ async function executePublicJson(path) {
   return JSON.parse(text);
 }
 
-async function executePublicText(path) {
+async function executePublicText(path, sourceName) {
   const response = await fetch(`${API_BASE}${path}`, {
-    headers: { Accept: "text/plain", "User-Agent": `tokenlab-mcp-server/${VERSION}` },
+    headers: {
+      Accept: "text/plain",
+      "User-Agent": `tokenlab-mcp-server/${VERSION}`,
+      "X-TokenLab-Client-Source": clientSource(sourceName)
+    },
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS)
   });
   const text = await response.text();
