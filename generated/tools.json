@@ -6,7 +6,7 @@
     "openapi": "3.1.0",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "11829ed9c895f7d68bd08a7653caecf0746e02fa625e397d12f20ddd9719683f"
+    "sha256": "73275fbe81a722c8ac6c5ad4a650dea667b9107fcf527c5911cace2635a83877"
   },
   "default_profile": "core",
   "profiles": [
@@ -52,12 +52,12 @@
     },
     "core": {
       "endpoint_tools": 30,
-      "input_schema_bytes": 45346,
+      "input_schema_bytes": 47196,
       "max_input_schema_depth": 8
     },
     "full": {
       "endpoint_tools": 87,
-      "input_schema_bytes": 73766,
+      "input_schema_bytes": 75986,
       "max_input_schema_depth": 8
     }
   },
@@ -499,6 +499,12 @@
             ],
             "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
+          "Idempotency-Key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Optional key that makes a create request safe to retry. Send a new unique value, such as a UUID, for each task. A retry with the same key and the same body returns the result of the original create request, usually the original task, and does not create, dispatch, or charge a second task. A different body with a key that was already accepted is rejected with `409`. A key longer than 255 characters is ignored, and the request then has no idempotency protection. See [Retry safely with an idempotency key](https://tokenlab.sh/docs/en/guides/error-handling#idempotency-key)."
+          },
           "model": {
             "type": "string",
             "default": "tripo-h3.1"
@@ -550,7 +556,8 @@
         "path": [],
         "query": [],
         "header": [
-          "X-TokenLab-Delivery-Policy"
+          "X-TokenLab-Delivery-Policy",
+          "Idempotency-Key"
         ],
         "body": [
           "model",
@@ -617,6 +624,12 @@
               "official"
             ],
             "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
+          },
+          "Idempotency-Key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Optional key that stops a second run of the same request. Send a new unique value, such as a UUID, for each request, and keep it for retries after a timeout. A retry with the same key does not run again: it returns `409` with `idempotency_replay_unavailable`, or usually `idempotency_conflict` when the body changed. Exception: when a non-stream result finished after the client disconnected, a retry with the same key and body within 24 hours returns that result (up to 1 MB) with the header `Idempotent-Replayed: true` and no second charge. A key longer than 255 characters is ignored, and the request then has no idempotency protection. See [Retry safely with an idempotency key](https://tokenlab.sh/docs/en/guides/error-handling#idempotency-key)."
           },
           "model": {
             "type": "string",
@@ -768,7 +781,8 @@
         "path": [],
         "query": [],
         "header": [
-          "X-TokenLab-Delivery-Policy"
+          "X-TokenLab-Delivery-Policy",
+          "Idempotency-Key"
         ],
         "body": [
           "model",
@@ -826,6 +840,12 @@
               "official"
             ],
             "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
+          },
+          "Idempotency-Key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Optional key that makes a create request safe to retry. Send a new unique value, such as a UUID, for each task. A retry with the same key and the same body returns the result of the original create request, usually the original task, and does not create, dispatch, or charge a second task. A different body with a key that was already accepted is rejected with `409`. A key longer than 255 characters is ignored, and the request then has no idempotency protection. See [Retry safely with an idempotency key](https://tokenlab.sh/docs/en/guides/error-handling#idempotency-key)."
           },
           "requests": {
             "type": "array",
@@ -1008,7 +1028,8 @@
         "path": [],
         "query": [],
         "header": [
-          "X-TokenLab-Delivery-Policy"
+          "X-TokenLab-Delivery-Policy",
+          "Idempotency-Key"
         ],
         "body": [
           "requests"
@@ -1148,6 +1169,12 @@
               "official"
             ],
             "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
+          },
+          "Idempotency-Key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Optional key that stops a second run of the same request. Send a new unique value, such as a UUID, for each request, and keep it for retries after a timeout. A retry with the same key does not run again: it returns `409` with `idempotency_replay_unavailable`, or usually `idempotency_conflict` when the body changed. Exception: when a non-stream result finished after the client disconnected, a retry with the same key and body within 24 hours returns that result (up to 1 MB) with the header `Idempotent-Replayed: true` and no second charge. A key longer than 255 characters is ignored, and the request then has no idempotency protection. See [Retry safely with an idempotency key](https://tokenlab.sh/docs/en/guides/error-handling#idempotency-key)."
           },
           "model": {
             "type": "string",
@@ -1660,7 +1687,8 @@
         "path": [],
         "query": [],
         "header": [
-          "X-TokenLab-Delivery-Policy"
+          "X-TokenLab-Delivery-Policy",
+          "Idempotency-Key"
         ],
         "body": [
           "model",
@@ -2314,6 +2342,12 @@
             ],
             "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
+          "Idempotency-Key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Optional key that makes an image request safe to retry if the request created a task. Send a new unique value, such as a UUID, for each request. A retry with the same key and the same body then returns that task and does not create, dispatch, or charge a second task. For a request that returns the image directly, a retry with the same key can return a task status instead of the image, or `409` with `idempotent_response_not_replayable`. A different body with a key that was already accepted is rejected; the status code and error code for that case are not guaranteed. A key longer than 255 characters is ignored, and the request then has no idempotency protection. See [Retry safely with an idempotency key](https://tokenlab.sh/docs/en/guides/error-handling#idempotency-key)."
+          },
           "prompt": {
             "type": "string",
             "maxLength": 4000,
@@ -2473,7 +2507,8 @@
         "path": [],
         "query": [],
         "header": [
-          "X-TokenLab-Delivery-Policy"
+          "X-TokenLab-Delivery-Policy",
+          "Idempotency-Key"
         ],
         "body": [
           "prompt",
@@ -2560,6 +2595,12 @@
               "official"
             ],
             "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
+          },
+          "Idempotency-Key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Optional key that makes an image request safe to retry if the request created a task. Send a new unique value, such as a UUID, for each request. A retry with the same key and the same body then returns that task and does not create, dispatch, or charge a second task. For a request that returns the image directly, a retry with the same key can return a task status instead of the image, or `409` with `idempotent_response_not_replayable`. A different body with a key that was already accepted is rejected; the status code and error code for that case are not guaranteed. A key longer than 255 characters is ignored, and the request then has no idempotency protection. See [Retry safely with an idempotency key](https://tokenlab.sh/docs/en/guides/error-handling#idempotency-key)."
           },
           "model": {
             "type": "string",
@@ -2684,7 +2725,8 @@
         "path": [],
         "query": [],
         "header": [
-          "X-TokenLab-Delivery-Policy"
+          "X-TokenLab-Delivery-Policy",
+          "Idempotency-Key"
         ],
         "body": [
           "model",
@@ -2974,6 +3016,12 @@
             ],
             "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
+          "Idempotency-Key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Optional key that makes a create request safe to retry. Send a new unique value, such as a UUID, for each task. A retry with the same key and the same body returns the result of the original create request, usually the original task, and does not create, dispatch, or charge a second task. A different body with a key that was already accepted is rejected with `409`. A key longer than 255 characters is ignored, and the request then has no idempotency protection. See [Retry safely with an idempotency key](https://tokenlab.sh/docs/en/guides/error-handling#idempotency-key)."
+          },
           "model": {
             "type": "string",
             "default": "suno_music"
@@ -3049,7 +3097,8 @@
         "path": [],
         "query": [],
         "header": [
-          "X-TokenLab-Delivery-Policy"
+          "X-TokenLab-Delivery-Policy",
+          "Idempotency-Key"
         ],
         "body": [
           "model",
@@ -3119,6 +3168,12 @@
               "official"
             ],
             "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
+          },
+          "Idempotency-Key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Optional key that stops a second run of the same request. Send a new unique value, such as a UUID, for each request, and keep it for retries after a timeout. A retry with the same key does not run again: it returns `409` with `idempotency_replay_unavailable`, or usually `idempotency_conflict` when the body changed. Exception: when a non-stream result finished after the client disconnected, a retry with the same key and body within 24 hours returns that result (up to 1 MB) with the header `Idempotent-Replayed: true` and no second charge. A key longer than 255 characters is ignored, and the request then has no idempotency protection. With `background: true`, a retry with the same key and body returns the original response object instead and does not create or charge a second response; a different body is rejected, and its status code is not guaranteed. See [Retry safely with an idempotency key](https://tokenlab.sh/docs/en/guides/error-handling#idempotency-key)."
           },
           "model": {
             "type": "string",
@@ -3247,7 +3302,8 @@
         "path": [],
         "query": [],
         "header": [
-          "X-TokenLab-Delivery-Policy"
+          "X-TokenLab-Delivery-Policy",
+          "Idempotency-Key"
         ],
         "body": [
           "model",
@@ -3622,6 +3678,12 @@
             ],
             "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
+          "Idempotency-Key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Optional key that makes a create request safe to retry. Send a new unique value, such as a UUID, for each task. A retry with the same key and the same body returns the result of the original create request, usually the original task, and does not create, dispatch, or charge a second task. A different body with a key that was already accepted is rejected with `409`. A key longer than 255 characters is ignored, and the request then has no idempotency protection. See [Retry safely with an idempotency key](https://tokenlab.sh/docs/en/guides/error-handling#idempotency-key)."
+          },
           "prompt": {
             "type": "string",
             "description": "Video description"
@@ -3967,7 +4029,8 @@
         "path": [],
         "query": [],
         "header": [
-          "X-TokenLab-Delivery-Policy"
+          "X-TokenLab-Delivery-Policy",
+          "Idempotency-Key"
         ],
         "body": [
           "prompt",
@@ -4507,6 +4570,12 @@
             ],
             "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
+          "Idempotency-Key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Optional key that makes a create request safe to retry. Send a new unique value, such as a UUID, for each task. A retry with the same key and the same body returns the result of the original create request, usually the original task, and does not create, dispatch, or charge a second task. A different body with a key that was already accepted is rejected with `409`. A key longer than 255 characters is ignored, and the request then has no idempotency protection. See [Retry safely with an idempotency key](https://tokenlab.sh/docs/en/guides/error-handling#idempotency-key)."
+          },
           "model": {
             "type": "string",
             "default": "marble-1.0",
@@ -4620,7 +4689,8 @@
         "path": [],
         "query": [],
         "header": [
-          "X-TokenLab-Delivery-Policy"
+          "X-TokenLab-Delivery-Policy",
+          "Idempotency-Key"
         ],
         "body": [
           "model",
@@ -5366,6 +5436,12 @@
             ],
             "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
+          "Idempotency-Key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Optional key that makes an image request safe to retry if the request created a task. Send a new unique value, such as a UUID, for each request. A retry with the same key and the same body then returns that task and does not create, dispatch, or charge a second task. For a request that returns the image directly, a retry with the same key can return a task status instead of the image, or `409` with `idempotent_response_not_replayable`. A different body with a key that was already accepted is rejected; the status code and error code for that case are not guaranteed. A key longer than 255 characters is ignored, and the request then has no idempotency protection. See [Retry safely with an idempotency key](https://tokenlab.sh/docs/en/guides/error-handling#idempotency-key)."
+          },
           "model": {
             "type": "string",
             "description": "Model to use for image edits. Send this explicitly."
@@ -5518,7 +5594,8 @@
         "path": [],
         "query": [],
         "header": [
-          "X-TokenLab-Delivery-Policy"
+          "X-TokenLab-Delivery-Policy",
+          "Idempotency-Key"
         ],
         "body": [
           "model",
@@ -5599,6 +5676,12 @@
               "official"
             ],
             "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
+          },
+          "Idempotency-Key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "Optional key that makes an image request safe to retry if the request created a task. Send a new unique value, such as a UUID, for each request. A retry with the same key and the same body then returns that task and does not create, dispatch, or charge a second task. For a request that returns the image directly, a retry with the same key can return a task status instead of the image, or `409` with `idempotent_response_not_replayable`. A different body with a key that was already accepted is rejected; the status code and error code for that case are not guaranteed. A key longer than 255 characters is ignored, and the request then has no idempotency protection. See [Retry safely with an idempotency key](https://tokenlab.sh/docs/en/guides/error-handling#idempotency-key)."
           },
           "image": {
             "oneOf": [
@@ -5696,7 +5779,8 @@
         "path": [],
         "query": [],
         "header": [
-          "X-TokenLab-Delivery-Policy"
+          "X-TokenLab-Delivery-Policy",
+          "Idempotency-Key"
         ],
         "body": [
           "image",

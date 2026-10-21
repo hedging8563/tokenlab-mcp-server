@@ -210,6 +210,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/DeliveryPolicy"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeySync"
           }
         ]
       }
@@ -433,6 +436,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/DeliveryPolicy"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyImage"
           }
         ]
       }
@@ -815,6 +821,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/DeliveryPolicy"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyTask"
           }
         ]
       }
@@ -1746,6 +1755,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/DeliveryPolicy"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeySync"
           }
         ]
       }
@@ -1854,6 +1866,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/DeliveryPolicy"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyTask"
           }
         ]
       },
@@ -2780,6 +2795,17 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/DeliveryPolicy"
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "description": "Optional key that stops a second run of the same request. Send a new unique value, such as a UUID, for each request, and keep it for retries after a timeout. A retry with the same key does not run again: it returns `409` with `idempotency_replay_unavailable`, or usually `idempotency_conflict` when the body changed. Exception: when a non-stream result finished after the client disconnected, a retry with the same key and body within 24 hours returns that result (up to 1 MB) with the header `Idempotent-Replayed: true` and no second charge. A key longer than 255 characters is ignored, and the request then has no idempotency protection. With `background: true`, a retry with the same key and body returns the original response object instead and does not create or charge a second response; a different body is rejected, and its status code is not guaranteed. See [Retry safely with an idempotency key](https://tokenlab.sh/docs/en/guides/error-handling#idempotency-key).",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255
+            }
           }
         ]
       }
@@ -3166,6 +3192,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/DeliveryPolicy"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyTask"
           }
         ]
       }
@@ -3276,6 +3305,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/DeliveryPolicy"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyTask"
           }
         ]
       }
@@ -4985,6 +5017,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/DeliveryPolicy"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyImage"
           }
         ]
       }
@@ -5668,6 +5703,9 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/DeliveryPolicy"
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyTask"
           }
         ]
       }
@@ -18326,6 +18364,39 @@
             "verified",
             "official"
           ]
+        }
+      },
+      "IdempotencyKeySync": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": false,
+        "description": "Optional key that stops a second run of the same request. Send a new unique value, such as a UUID, for each request, and keep it for retries after a timeout. A retry with the same key does not run again: it returns `409` with `idempotency_replay_unavailable`, or usually `idempotency_conflict` when the body changed. Exception: when a non-stream result finished after the client disconnected, a retry with the same key and body within 24 hours returns that result (up to 1 MB) with the header `Idempotent-Replayed: true` and no second charge. A key longer than 255 characters is ignored, and the request then has no idempotency protection. See [Retry safely with an idempotency key](https://tokenlab.sh/docs/en/guides/error-handling#idempotency-key).",
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        }
+      },
+      "IdempotencyKeyTask": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": false,
+        "description": "Optional key that makes a create request safe to retry. Send a new unique value, such as a UUID, for each task. A retry with the same key and the same body returns the result of the original create request, usually the original task, and does not create, dispatch, or charge a second task. A different body with a key that was already accepted is rejected with `409`. A key longer than 255 characters is ignored, and the request then has no idempotency protection. See [Retry safely with an idempotency key](https://tokenlab.sh/docs/en/guides/error-handling#idempotency-key).",
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        }
+      },
+      "IdempotencyKeyImage": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": false,
+        "description": "Optional key that makes an image request safe to retry if the request created a task. Send a new unique value, such as a UUID, for each request. A retry with the same key and the same body then returns that task and does not create, dispatch, or charge a second task. For a request that returns the image directly, a retry with the same key can return a task status instead of the image, or `409` with `idempotent_response_not_replayable`. A different body with a key that was already accepted is rejected; the status code and error code for that case are not guaranteed. A key longer than 255 characters is ignored, and the request then has no idempotency protection. See [Retry safely with an idempotency key](https://tokenlab.sh/docs/en/guides/error-handling#idempotency-key).",
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
         }
       }
     }
