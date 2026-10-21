@@ -12028,6 +12028,12 @@
                 "type": "string",
                 "description": "Model associated with the error"
               },
+              "top_up_url": {
+                "type": "string"
+              },
+              "min_top_up_usd": {
+                "type": "number"
+              },
               "did_you_mean": {
                 "type": "string"
               },
