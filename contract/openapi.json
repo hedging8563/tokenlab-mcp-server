@@ -4839,6 +4839,42 @@
                     },
                     "additionalProperties": false,
                     "description": "Optional JSON mask reference for image edits. Provide exactly one of image_url or file_id. Multipart requests can also send mask as a file part."
+                  },
+                  "width": {
+                    "type": "integer",
+                    "description": "Model-specific output width in pixels. See get_model."
+                  },
+                  "height": {
+                    "type": "integer",
+                    "description": "Model-specific output height in pixels. See get_model."
+                  },
+                  "steps": {
+                    "type": "integer",
+                    "description": "Model-specific inference step count. See get_model."
+                  },
+                  "cfg_scale": {
+                    "type": "number",
+                    "description": "Model-specific image CFG scale. See get_model."
+                  },
+                  "guidance_scale": {
+                    "type": "number",
+                    "description": "Model-specific guidance scale. See get_model."
+                  },
+                  "guidance": {
+                    "type": "number",
+                    "description": "Model-specific guidance value. See get_model."
+                  },
+                  "control_strength": {
+                    "type": "number",
+                    "description": "Model-specific edit control strength. See get_model."
+                  },
+                  "fidelity": {
+                    "type": "number",
+                    "description": "Model-specific image edit fidelity. See get_model."
+                  },
+                  "creativity": {
+                    "type": "number",
+                    "description": "Model-specific image edit creativity. See get_model."
                   }
                 },
                 "additionalProperties": true,
@@ -4968,6 +5004,42 @@
                       "format": "binary"
                     },
                     "description": "Alternative repeated multipart field name for multiple source images. The same model-specific limits apply: GPT Image up to 16, xAI Grok Imagine Image 2.0 up to 5, other xAI Grok Imagine edit models up to 3."
+                  },
+                  "width": {
+                    "type": "integer",
+                    "description": "Model-specific output width in pixels. See get_model."
+                  },
+                  "height": {
+                    "type": "integer",
+                    "description": "Model-specific output height in pixels. See get_model."
+                  },
+                  "steps": {
+                    "type": "integer",
+                    "description": "Model-specific inference step count. See get_model."
+                  },
+                  "cfg_scale": {
+                    "type": "number",
+                    "description": "Model-specific image CFG scale. See get_model."
+                  },
+                  "guidance_scale": {
+                    "type": "number",
+                    "description": "Model-specific guidance scale. See get_model."
+                  },
+                  "guidance": {
+                    "type": "number",
+                    "description": "Model-specific guidance value. See get_model."
+                  },
+                  "control_strength": {
+                    "type": "number",
+                    "description": "Model-specific edit control strength. See get_model."
+                  },
+                  "fidelity": {
+                    "type": "number",
+                    "description": "Model-specific image edit fidelity. See get_model."
+                  },
+                  "creativity": {
+                    "type": "number",
+                    "description": "Model-specific image edit creativity. See get_model."
                   }
                 },
                 "additionalProperties": true,
@@ -10546,6 +10618,30 @@
           "user": {
             "type": "string",
             "description": "End-user identifier"
+          },
+          "width": {
+            "type": "integer",
+            "description": "Model-specific output width in pixels. See get_model."
+          },
+          "height": {
+            "type": "integer",
+            "description": "Model-specific output height in pixels. See get_model."
+          },
+          "steps": {
+            "type": "integer",
+            "description": "Model-specific inference step count. See get_model."
+          },
+          "cfg_scale": {
+            "type": "number",
+            "description": "Model-specific image CFG scale. See get_model."
+          },
+          "guidance_scale": {
+            "type": "number",
+            "description": "Model-specific guidance scale. See get_model."
+          },
+          "guidance": {
+            "type": "number",
+            "description": "Model-specific guidance value. See get_model."
           }
         }
       },
@@ -10671,6 +10767,30 @@
           },
           "user": {
             "type": "string"
+          },
+          "width": {
+            "type": "integer",
+            "description": "Model-specific output width in pixels. See get_model."
+          },
+          "height": {
+            "type": "integer",
+            "description": "Model-specific output height in pixels. See get_model."
+          },
+          "steps": {
+            "type": "integer",
+            "description": "Model-specific inference step count. See get_model."
+          },
+          "cfg_scale": {
+            "type": "number",
+            "description": "Model-specific image CFG scale. See get_model."
+          },
+          "guidance_scale": {
+            "type": "number",
+            "description": "Model-specific guidance scale. See get_model."
+          },
+          "guidance": {
+            "type": "number",
+            "description": "Model-specific guidance value. See get_model."
           }
         },
         "additionalProperties": false
@@ -15868,6 +15988,59 @@
                     }
                   },
                   "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "parameter_ranges": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "minimum": {
+                  "type": "number"
+                },
+                "maximum": {
+                  "type": "number"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "compatibility_only_parameters": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "parameter_defaults": {
+            "type": "object",
+            "additionalProperties": {
+              "type": [
+                "string",
+                "number",
+                "boolean",
+                "null"
+              ]
+            }
+          },
+          "parameter_notes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "input_limits": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "minItems": {
+                  "type": "integer"
+                },
+                "maxItems": {
+                  "type": "integer"
                 }
               },
               "additionalProperties": false

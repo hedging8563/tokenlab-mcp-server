@@ -6,7 +6,7 @@
     "openapi": "3.1.0",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "018c73b4914a57c8879512dd8b13fcfdec468806776922deb744b1d194900794"
+    "sha256": "6bff0990cb7772bd02f9f21d2131dc17104d858afb9c936137f0e560e5696c8f"
   },
   "default_profile": "core",
   "profiles": [
@@ -52,12 +52,12 @@
     },
     "core": {
       "endpoint_tools": 30,
-      "input_schema_bytes": 45012,
+      "input_schema_bytes": 47904,
       "max_input_schema_depth": 8
     },
     "full": {
       "endpoint_tools": 87,
-      "input_schema_bytes": 73802,
+      "input_schema_bytes": 76694,
       "max_input_schema_depth": 8
     }
   },
@@ -2496,6 +2496,30 @@
           "user": {
             "type": "string",
             "description": "End-user identifier"
+          },
+          "width": {
+            "type": "integer",
+            "description": "Model-specific output width in pixels. See get_model."
+          },
+          "height": {
+            "type": "integer",
+            "description": "Model-specific output height in pixels. See get_model."
+          },
+          "steps": {
+            "type": "integer",
+            "description": "Model-specific inference step count. See get_model."
+          },
+          "cfg_scale": {
+            "type": "number",
+            "description": "Model-specific image CFG scale. See get_model."
+          },
+          "guidance_scale": {
+            "type": "number",
+            "description": "Model-specific guidance scale. See get_model."
+          },
+          "guidance": {
+            "type": "number",
+            "description": "Model-specific guidance value. See get_model."
           }
         },
         "required": [
@@ -2536,7 +2560,13 @@
           "stream",
           "aspect_ratio",
           "resolution",
-          "user"
+          "user",
+          "width",
+          "height",
+          "steps",
+          "cfg_scale",
+          "guidance_scale",
+          "guidance"
         ],
         "files": []
       },
@@ -2717,6 +2747,30 @@
           },
           "user": {
             "type": "string"
+          },
+          "width": {
+            "type": "integer",
+            "description": "Model-specific output width in pixels. See get_model."
+          },
+          "height": {
+            "type": "integer",
+            "description": "Model-specific output height in pixels. See get_model."
+          },
+          "steps": {
+            "type": "integer",
+            "description": "Model-specific inference step count. See get_model."
+          },
+          "cfg_scale": {
+            "type": "number",
+            "description": "Model-specific image CFG scale. See get_model."
+          },
+          "guidance_scale": {
+            "type": "number",
+            "description": "Model-specific guidance scale. See get_model."
+          },
+          "guidance": {
+            "type": "number",
+            "description": "Model-specific guidance value. See get_model."
           }
         },
         "required": [
@@ -2757,7 +2811,13 @@
           "aspect_ratio",
           "resolution",
           "style",
-          "user"
+          "user",
+          "width",
+          "height",
+          "steps",
+          "cfg_scale",
+          "guidance_scale",
+          "guidance"
         ],
         "files": [
           "image"
@@ -5585,6 +5645,42 @@
             },
             "additionalProperties": false,
             "description": "Optional JSON mask reference for image edits. Provide exactly one of image_url or file_id. Multipart requests can also send mask as a file part."
+          },
+          "width": {
+            "type": "integer",
+            "description": "Model-specific output width in pixels. See get_model."
+          },
+          "height": {
+            "type": "integer",
+            "description": "Model-specific output height in pixels. See get_model."
+          },
+          "steps": {
+            "type": "integer",
+            "description": "Model-specific inference step count. See get_model."
+          },
+          "cfg_scale": {
+            "type": "number",
+            "description": "Model-specific image CFG scale. See get_model."
+          },
+          "guidance_scale": {
+            "type": "number",
+            "description": "Model-specific guidance scale. See get_model."
+          },
+          "guidance": {
+            "type": "number",
+            "description": "Model-specific guidance value. See get_model."
+          },
+          "control_strength": {
+            "type": "number",
+            "description": "Model-specific edit control strength. See get_model."
+          },
+          "fidelity": {
+            "type": "number",
+            "description": "Model-specific image edit fidelity. See get_model."
+          },
+          "creativity": {
+            "type": "number",
+            "description": "Model-specific image edit creativity. See get_model."
           }
         },
         "required": [
@@ -5620,7 +5716,16 @@
           "user",
           "image_urls",
           "images",
-          "mask"
+          "mask",
+          "width",
+          "height",
+          "steps",
+          "cfg_scale",
+          "guidance_scale",
+          "guidance",
+          "control_strength",
+          "fidelity",
+          "creativity"
         ],
         "files": []
       },
@@ -5771,6 +5876,42 @@
           },
           "user": {
             "type": "string"
+          },
+          "width": {
+            "type": "integer",
+            "description": "Model-specific output width in pixels. See get_model."
+          },
+          "height": {
+            "type": "integer",
+            "description": "Model-specific output height in pixels. See get_model."
+          },
+          "steps": {
+            "type": "integer",
+            "description": "Model-specific inference step count. See get_model."
+          },
+          "cfg_scale": {
+            "type": "number",
+            "description": "Model-specific image CFG scale. See get_model."
+          },
+          "guidance_scale": {
+            "type": "number",
+            "description": "Model-specific guidance scale. See get_model."
+          },
+          "guidance": {
+            "type": "number",
+            "description": "Model-specific guidance value. See get_model."
+          },
+          "control_strength": {
+            "type": "number",
+            "description": "Model-specific edit control strength. See get_model."
+          },
+          "fidelity": {
+            "type": "number",
+            "description": "Model-specific image edit fidelity. See get_model."
+          },
+          "creativity": {
+            "type": "number",
+            "description": "Model-specific image edit creativity. See get_model."
           }
         },
         "required": [
@@ -5804,7 +5945,16 @@
           "moderation",
           "async",
           "stream",
-          "user"
+          "user",
+          "width",
+          "height",
+          "steps",
+          "cfg_scale",
+          "guidance_scale",
+          "guidance",
+          "control_strength",
+          "fidelity",
+          "creativity"
         ],
         "files": [
           "image",
