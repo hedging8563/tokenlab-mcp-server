@@ -282,7 +282,13 @@
       },
       "input_property_overrides": {
         "view": {
-          "description": "Compact model-selection output is the MCP default. Set view to full only when the complete OpenAI-compatible list shape is required."
+          "description": "compact by default; full returns the complete OpenAI-compatible list."
+        },
+        "provider": {
+          "description": "Public provider filter (openai/anthropic/google/minimax)."
+        },
+        "recommended_for": {
+          "description": "Sort non-chat models for a task; include recommendation evidence."
         }
       }
     },
@@ -311,6 +317,11 @@
       "tool_name": "create_anthropic_message",
       "fixed_arguments": {
         "stream": false
+      },
+      "input_property_overrides": {
+        "model": {
+          "description": "Model ID."
+        }
       }
     },
     "geminiGenerateContent": {
@@ -322,17 +333,68 @@
         "safety_settings",
         "tool_config",
         "cached_content"
-      ]
+      ],
+      "input_property_overrides": {
+        "model": {
+          "description": "Gemini model ID."
+        },
+        "tools": {
+          "description": "Gemini tools; allowed types/combinations depend on the selected service."
+        }
+      }
     },
     "createChatCompletion": {
       "description": "Create an OpenAI-compatible chat completion. For inline image_url data URLs, declare the byte-accurate image MIME type. The MCP boundary corrects recognized PNG, JPEG, WebP, and GIF payloads declared as application/octet-stream and rejects unrecognized generic binary image payloads before sending a billable request.",
       "fixed_arguments": {
         "stream": false
+      },
+      "input_property_overrides": {
+        "model": {
+          "description": "Model ID."
+        },
+        "user": {
+          "description": "User ID for abuse detection."
+        },
+        "functions": {
+          "description": "Legacy function definitions."
+        },
+        "function_call": {
+          "description": "Legacy function selection."
+        },
+        "top_logprobs": {
+          "description": "Top token count per position; requires logprobs."
+        },
+        "translation_options": {
+          "description": "Audio/video translation language settings."
+        },
+        "prediction": {
+          "description": "Draft/speculative decoding hints."
+        },
+        "service_tier": {
+          "description": "Standard tier pricing; auto/default forwarded; flex/priority/fast/ultrafast ignored."
+        },
+        "extra": {
+          "description": "extra.prompt_caching/extra.prompt_caching_ttl alias anthropic_options."
+        }
       }
     },
     "createResponse": {
       "fixed_arguments": {
         "stream": false
+      },
+      "input_property_overrides": {
+        "input": {
+          "description": "String or structured input items."
+        },
+        "prompt": {
+          "description": "Reusable prompt template and variables."
+        },
+        "service_tier": {
+          "description": "Standard tier pricing; auto/default forwarded; flex/priority/fast/ultrafast ignored."
+        },
+        "tools": {
+          "description": "Tools; allowed types/combinations depend on the selected service."
+        }
       }
     },
     "retrieveResponse": {
@@ -358,6 +420,11 @@
           "canceled",
           "expired"
         ]
+      },
+      "input_property_overrides": {
+        "id": {
+          "description": "Returned id/task_id or the ID in poll_url."
+        }
       }
     },
     "cancelAsyncTask": {
@@ -378,6 +445,11 @@
           "canceled",
           "expired"
         ]
+      },
+      "input_property_overrides": {
+        "id": {
+          "description": "Returned id/task_id or the ID in poll_url."
+        }
       }
     },
     "createSystemOneDecision": {
@@ -391,7 +463,12 @@
       "tool_name": "translate_audio"
     },
     "createTranscription": {
-      "tool_name": "transcribe_audio"
+      "tool_name": "transcribe_audio",
+      "input_property_overrides": {
+        "model": {
+          "description": "Transcription model ID; no default."
+        }
+      }
     },
     "createImage": {
       "all_content_types": true,
@@ -418,6 +495,26 @@
           "canceled",
           "expired"
         ]
+      },
+      "input_property_overrides": {
+        "model": {
+          "description": "Explicit image model ID."
+        },
+        "prompt": {
+          "description": "Image prompt; required only if get_model lists prompt."
+        },
+        "size": {
+          "description": "Model-specific image size; check get_model for sizes and limits."
+        },
+        "quality": {
+          "description": "Model-specific image quality; check get_model for accepted values."
+        },
+        "prompt_extend": {
+          "description": "z-image-turbo prompt expansion; default false; true uses expansion pricing."
+        },
+        "async": {
+          "description": "Async task if the model supports it."
+        }
       }
     },
     "editImage": {
@@ -450,6 +547,14 @@
           "canceled",
           "expired"
         ]
+      },
+      "input_property_overrides": {
+        "model": {
+          "description": "Explicit image-edit model ID."
+        },
+        "async": {
+          "description": "Async task if the model supports it."
+        }
       }
     },
     "createVideo": {
@@ -469,6 +574,68 @@
           "canceled",
           "expired"
         ]
+      },
+      "input_property_overrides": {
+        "model": {
+          "description": "Model ID."
+        },
+        "user": {
+          "description": "User ID."
+        },
+        "operation": {
+          "description": "Video operation; if omitted, inferred from inputs. Send explicitly."
+        },
+        "video_url": {
+          "description": "Public video URL for video-to-video or motion control."
+        },
+        "reference_image_type": {
+          "description": "Image reference role: asset/style; alias: referenceImageType."
+        },
+        "audio_url": {
+          "description": "Public audio URL for a supported audio-input operation."
+        },
+        "task_id": {
+          "description": "Continuation/extension/derivative task ID."
+        },
+        "extend_at": {
+          "description": "Model-specific video extension offset."
+        },
+        "extend_times": {
+          "description": "Model-specific extension multiplier/repeat count."
+        },
+        "size": {
+          "description": "Model-specific video size tier."
+        },
+        "effect_type": {
+          "description": "Model-specific edit effect."
+        },
+        "ratio": {
+          "description": "aspect_ratio alias; if both are sent, values must match."
+        },
+        "outputAudio": {
+          "description": "output_audio alias; all supplied audio toggles must match."
+        },
+        "generate_audio": {
+          "description": "output_audio alias; all supplied audio toggles must match."
+        },
+        "bgm": {
+          "description": "Audio control; support varies by model and operation."
+        },
+        "audio_type": {
+          "description": "Audio control; support varies by model and operation."
+        },
+        "voice_id": {
+          "description": "Audio control; support varies by model and operation."
+        },
+        "watermark": {
+          "description": "Watermark toggle where supported; Seedance default: false."
+        },
+        "priority": {
+          "description": "Task priority where supported; incompatible with service_tier=flex."
+        },
+        "return_last_frame": {
+          "description": "Return last frame where supported; Seedance default: false."
+        }
       }
     },
     "createMusic": {
@@ -488,6 +655,23 @@
           "canceled",
           "expired"
         ]
+      },
+      "input_property_overrides": {
+        "mv": {
+          "description": "Suno model version; required for MUSIC/default action, omitted for lyrics-only."
+        },
+        "prompt": {
+          "description": "Prompt required for music/lyrics/upload-cover/upload-extend; omit for add-instrumental."
+        },
+        "audio_url": {
+          "description": "Public audio URL; omitted audio_operation defaults to upload-cover."
+        },
+        "audio_operation": {
+          "description": "upload-extend needs continue_at; add-instrumental needs audio_url/title/tags/negative_tags."
+        },
+        "continue_at": {
+          "description": "Continuation time in seconds; required for upload-extend."
+        }
       }
     },
     "create3D": {
@@ -508,6 +692,20 @@
           "canceled",
           "expired"
         ]
+      },
+      "input_property_overrides": {
+        "prompt": {
+          "description": "3D prompt; required only if get_model lists prompt."
+        },
+        "user": {
+          "description": "User ID."
+        },
+        "style": {
+          "description": "Model-specific style hint."
+        },
+        "seed": {
+          "description": "Repeatable generation seed where supported."
+        }
       }
     },
     "createWorld": {
@@ -577,6 +775,61 @@
     },
     "listWebhookDeliveries": {
       "description": "List delivery outcomes, HTTP statuses and cumulative attempts. Requires TOKENLAB_MANAGEMENT_TOKEN (mt-...) for the workspace; sk-... keys are not accepted."
+    },
+    "createEmbedding": {
+      "input_property_overrides": {
+        "model": {
+          "description": "Model ID."
+        },
+        "user": {
+          "description": "User ID."
+        }
+      }
+    },
+    "createMultimodalEmbedding": {
+      "input_property_overrides": {
+        "model": {
+          "description": "Multimodal embedding model ID."
+        }
+      }
+    },
+    "createSpeech": {
+      "input_property_overrides": {
+        "model": {
+          "description": "TTS model ID; no default."
+        },
+        "voice": {
+          "description": "Voice selector; some MiniMax models also accept voice_id."
+        },
+        "voice_id": {
+          "description": "MiniMax voice selector."
+        },
+        "instructions": {
+          "description": "Style instructions for supported OpenAI-compatible TTS models."
+        },
+        "prompt": {
+          "description": "Gemini TTS style prompt."
+        },
+        "language_code": {
+          "description": "Language code for Gemini/xAI/compatible TTS."
+        },
+        "response_format": {
+          "description": "Audio format: mp3/opus/aac/flac/wav/pcm; model-specific support."
+        },
+        "speed": {
+          "description": "Speech speed where supported."
+        },
+        "temperature": {
+          "description": "Gemini TTS sampling temperature."
+        }
+      }
+    },
+    "listFiles": {
+      "input_property_overrides": {
+        "scope_id": {
+          "description": "Reserved scope cursor; returns an explicit unsupported error."
+        }
+      }
     }
   }
 }

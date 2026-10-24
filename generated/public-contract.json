@@ -28,7 +28,7 @@
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
     "sha256": "018c73b4914a57c8879512dd8b13fcfdec468806776922deb744b1d194900794",
-    "tool_manifest_sha256": "4efd6c582ec94319c91d436a9adffec238cb5961b199fbade9be63c6e3bfa291"
+    "tool_manifest_sha256": "b79d89ad75053dbad3dc8edbf6668cd3d30c58ab8e6b706f8063214b4d521044"
   },
   "profiles": {
     "catalog": {
@@ -37,7 +37,7 @@
       "endpoint_tools": 4,
       "composite_tools": 2,
       "total_tools": 6,
-      "input_schema_bytes": 1575,
+      "input_schema_bytes": 1464,
       "max_input_schema_depth": 4,
       "tool_names": [
         "compare_models",
@@ -54,7 +54,7 @@
       "endpoint_tools": 30,
       "composite_tools": 2,
       "total_tools": 32,
-      "input_schema_bytes": 47196,
+      "input_schema_bytes": 45012,
       "max_input_schema_depth": 8,
       "tool_names": [
         "cancel_task",
@@ -97,7 +97,7 @@
       "endpoint_tools": 87,
       "composite_tools": 2,
       "total_tools": 89,
-      "input_schema_bytes": 75986,
+      "input_schema_bytes": 73802,
       "max_input_schema_depth": 8,
       "tool_names": [
         "cancel_anthropic_message_batch",

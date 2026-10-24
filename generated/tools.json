@@ -47,17 +47,17 @@
   "profile_metrics": {
     "catalog": {
       "endpoint_tools": 4,
-      "input_schema_bytes": 1575,
+      "input_schema_bytes": 1464,
       "max_input_schema_depth": 4
     },
     "core": {
       "endpoint_tools": 30,
-      "input_schema_bytes": 47196,
+      "input_schema_bytes": 45012,
       "max_input_schema_depth": 8
     },
     "full": {
       "endpoint_tools": 87,
-      "input_schema_bytes": 75986,
+      "input_schema_bytes": 73802,
       "max_input_schema_depth": 8
     }
   },
@@ -174,7 +174,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "The async task ID returned by `id` / `task_id`, or embedded in `poll_url`"
+            "description": "Returned id/task_id or the ID in poll_url."
           }
         },
         "required": [
@@ -511,7 +511,7 @@
           },
           "prompt": {
             "type": "string",
-            "description": "3D model description. Required for every model that takes a prompt; an image-to-3D model whose contract lists no prompt is called without one."
+            "description": "3D prompt; required only if get_model lists prompt."
           },
           "image": {
             "type": "string",
@@ -539,15 +539,15 @@
           },
           "style": {
             "type": "string",
-            "description": "Style hint for compatible 3D model families."
+            "description": "Model-specific style hint."
           },
           "seed": {
             "type": "integer",
-            "description": "Seed for repeatable generation where supported by the model."
+            "description": "Repeatable generation seed where supported."
           },
           "user": {
             "type": "string",
-            "description": "End-user identifier."
+            "description": "User ID."
           }
         },
         "additionalProperties": false
@@ -633,7 +633,7 @@
           },
           "model": {
             "type": "string",
-            "description": "Model to use (e.g., claude-sonnet-4-6)"
+            "description": "Model ID."
           },
           "max_tokens": {
             "type": "integer",
@@ -1178,7 +1178,7 @@
           },
           "model": {
             "type": "string",
-            "description": "ID of the model to use (e.g., gpt-5.4, claude-sonnet-4-6)"
+            "description": "Model ID."
           },
           "messages": {
             "type": "array",
@@ -1489,7 +1489,7 @@
           },
           "functions": {
             "type": "array",
-            "description": "Deprecated function definitions retained by the official Chat Completions contract.",
+            "description": "Legacy function definitions.",
             "items": {
               "type": "object",
               "additionalProperties": true
@@ -1505,7 +1505,7 @@
                 "additionalProperties": true
               }
             ],
-            "description": "Deprecated function-call selection retained by the official Chat Completions contract."
+            "description": "Legacy function selection."
           },
           "tool_choice": {
             "oneOf": [
@@ -1565,7 +1565,7 @@
           },
           "user": {
             "type": "string",
-            "description": "End-user identifier for abuse detection"
+            "description": "User ID for abuse detection."
           },
           "stream_options": {
             "type": "object",
@@ -1588,7 +1588,7 @@
             "type": "integer",
             "minimum": 0,
             "maximum": 20,
-            "description": "Number of most likely tokens to return at each position when logprobs is enabled."
+            "description": "Top token count per position; requires logprobs."
           },
           "logit_bias": {
             "type": "object",
@@ -1624,19 +1624,19 @@
                 "description": "Target language code."
               }
             },
-            "description": "Language settings for models that translate audio or video through Chat Completions."
+            "description": "Audio/video translation language settings."
           },
           "prediction": {
             "type": "object",
             "additionalProperties": true,
-            "description": "Prediction hints for models that support draft or speculative decoding."
+            "description": "Draft/speculative decoding hints."
           },
           "service_tier": {
             "type": [
               "string",
               "null"
             ],
-            "description": "TokenLab serves this request at the standard service tier. auto and default are forwarded. Other values, such as flex, priority, fast and ultrafast, are ignored and billed at the standard price."
+            "description": "Standard tier pricing; auto/default forwarded; flex/priority/fast/ultrafast ignored."
           },
           "anthropic_options": {
             "type": "object",
@@ -1659,7 +1659,7 @@
           },
           "extra": {
             "type": "object",
-            "description": "Extension options. extra.prompt_caching and extra.prompt_caching_ttl are the same as the anthropic_options fields.",
+            "description": "extra.prompt_caching/extra.prompt_caching_ttl alias anthropic_options.",
             "properties": {
               "prompt_caching": {
                 "type": "boolean",
@@ -1766,7 +1766,7 @@
           },
           "model": {
             "type": "string",
-            "description": "ID of the model to use"
+            "description": "Model ID."
           },
           "input": {
             "oneOf": [
@@ -1813,7 +1813,7 @@
           },
           "user": {
             "type": "string",
-            "description": "End-user identifier"
+            "description": "User ID."
           }
         },
         "required": [
@@ -1875,7 +1875,7 @@
           },
           "model": {
             "type": "string",
-            "description": "Model name (e.g., gemini-2.5-pro)"
+            "description": "Gemini model ID."
           },
           "contents": {
             "type": "array",
@@ -2177,7 +2177,7 @@
           },
           "tools": {
             "type": "array",
-            "description": "Gemini tools. Tool types and combinations are interpreted by the selected service.",
+            "description": "Gemini tools; allowed types/combinations depend on the selected service.",
             "items": {
               "type": "object",
               "properties": {
@@ -2351,11 +2351,11 @@
           "prompt": {
             "type": "string",
             "maxLength": 4000,
-            "description": "Image description. Required for every model that takes a prompt; a tool whose contract lists no prompt (background removal, upscaling, vectorizing) is called without one."
+            "description": "Image prompt; required only if get_model lists prompt."
           },
           "model": {
             "type": "string",
-            "description": "Model to use. Send this explicitly; query GET /v1/models?recommended_for=image for current recommendations."
+            "description": "Explicit image model ID."
           },
           "operation": {
             "type": "string",
@@ -2405,11 +2405,11 @@
           },
           "size": {
             "type": "string",
-            "description": "Image size. Defaults are model-specific. For gpt-image-2, omit this field or use auto for automatic sizing, or send WIDTHxHEIGHT; custom dimensions must both be multiples of 16, longest edge <= 3840px, long/short ratio <= 3:1, and total pixels between 655,360 and 8,294,400. For Google image models with resolution tiers (gemini-3.1-flash-image, gemini-3-pro-image, gemini-3.1-flash-lite-image, gemini-nano-banana-2.1, nano-banana-2, nano-banana-2.1, nano-banana-pro), send an output size from the model's size table or a resolution tier: 1K, 2K, or 4K. TokenLab sends a tier as resolution. A tier that the model does not support, or a tier that is different from resolution, returns 400 invalid_image_size_contract. The recommended form for these models is aspect_ratio with resolution."
+            "description": "Model-specific image size; check get_model for sizes and limits."
           },
           "quality": {
             "type": "string",
-            "description": "Image quality. Defaults and accepted values are model-specific. For gpt-image-2, omit this field or use auto for automatic quality, or send low, medium, or high. Other models may accept different values; check the model details."
+            "description": "Model-specific image quality; check get_model for accepted values."
           },
           "style": {
             "type": "string",
@@ -2425,7 +2425,7 @@
           },
           "prompt_extend": {
             "type": "boolean",
-            "description": "For z-image-turbo, enable prompt expansion. Defaults to false. Enabling it uses the model's prompt-expansion price."
+            "description": "z-image-turbo prompt expansion; default false; true uses expansion pricing."
           },
           "negative_prompt": {
             "type": "string",
@@ -2445,7 +2445,7 @@
           },
           "async": {
             "type": "boolean",
-            "description": "Return a task before the final image is ready when the selected model supports public async execution."
+            "description": "Async task if the model supports it."
           },
           "background": {
             "type": "string",
@@ -2604,12 +2604,12 @@
           },
           "model": {
             "type": "string",
-            "description": "Model to use. Send this explicitly."
+            "description": "Explicit image model ID."
           },
           "prompt": {
             "type": "string",
             "maxLength": 4000,
-            "description": "Image description. Required for every model that takes a prompt; a tool whose contract lists no prompt (background removal, upscaling, vectorizing) is called without one."
+            "description": "Image prompt; required only if get_model lists prompt."
           },
           "operation": {
             "type": "string",
@@ -2642,14 +2642,15 @@
             "default": 1
           },
           "quality": {
-            "type": "string"
+            "type": "string",
+            "description": "Model-specific image quality; check get_model for accepted values."
           },
           "expand_prompt": {
             "type": "boolean"
           },
           "prompt_extend": {
             "type": "boolean",
-            "description": "For z-image-turbo, enable prompt expansion. Defaults to false. Enabling it uses the model's prompt-expansion price."
+            "description": "z-image-turbo prompt expansion; default false; true uses expansion pricing."
           },
           "negative_prompt": {
             "type": "string"
@@ -2665,7 +2666,8 @@
             ]
           },
           "async": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Async task if the model supports it."
           },
           "background": {
             "type": "string",
@@ -2701,7 +2703,8 @@
             ]
           },
           "size": {
-            "type": "string"
+            "type": "string",
+            "description": "Model-specific image size; check get_model for sizes and limits."
           },
           "aspect_ratio": {
             "type": "string"
@@ -2899,7 +2902,7 @@
           },
           "model": {
             "type": "string",
-            "description": "Model to use for multimodal embeddings"
+            "description": "Multimodal embedding model ID."
           },
           "input": {
             "oneOf": [
@@ -3028,7 +3031,7 @@
           },
           "prompt": {
             "type": "string",
-            "description": "Music description. Required for music, lyrics, upload-cover, and upload-extend requests; omit for add-instrumental."
+            "description": "Prompt required for music/lyrics/upload-cover/upload-extend; omit for add-instrumental."
           },
           "title": {
             "type": "string"
@@ -3062,7 +3065,7 @@
               "chirp-v5-5",
               "chirp-v5.5"
             ],
-            "description": "Official Suno model version. Required when creating music (action omitted or MUSIC); omit for lyrics-only requests."
+            "description": "Suno model version; required for MUSIC/default action, omitted for lyrics-only."
           },
           "make_instrumental": {
             "type": "boolean",
@@ -3071,7 +3074,7 @@
           "audio_url": {
             "type": "string",
             "format": "uri",
-            "description": "Publicly reachable reference or uploaded audio URL. Defaults to upload-cover when audio_operation is omitted."
+            "description": "Public audio URL; omitted audio_operation defaults to upload-cover."
           },
           "audio_operation": {
             "type": "string",
@@ -3080,7 +3083,7 @@
               "upload-extend",
               "add-instrumental"
             ],
-            "description": "Uploaded-audio mode. upload-extend requires continue_at; add-instrumental requires audio_url, title, tags, and negative_tags."
+            "description": "upload-extend needs continue_at; add-instrumental needs audio_url/title/tags/negative_tags."
           },
           "continue_clip_id": {
             "type": "string",
@@ -3088,7 +3091,7 @@
           },
           "continue_at": {
             "type": "number",
-            "description": "Timestamp in seconds for continuation flows. Required when audio_operation is upload-extend."
+            "description": "Continuation time in seconds; required for upload-extend."
           }
         },
         "additionalProperties": false
@@ -3190,7 +3193,7 @@
                 "description": "Structured input items for the conversation."
               }
             ],
-            "description": "Input content as a string or structured item array."
+            "description": "String or structured input items."
           },
           "instructions": {
             "type": "string",
@@ -3209,7 +3212,7 @@
               "type": "object",
               "additionalProperties": true
             },
-            "description": "Tools available to the model. Tool types and combinations are validated by the selected service."
+            "description": "Tools; allowed types/combinations depend on the selected service."
           },
           "tool_choice": {
             "oneOf": [
@@ -3246,7 +3249,7 @@
               "string",
               "null"
             ],
-            "description": "TokenLab serves this request at the standard service tier. auto and default are forwarded. Other values, such as flex, priority, fast and ultrafast, are ignored and billed at the standard price."
+            "description": "Standard tier pricing; auto/default forwarded; flex/priority/fast/ultrafast ignored."
           },
           "truncation": {
             "type": "string",
@@ -3263,7 +3266,7 @@
           "prompt": {
             "type": "object",
             "additionalProperties": true,
-            "description": "Reference to a reusable prompt template and variables."
+            "description": "Reusable prompt template and variables."
           },
           "store": {
             "type": "boolean",
@@ -3544,7 +3547,7 @@
           },
           "model": {
             "type": "string",
-            "description": "TTS model. There is no default model. Query GET /v1/models?recommended_for=tts for the current shortlist."
+            "description": "TTS model ID; no default."
           },
           "input": {
             "type": "string",
@@ -3569,29 +3572,29 @@
                 "additionalProperties": false
               }
             ],
-            "description": "Voice selector for OpenAI-compatible, Gemini, xAI, and MiniMax-compatible speech models. Some MiniMax models also accept voice_id."
+            "description": "Voice selector; some MiniMax models also accept voice_id."
           },
           "voice_id": {
             "type": "string",
-            "description": "Voice selector for MiniMax-compatible speech models."
+            "description": "MiniMax voice selector."
           },
           "instructions": {
             "type": "string",
             "maxLength": 2000,
-            "description": "Optional style or delivery instructions for OpenAI-compatible TTS models that support them."
+            "description": "Style instructions for supported OpenAI-compatible TTS models."
           },
           "prompt": {
             "type": "string",
             "maxLength": 2000,
-            "description": "Optional speaking style prompt for Gemini TTS models."
+            "description": "Gemini TTS style prompt."
           },
           "language_code": {
             "type": "string",
-            "description": "Optional language code for Gemini, xAI, and compatible TTS models."
+            "description": "Language code for Gemini/xAI/compatible TTS."
           },
           "response_format": {
             "type": "string",
-            "description": "Audio format. Common values include mp3, opus, aac, flac, wav, and pcm. Supported values vary by model family."
+            "description": "Audio format: mp3/opus/aac/flac/wav/pcm; model-specific support."
           },
           "stream_format": {
             "type": "string",
@@ -3606,13 +3609,13 @@
             "type": "number",
             "minimum": 0.25,
             "maximum": 4,
-            "description": "Speech speed for model families that support it."
+            "description": "Speech speed where supported."
           },
           "temperature": {
             "type": "number",
             "minimum": 0,
             "maximum": 2,
-            "description": "Sampling temperature for Gemini-compatible TTS models."
+            "description": "Gemini TTS sampling temperature."
           }
         },
         "required": [
@@ -3690,7 +3693,7 @@
           },
           "model": {
             "type": "string",
-            "description": "Model to use (e.g., veo3.1, kling-v3.0)"
+            "description": "Model ID."
           },
           "operation": {
             "type": "string",
@@ -3704,7 +3707,7 @@
               "audio-to-video",
               "motion-control"
             ],
-            "description": "Requested video operation. If omitted, TokenLab infers the operation from the provided inputs. Explicit operation is recommended for production reliability."
+            "description": "Video operation; if omitted, inferred from inputs. Send explicitly."
           },
           "image": {
             "type": "string",
@@ -3718,7 +3721,7 @@
           "video_url": {
             "type": "string",
             "format": "uri",
-            "description": "Publicly reachable video URL for video-to-video style flows and motion-control models."
+            "description": "Public video URL for video-to-video or motion control."
           },
           "duration": {
             "type": "integer",
@@ -3799,7 +3802,7 @@
           },
           "user": {
             "type": "string",
-            "description": "End-user identifier"
+            "description": "User ID."
           },
           "image_urls": {
             "type": "array",
@@ -3877,25 +3880,25 @@
               "asset",
               "style"
             ],
-            "description": "Optional reference image role for models that distinguish between asset and style references. The camelCase alias referenceImageType is accepted for compatibility."
+            "description": "Image reference role: asset/style; alias: referenceImageType."
           },
           "audio_url": {
             "type": "string",
             "format": "uri",
-            "description": "Public audio URL for an audio-driven or reference-audio operation supported by the selected model."
+            "description": "Public audio URL for a supported audio-input operation."
           },
           "task_id": {
             "type": "string",
-            "description": "Task identifier used by some continuation, extension, or derivative flows."
+            "description": "Continuation/extension/derivative task ID."
           },
           "extend_at": {
             "type": "integer",
             "minimum": 0,
-            "description": "Model-specific extension start offset used by some video-extension flows."
+            "description": "Model-specific video extension offset."
           },
           "extend_times": {
             "type": "string",
-            "description": "Model-specific extension multiplier or repeat count used by some video-extension flows."
+            "description": "Model-specific extension multiplier/repeat count."
           },
           "seconds": {
             "type": "integer",
@@ -3905,15 +3908,15 @@
           },
           "size": {
             "type": "string",
-            "description": "Model-specific size tier for compatible video models."
+            "description": "Model-specific video size tier."
           },
           "watermark": {
             "type": "boolean",
-            "description": "Optional watermark toggle for models that expose it. Seedance defaults to false when omitted."
+            "description": "Watermark toggle where supported; Seedance default: false."
           },
           "effect_type": {
             "type": "string",
-            "description": "Model-specific effect selector for specialized editing flows."
+            "description": "Model-specific edit effect."
           },
           "video_urls": {
             "type": "array",
@@ -3946,15 +3949,15 @@
               "3:4",
               "21:9"
             ],
-            "description": "Compatibility alias for aspect_ratio. If both ratio and aspect_ratio are provided, they must match."
+            "description": "aspect_ratio alias; if both are sent, values must match."
           },
           "outputAudio": {
             "type": "boolean",
-            "description": "Compatibility alias for output_audio. If both are provided, they must match."
+            "description": "output_audio alias; all supplied audio toggles must match."
           },
           "generate_audio": {
             "type": "boolean",
-            "description": "Compatibility alias for output_audio. If more than one audio toggle is provided, all values must match."
+            "description": "output_audio alias; all supplied audio toggles must match."
           },
           "execution_expires_after": {
             "type": "integer",
@@ -3968,7 +3971,7 @@
             "minimum": 0,
             "maximum": 9,
             "default": 0,
-            "description": "Optional task priority for compatible video models. Do not combine priority with service_tier=flex."
+            "description": "Task priority where supported; incompatible with service_tier=flex."
           },
           "safety_identifier": {
             "type": "string",
@@ -3995,7 +3998,7 @@
           "return_last_frame": {
             "type": "boolean",
             "default": false,
-            "description": "Return the last generated frame when the selected model supports it. Seedance defaults to false when omitted."
+            "description": "Return last frame where supported; Seedance default: false."
           },
           "draft": {
             "type": "boolean",
@@ -4012,15 +4015,15 @@
           },
           "bgm": {
             "type": "boolean",
-            "description": "Optional audio control. Accepted only when declared by the selected model and operation; availability may differ by operation."
+            "description": "Audio control; support varies by model and operation."
           },
           "audio_type": {
             "type": "string",
-            "description": "Optional audio control. Accepted only when declared by the selected model and operation; availability may differ by operation."
+            "description": "Audio control; support varies by model and operation."
           },
           "voice_id": {
             "type": "string",
-            "description": "Optional audio control. Accepted only when declared by the selected model and operation; availability may differ by operation."
+            "description": "Audio control; support varies by model and operation."
           }
         },
         "additionalProperties": false
@@ -5444,7 +5447,7 @@
           },
           "model": {
             "type": "string",
-            "description": "Model to use for image edits. Send this explicitly."
+            "description": "Explicit image-edit model ID."
           },
           "prompt": {
             "type": "string"
@@ -5508,7 +5511,7 @@
           },
           "async": {
             "type": "boolean",
-            "description": "Return a task before the edited image is ready for models that support public async execution."
+            "description": "Async task if the model supports it."
           },
           "user": {
             "type": "string"
@@ -5705,7 +5708,7 @@
           },
           "model": {
             "type": "string",
-            "description": "Model to use for image edits. Send this explicitly, for example gpt-image-2."
+            "description": "Explicit image-edit model ID."
           },
           "prompt": {
             "type": "string"
@@ -5763,7 +5766,8 @@
             ]
           },
           "async": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Async task if the model supports it."
           },
           "user": {
             "type": "string"
@@ -6770,7 +6774,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "The async task ID returned by `id` / `task_id`, or embedded in `poll_url`"
+            "description": "Returned id/task_id or the ID in poll_url."
           }
         },
         "required": [
@@ -7309,7 +7313,7 @@
           },
           "scope_id": {
             "type": "string",
-            "description": "Reserved Anthropic Files scope cursor. TokenLab currently returns an explicit unsupported error rather than silently ignoring this value."
+            "description": "Reserved scope cursor; returns an explicit unsupported error."
           },
           "purpose": {
             "type": "string",
@@ -7421,7 +7425,7 @@
         "properties": {
           "provider": {
             "type": "string",
-            "description": "Filter by public model provider, for example openai, anthropic, google, or minimax."
+            "description": "Public provider filter (openai/anthropic/google/minimax)."
           },
           "tag": {
             "type": "string",
@@ -7459,7 +7463,7 @@
               "translation",
               "decision"
             ],
-            "description": "Sort supported non-chat models for a task category and include recommendation evidence."
+            "description": "Sort non-chat models for a task; include recommendation evidence."
           },
           "view": {
             "type": "string",
@@ -7468,7 +7472,7 @@
               "full"
             ],
             "default": "compact",
-            "description": "Compact model-selection output is the MCP default. Set view to full only when the complete OpenAI-compatible list shape is required."
+            "description": "compact by default; full returns the complete OpenAI-compatible list."
           }
         },
         "additionalProperties": false
@@ -8551,7 +8555,7 @@
           },
           "model": {
             "type": "string",
-            "description": "Transcription model ID. There is no default model."
+            "description": "Transcription model ID; no default."
           },
           "language": {
             "type": "string",
