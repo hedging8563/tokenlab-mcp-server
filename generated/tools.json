@@ -6,7 +6,7 @@
     "openapi": "3.1.0",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "d4866072bb58c34017bb94405b494e89c416b9cbe608578db91f571e12a63099"
+    "sha256": "018c73b4914a57c8879512dd8b13fcfdec468806776922deb744b1d194900794"
   },
   "default_profile": "core",
   "profiles": [
@@ -3860,11 +3860,11 @@
           },
           "material_asset_id": {
             "type": "string",
-            "description": "TokenLab Seedance material asset ID returned by /v1/videos/assets, by automatic image preparation, or from a real-person group returned by GetVisualValidateResult. Use it after the asset is ACTIVE with Seedance models that can use the TokenLab material library. The asset must belong to the current account. This field is a generic reference input; to assign first-frame, last-frame, or reference-image semantics explicitly, put asset://<material_asset_id> in start_image, end_image, or reference_images."
+            "description": "TokenLab Seedance material asset ID returned by /v1/videos/assets or from a real-person group returned by GetVisualValidateResult. Use it after the asset is ACTIVE with Seedance models that can use the TokenLab material library. The asset must belong to the current account. This field is a generic reference input; to assign first-frame, last-frame, or reference-image semantics explicitly, put asset://<material_asset_id> in start_image, end_image, or reference_images."
           },
           "material_asset_ids": {
             "type": "array",
-            "description": "TokenLab Seedance material asset IDs returned by /v1/videos/assets or by automatic image preparation. They share the Seedance image-reference limit; the selected model must be able to use the TokenLab material library and all assets must belong to the current account and be ACTIVE.",
+            "description": "TokenLab Seedance material asset IDs returned by /v1/videos/assets. They share the Seedance image-reference limit; the selected model must be able to use the TokenLab material library and all assets must belong to the current account and be ACTIVE.",
             "minItems": 1,
             "maxItems": 9,
             "items": {
