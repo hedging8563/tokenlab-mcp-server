@@ -5,7 +5,7 @@
     "id": "tokenlab-mcp-server",
     "name": "@tokenlabai/mcp-server",
     "title": "TokenLab MCP Server",
-    "version": "0.6.35",
+    "version": "0.6.36",
     "registry_name": "io.github.hedging8563/tokenlab",
     "source_url": "https://github.com/hedging8563/tokenlab-mcp-server",
     "landing_url": "https://tokenlab.sh/mcp",
@@ -27,8 +27,8 @@
     "openapi": "3.1.0",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "1e5c9fe52cef5b116a0d7f8c980df8c5ffee9abe82c3f08fed13d4760e31c478",
-    "tool_manifest_sha256": "d3039399d5f0b33cd7a2bdf6ae87e807b4771339018554bca8c2bbcdb7d0cc83"
+    "sha256": "d4866072bb58c34017bb94405b494e89c416b9cbe608578db91f571e12a63099",
+    "tool_manifest_sha256": "1d4408bb3e3d14218c142090f7b131f3e4a0db7447cc4f9e688b30508526b46f"
   },
   "profiles": {
     "catalog": {
