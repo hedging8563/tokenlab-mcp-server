@@ -83,6 +83,100 @@ function parseTextResult(result) {
   return parsed;
 }
 
+test("compact overlay descriptions preserve validation and keep new image fields in exact and portable schemas", async (t) => {
+  const temp = await mkdtemp(join(tmpdir(), "tokenlab-mcp-schema-budget-"));
+  t.after(() => rm(temp, { recursive: true, force: true }));
+  const spec = JSON.parse(await readFile(new URL("../contract/openapi.json", import.meta.url), "utf8"));
+  const overlay = JSON.parse(await readFile(new URL("../contract/mcp-overlay.json", import.meta.url), "utf8"));
+  const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
+  const install = await readFile(new URL("../llms-install.md", import.meta.url), "utf8");
+  const generate = async (source, configuration, name) => {
+    const paths = Object.fromEntries(["source", "overlay", "output", "public-output", "readme", "install"]
+      .map((kind) => [kind, join(temp, `${name}-${kind}.${kind === "readme" || kind === "install" ? "md" : "json"}`)]));
+    await Promise.all([
+      writeFile(paths.source, JSON.stringify(source)), writeFile(paths.overlay, JSON.stringify(configuration)),
+      writeFile(paths.readme, readme), writeFile(paths.install, install)
+    ]);
+    execFileSync(process.execPath, ["scripts/generate-contract.mjs", ...Object.entries(paths)
+      .flatMap(([kind, path]) => [`--${kind}`, path])], { cwd: process.cwd(), stdio: "pipe" });
+    return JSON.parse(await readFile(paths.output, "utf8"));
+  };
+  const withoutDescriptions = (schema) => {
+    if (Array.isArray(schema)) return schema.map(withoutDescriptions);
+    if (!schema || typeof schema !== "object") return schema;
+    return Object.fromEntries(Object.entries(schema)
+      .filter(([key]) => key !== "description")
+      .map(([key, value]) => [key, key === "properties"
+        ? Object.fromEntries(Object.entries(value).map(([name, property]) => [name, withoutDescriptions(property)]))
+        : withoutDescriptions(value)]));
+  };
+  const verboseOverlay = structuredClone(overlay);
+  for (const operation of Object.values(verboseOverlay.operation_overrides)) {
+    for (const [parameter, patch] of Object.entries(operation.input_property_overrides || {})) {
+      delete patch.description;
+      if (Object.keys(patch).length === 0) delete operation.input_property_overrides[parameter];
+    }
+  }
+  // The verbose reference measures validation semantics, not shippable prose size.
+  // The real overlay and image-parameter candidate retain every package budget.
+  for (const profile of Object.values(verboseOverlay.profiles)) {
+    delete profile.compatibility_budget.max_input_schema_bytes;
+  }
+  const verbose = await generate(spec, verboseOverlay, "unshortened");
+  assert.deepEqual(manifest.tools.map((tool) => ({ ...tool, input_schema: withoutDescriptions(tool.input_schema) })),
+    verbose.tools.map((tool) => ({ ...tool, input_schema: withoutDescriptions(tool.input_schema) })),
+    "compact prose must not alter field names, validation, defaults, bindings or tool behavior");
+
+  // These optional model-specific parameters come from the image endpoint contract.
+  // Generating a candidate leaves the independently releasable package snapshot unchanged.
+  const numericFields = {
+    width: { type: "integer", description: "Model-specific output width in pixels. See get_model." },
+    height: { type: "integer", description: "Model-specific output height in pixels. See get_model." },
+    steps: { type: "integer", description: "Model-specific inference step count. See get_model." },
+    cfg_scale: { type: "number", description: "Model-specific image CFG scale. See get_model." },
+    guidance_scale: { type: "number", description: "Model-specific guidance scale. See get_model." },
+    guidance: { type: "number", description: "Model-specific guidance value. See get_model." }
+  };
+  const editFields = {
+    ...numericFields,
+    control_strength: { type: "number", description: "Model-specific edit control strength. See get_model." },
+    fidelity: { type: "number", description: "Model-specific image edit fidelity. See get_model." },
+    creativity: { type: "number", description: "Model-specific image edit creativity. See get_model." }
+  };
+  for (const name of ["ImageGenerationRequest", "ImageGenerationMultipartRequest"]) {
+    Object.assign(spec.components.schemas[name].properties, numericFields);
+  }
+  for (const media of Object.values(spec.paths["/v1/images/edits"].post.requestBody.content)) {
+    Object.assign(media.schema.properties, editFields);
+  }
+  const candidate = await generate(spec, overlay, "image-parameters");
+  for (const [name, fields] of [
+    ["create_image", numericFields], ["create_image_file", numericFields],
+    ["edit_image", editFields], ["edit_image_file", editFields]
+  ]) {
+    const tool = candidate.tools.find((item) => item.name === name);
+    assert.ok(tool, `${name} must remain available`);
+    const original = manifest.tools.find((item) => item.name === name);
+    for (const mode of ["exact", "portable"]) {
+      const schema = projectToolInputSchema(tool.input_schema, mode);
+      assert.deepEqual(Object.keys(schema.properties).sort(),
+        [...new Set([...Object.keys(original.input_schema.properties), ...Object.keys(fields)])].sort(),
+        `${name} ${mode} must retain every original and new parameter`);
+      for (const [parameter, definition] of Object.entries(fields)) {
+        assert.equal(schema.properties[parameter].type, definition.type, `${name} ${mode} ${parameter}`);
+        assert.equal(schema.properties[parameter].default, undefined);
+        assert.equal(schema.properties[parameter].minimum, undefined);
+        assert.equal(schema.properties[parameter].maximum, undefined);
+        assert.equal(tool.bindings.body.filter((field) => field === parameter).length, 1);
+      }
+    }
+  }
+  for (const profile of ["core", "full"]) {
+    assert.ok(candidate.profile_metrics[profile].input_schema_bytes
+      <= manifest.profile_config[profile].compatibility_budget.max_input_schema_bytes);
+  }
+});
+
 test("advertises exactly the generated profile plus composite discovery tools", async (t) => {
   for (const profile of manifest.profiles) {
     await t.test(profile, async (t) => {
