@@ -17232,6 +17232,12 @@
                   "null"
                 ]
               },
+              "cacheWrite12h": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
               "fixed": {
                 "type": [
                   "string",

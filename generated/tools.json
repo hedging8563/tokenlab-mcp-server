@@ -6,7 +6,7 @@
     "openapi": "3.1.0",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "6bff0990cb7772bd02f9f21d2131dc17104d858afb9c936137f0e560e5696c8f"
+    "sha256": "a1a8a46d8f13da1d1dc82b53e838ef632330bf946bf661725b67bf6180497472"
   },
   "default_profile": "core",
   "profiles": [
