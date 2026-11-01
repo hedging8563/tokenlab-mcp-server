@@ -3502,11 +3502,7 @@
                   },
                   "output_format": {
                     "type": "string",
-                    "enum": [
-                      "mp3",
-                      "wav"
-                    ],
-                    "description": "Audio file format, for models that list this parameter."
+                    "description": "Audio file format listed by the model, for example mp3, wav or flac."
                   },
                   "seed": {
                     "type": "integer",
@@ -3516,9 +3512,9 @@
                   },
                   "steps": {
                     "type": "integer",
-                    "minimum": 4,
-                    "maximum": 8,
-                    "description": "Generation steps, where listed."
+                    "minimum": 1,
+                    "maximum": 100,
+                    "description": "Generation steps, where listed. The range depends on the model."
                   },
                   "cfg_scale": {
                     "type": "number",
