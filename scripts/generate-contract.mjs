@@ -265,7 +265,10 @@ function applyInputOverrides(schema, bindings, override) {
   }
   for (const [name, patch] of Object.entries(override.input_property_overrides || {})) {
     if (!schema.properties[name]) throw new Error(`Cannot override unknown MCP argument: ${name}`);
-    schema.properties[name] = { ...schema.properties[name], ...patch };
+    // A null value in the overlay removes that keyword from the property.
+    schema.properties[name] = Object.fromEntries(
+      Object.entries({ ...schema.properties[name], ...patch }).filter(([, value]) => value !== null)
+    );
   }
   for (const [name, value] of Object.entries(override.default_arguments || {})) {
     if (!schema.properties[name]) throw new Error(`Cannot default unknown MCP argument: ${name}`);

@@ -6,7 +6,7 @@
     "openapi": "3.1.0",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "a1a8a46d8f13da1d1dc82b53e838ef632330bf946bf661725b67bf6180497472"
+    "sha256": "02f196a2a5a42550ed09f3bedcc4f86987bb4a489b71c9743171bf309f101678"
   },
   "default_profile": "core",
   "profiles": [
@@ -52,12 +52,12 @@
     },
     "core": {
       "endpoint_tools": 30,
-      "input_schema_bytes": 47904,
+      "input_schema_bytes": 47901,
       "max_input_schema_depth": 8
     },
     "full": {
       "endpoint_tools": 87,
-      "input_schema_bytes": 76694,
+      "input_schema_bytes": 77877,
       "max_input_schema_depth": 8
     }
   },
@@ -84,7 +84,7 @@
         "properties": {
           "message_batch_id": {
             "type": "string",
-            "description": "Anthropic message batch identifier"
+            "description": "Message batch identifier"
           }
         },
         "required": [
@@ -507,10 +507,12 @@
           },
           "model": {
             "type": "string",
-            "default": "tripo-h3.1"
+            "default": "tripo-h3.1",
+            "description": "3D model ID."
           },
           "prompt": {
             "type": "string",
+            "maxLength": 2000,
             "description": "3D prompt; required only if get_model lists prompt."
           },
           "image": {
@@ -518,7 +520,8 @@
             "description": "Base64 image for image-to-3D"
           },
           "image_url": {
-            "type": "string"
+            "type": "string",
+            "format": "uri"
           },
           "format": {
             "type": "string",
@@ -643,6 +646,8 @@
           "messages": {
             "type": "array",
             "description": "Messages in the conversation",
+            "minItems": 1,
+            "maxItems": 100000,
             "items": {
               "type": "object",
               "required": [
@@ -664,28 +669,28 @@
                     },
                     {
                       "type": "array",
+                      "description": "Content blocks. Besides `text` and `image`, native blocks such as `tool_use`, `tool_result`, `thinking`, and `document` are accepted for models that support them.",
                       "items": {
                         "type": "object",
+                        "additionalProperties": true,
+                        "required": [
+                          "type"
+                        ],
                         "properties": {
                           "type": {
                             "type": "string",
-                            "enum": [
-                              "text",
-                              "image"
-                            ]
+                            "description": "Content block type, for example `text`, `image`, `tool_use`, or `tool_result`."
                           },
                           "text": {
                             "type": "string"
                           },
                           "source": {
                             "type": "object",
+                            "additionalProperties": true,
                             "properties": {
                               "type": {
                                 "type": "string",
-                                "enum": [
-                                  "base64",
-                                  "url"
-                                ]
+                                "description": "`base64`, `url`, or `file` (with `file_id`; needs the `anthropic-beta: files-api-2025-04-14` header)."
                               },
                               "media_type": {
                                 "type": "string"
@@ -707,8 +712,8 @@
             }
           },
           "system": {
-            "type": "string",
-            "description": "System prompt"
+            "description": "System prompt",
+            "type": "string"
           },
           "temperature": {
             "type": "number",
@@ -726,6 +731,7 @@
           },
           "stop_sequences": {
             "type": "array",
+            "maxItems": 8191,
             "items": {
               "type": "string"
             }
@@ -739,15 +745,8 @@
             "description": "Tool definitions available to the model."
           },
           "tool_choice": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "object",
-                "additionalProperties": true
-              }
-            ],
+            "type": "object",
+            "additionalProperties": true,
             "description": "Tool choice policy or explicit tool selection."
           },
           "metadata": {
@@ -767,7 +766,7 @@
           },
           "service_tier": {
             "type": "string",
-            "description": "Service tier hint where supported by the model."
+            "description": "Only auto and standard_only take effect."
           }
         },
         "required": [
@@ -860,7 +859,8 @@
               "properties": {
                 "custom_id": {
                   "type": "string",
-                  "description": "Client-supplied identifier for this batch item"
+                  "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+                  "description": "Client-supplied identifier for this batch item. 1 to 64 letters, digits, underscores, or hyphens. Must be unique within the batch."
                 },
                 "params": {
                   "type": "object",
@@ -872,16 +872,18 @@
                   "properties": {
                     "model": {
                       "type": "string",
-                      "description": "Model to use (e.g., claude-sonnet-4-6)"
+                      "description": "A model whose accepted_request_formats lists anthropic_messages."
                     },
                     "max_tokens": {
                       "type": "integer",
                       "minimum": 1,
-                      "description": "Maximum number of tokens to generate"
+                      "description": "Maximum output tokens. Required; the maximum depends on the model."
                     },
                     "messages": {
                       "type": "array",
-                      "description": "Messages in the conversation",
+                      "description": "Messages in the conversation. Up to 100,000 messages.",
+                      "minItems": 1,
+                      "maxItems": 100000,
                       "items": {
                         "type": "object",
                         "required": [
@@ -903,28 +905,28 @@
                               },
                               {
                                 "type": "array",
+                                "description": "Content blocks. Besides `text` and `image`, native blocks such as `tool_use`, `tool_result`, `thinking`, and `document` are accepted for models that support them.",
                                 "items": {
                                   "type": "object",
+                                  "additionalProperties": true,
+                                  "required": [
+                                    "type"
+                                  ],
                                   "properties": {
                                     "type": {
                                       "type": "string",
-                                      "enum": [
-                                        "text",
-                                        "image"
-                                      ]
+                                      "description": "Content block type, for example `text`, `image`, `tool_use`, or `tool_result`."
                                     },
                                     "text": {
                                       "type": "string"
                                     },
                                     "source": {
                                       "type": "object",
+                                      "additionalProperties": true,
                                       "properties": {
                                         "type": {
                                           "type": "string",
-                                          "enum": [
-                                            "base64",
-                                            "url"
-                                          ]
+                                          "description": "`base64`, `url`, or `file` (with `file_id`; needs the `anthropic-beta: files-api-2025-04-14` header)."
                                         },
                                         "media_type": {
                                           "type": "string"
@@ -946,32 +948,60 @@
                       }
                     },
                     "system": {
-                      "type": "string",
-                      "description": "System prompt"
+                      "description": "System prompt: a string, or an array of text content blocks.",
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": true,
+                            "required": [
+                              "type"
+                            ],
+                            "properties": {
+                              "type": {
+                                "type": "string"
+                              },
+                              "text": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      ]
                     },
                     "temperature": {
                       "type": "number",
                       "minimum": 0,
-                      "maximum": 1
+                      "maximum": 1,
+                      "description": "Sampling temperature. Range and default depend on the model."
                     },
                     "top_p": {
                       "type": "number",
                       "minimum": 0,
-                      "maximum": 1
+                      "maximum": 1,
+                      "description": "Nucleus sampling. Use temperature or top_p, not both."
                     },
                     "top_k": {
                       "type": "integer",
-                      "minimum": 1
+                      "minimum": 1,
+                      "description": "Sample from the top K tokens, where supported."
                     },
                     "stop_sequences": {
                       "type": "array",
+                      "maxItems": 8191,
+                      "description": "Strings that stop generation.",
                       "items": {
                         "type": "string"
                       }
                     },
                     "stream": {
                       "type": "boolean",
-                      "default": false
+                      "default": false,
+                      "description": "Stream Anthropic server-sent events."
                     },
                     "tools": {
                       "type": "array",
@@ -979,29 +1009,22 @@
                         "type": "object",
                         "additionalProperties": true
                       },
-                      "description": "Tool definitions available to the model."
+                      "description": "Tool definitions available to the model. Support depends on the model."
                     },
                     "tool_choice": {
-                      "oneOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "object",
-                          "additionalProperties": true
-                        }
-                      ],
-                      "description": "Tool choice policy or explicit tool selection."
+                      "type": "object",
+                      "additionalProperties": true,
+                      "description": "Native tool-choice object, for example `{\"type\":\"auto\"}`. Supported types depend on the model."
                     },
                     "metadata": {
                       "type": "object",
                       "additionalProperties": true,
-                      "description": "Request metadata echoed into downstream logs or traces when supported."
+                      "description": "Request metadata in the Anthropic format. `user_id` is an opaque identifier for your end user."
                     },
                     "thinking": {
                       "type": "object",
                       "additionalProperties": true,
-                      "description": "Thinking configuration for compatible Anthropic-style models."
+                      "description": "Thinking configuration. Modes and budgets depend on the model."
                     },
                     "stream_options": {
                       "type": "object",
@@ -1010,7 +1033,12 @@
                     },
                     "service_tier": {
                       "type": "string",
-                      "description": "Service tier hint where supported by the model."
+                      "description": "Only auto and standard_only take effect."
+                    },
+                    "cache_control": {
+                      "type": "object",
+                      "additionalProperties": true,
+                      "description": "Prompt-caching marker, e.g. {\"type\":\"ephemeral\"}; add \"ttl\":\"1h\" for one hour."
                     }
                   }
                 }
@@ -1072,7 +1100,8 @@
             "description": "Per-request Delivery policy. Overrides the API key and Workspace defaults. Auto tries TokenLab Verified first and may switch once to Official only before output, request acceptance, or persistent resource creation."
           },
           "input_file_id": {
-            "type": "string"
+            "type": "string",
+            "description": "ID of an uploaded file with `purpose` set to `batch`."
           },
           "endpoint": {
             "type": "string",
@@ -1085,11 +1114,16 @@
             "type": "string",
             "enum": [
               "24h"
-            ]
+            ],
+            "default": "24h"
           },
           "metadata": {
             "type": "object",
-            "additionalProperties": true
+            "description": "Up to 16 string key-value pairs.",
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 512
+            }
           },
           "output_expires_after": {
             "type": "object",
@@ -1107,15 +1141,16 @@
               },
               "seconds": {
                 "type": "integer",
-                "minimum": 1
+                "minimum": 1,
+                "maximum": 2592000
               }
-            }
+            },
+            "description": "When the result files expire, up to 30 days after the anchor."
           }
         },
         "required": [
           "input_file_id",
-          "endpoint",
-          "completion_window"
+          "endpoint"
         ],
         "additionalProperties": false
       },
@@ -1389,15 +1424,12 @@
           "temperature": {
             "type": "number",
             "minimum": 0,
-            "maximum": 2,
-            "default": 1,
             "description": "Sampling temperature (0-2)"
           },
           "top_p": {
             "type": "number",
             "minimum": 0,
             "maximum": 1,
-            "default": 1,
             "description": "Nucleus sampling probability"
           },
           "n": {
@@ -1416,8 +1448,7 @@
                 "type": "array",
                 "items": {
                   "type": "string"
-                },
-                "maxItems": 4
+                }
               }
             ],
             "description": "Stop sequences"
@@ -1567,11 +1598,6 @@
             "type": "string",
             "description": "User ID for abuse detection."
           },
-          "stream_options": {
-            "type": "object",
-            "description": "Streaming options such as usage chunk inclusion.",
-            "additionalProperties": true
-          },
           "parallel_tool_calls": {
             "type": "boolean",
             "description": "Whether the model may issue parallel tool calls."
@@ -1593,7 +1619,9 @@
           "logit_bias": {
             "type": "object",
             "additionalProperties": {
-              "type": "number"
+              "type": "number",
+              "minimum": -100,
+              "maximum": 100
             },
             "description": "Per-token logit bias map."
           },
@@ -1644,7 +1672,7 @@
             "properties": {
               "prompt_caching": {
                 "type": "boolean",
-                "description": "Set true to cache the start of the prompt on Claude models. TokenLab marks the end of the system prompt and the latest user message as cache points, unless a message already has cache_control."
+                "description": "Set true to cache the start of the prompt on Claude models. TokenLab marks the end of the system prompt and the latest user message as cache points. Use either this option or your own cache_control marks, not both."
               },
               "prompt_caching_ttl": {
                 "type": "string",
@@ -1652,7 +1680,7 @@
                   "5m",
                   "1h"
                 ],
-                "description": "Cache lifetime. Defaults to 5m. If the serving route does not support 1h, the 5-minute cache is used and the request is not rejected."
+                "description": "Cache lifetime. Defaults to 5m. When the service that handles the request cannot keep a cache for 1h, TokenLab can use the 5-minute cache instead of rejecting the request."
               }
             },
             "additionalProperties": true
@@ -1663,7 +1691,7 @@
             "properties": {
               "prompt_caching": {
                 "type": "boolean",
-                "description": "Set true to cache the start of the prompt on Claude models. TokenLab marks the end of the system prompt and the latest user message as cache points, unless a message already has cache_control."
+                "description": "Set true to cache the start of the prompt on Claude models. TokenLab marks the end of the system prompt and the latest user message as cache points. Use either this option or your own cache_control marks, not both."
               },
               "prompt_caching_ttl": {
                 "type": "string",
@@ -1671,7 +1699,7 @@
                   "5m",
                   "1h"
                 ],
-                "description": "Cache lifetime. Defaults to 5m. If the serving route does not support 1h, the 5-minute cache is used and the request is not rejected."
+                "description": "Cache lifetime. Defaults to 5m. When the service that handles the request cannot keep a cache for 1h, TokenLab can use the 5-minute cache instead of rejecting the request."
               }
             },
             "additionalProperties": true
@@ -1709,7 +1737,6 @@
           "response_format",
           "seed",
           "user",
-          "stream_options",
           "parallel_tool_calls",
           "reasoning_effort",
           "logprobs",
@@ -1782,7 +1809,7 @@
               {
                 "type": "array",
                 "items": {
-                  "type": "number"
+                  "type": "integer"
                 }
               },
               {
@@ -1790,7 +1817,7 @@
                 "items": {
                   "type": "array",
                   "items": {
-                    "type": "number"
+                    "type": "integer"
                   }
                 }
               }
@@ -2350,7 +2377,7 @@
           },
           "prompt": {
             "type": "string",
-            "maxLength": 4000,
+            "maxLength": 32000,
             "description": "Image prompt; required only if get_model lists prompt."
           },
           "model": {
@@ -2638,7 +2665,7 @@
           },
           "prompt": {
             "type": "string",
-            "maxLength": 4000,
+            "maxLength": 32000,
             "description": "Image prompt; required only if get_model lists prompt."
           },
           "operation": {
@@ -2968,7 +2995,7 @@
             "oneOf": [
               {
                 "type": "object",
-                "description": "A multimodal embedding input item. Text input is generally available; image input may require feature enablement.",
+                "description": "A multimodal embedding input item. Send at least one of `text`, `image_url`, or `image_base64`. Only `text` is active; an image returns 400 `image_input_deferred`.",
                 "properties": {
                   "text": {
                     "type": "string",
@@ -2976,7 +3003,7 @@
                   },
                   "image_base64": {
                     "type": "string",
-                    "description": "Base64-encoded image content"
+                    "description": "Base64-encoded image content. Not active yet."
                   },
                   "image_mime_type": {
                     "type": "string",
@@ -2984,7 +3011,7 @@
                   },
                   "image_url": {
                     "type": "string",
-                    "description": "Public image URL to embed"
+                    "description": "Public image URL to embed. Not active yet."
                   }
                 },
                 "additionalProperties": false
@@ -2994,7 +3021,7 @@
                 "minItems": 1,
                 "items": {
                   "type": "object",
-                  "description": "A multimodal embedding input item. Text input is generally available; image input may require feature enablement.",
+                  "description": "A multimodal embedding input item. Send at least one of `text`, `image_url`, or `image_base64`. Only `text` is active; an image returns 400 `image_input_deferred`.",
                   "properties": {
                     "text": {
                       "type": "string",
@@ -3002,7 +3029,7 @@
                     },
                     "image_base64": {
                       "type": "string",
-                      "description": "Base64-encoded image content"
+                      "description": "Base64-encoded image content. Not active yet."
                     },
                     "image_mime_type": {
                       "type": "string",
@@ -3010,7 +3037,7 @@
                     },
                     "image_url": {
                       "type": "string",
-                      "description": "Public image URL to embed"
+                      "description": "Public image URL to embed. Not active yet."
                     }
                   },
                   "additionalProperties": false
@@ -3087,20 +3114,25 @@
           },
           "model": {
             "type": "string",
-            "default": "suno_music"
+            "default": "suno-music",
+            "description": "Music model ID."
           },
           "prompt": {
             "type": "string",
+            "maxLength": 5000,
             "description": "Prompt required for music/lyrics/upload-cover/upload-extend; omit for add-instrumental."
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "description": "Song title."
           },
           "tags": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 1000
           },
           "negative_tags": {
             "type": "string",
+            "maxLength": 1000,
             "description": "Styles to avoid. Required when audio_operation is add-instrumental."
           },
           "action": {
@@ -3317,6 +3349,7 @@
           },
           "background": {
             "type": "boolean",
+            "default": false,
             "description": "Whether to run the response asynchronously."
           },
           "previous_response_id": {
@@ -3330,6 +3363,7 @@
           },
           "store": {
             "type": "boolean",
+            "default": true,
             "description": "Whether the response is stored for later retrieval."
           },
           "reasoning": {
@@ -3749,6 +3783,7 @@
           },
           "prompt": {
             "type": "string",
+            "maxLength": 10000,
             "description": "Video description"
           },
           "model": {
@@ -3771,46 +3806,34 @@
           },
           "image": {
             "type": "string",
-            "description": "Inline image as a data URL (for example, data:image/png;base64,...). Prefer image_url for broader production compatibility. Ordinary HTTP(S) and data-URL image inputs follow the normal media path and do not automatically create reusable material IDs. Use asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab Seedance material; if an explicit material is still preparing, the API returns 409 seedance_material_preparing with inactive_asset_ids."
+            "maxLength": 2000000,
+            "description": "Inline image as a data URL (for example, data:image/png;base64,...), up to 2,000,000 characters. Prefer image_url for broader compatibility. For Seedance 2.0 models this field also accepts asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab material."
           },
           "image_url": {
             "type": "string",
             "format": "uri",
-            "description": "Publicly reachable image URL for image-to-video generation, or asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab Seedance material used as the first frame. Preferred over inline base64 in production. TokenLab verifies material ownership. Ordinary HTTP(S) and data-URL image inputs follow the normal media path and do not automatically create reusable material IDs. Use asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab Seedance material; if an explicit material is still preparing, the API returns 409 seedance_material_preparing with inactive_asset_ids."
+            "maxLength": 8192,
+            "description": "Publicly reachable image URL for image-to-video generation, up to 8,192 characters, or asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab Seedance 2.0 material used as the first frame. Ordinary HTTP(S) and data-URL images are passed through as inputs and do not create reusable materials. If an explicit material is still preparing, the API returns 409 seedance_material_preparing with inactive_asset_ids."
           },
           "video_url": {
             "type": "string",
             "format": "uri",
+            "maxLength": 8192,
             "description": "Public video URL for video-to-video or motion control."
           },
           "duration": {
             "type": "integer",
             "minimum": -1,
             "maximum": 60,
-            "description": "Video duration in seconds. Seedance models also accept -1 to let the model choose within its supported duration range; TokenLab estimates billing conservatively for that mode."
+            "description": "Duration in seconds; allowed values depend on the model (400 invalid_duration). Seedance also accepts -1."
           },
           "aspect_ratio": {
             "type": "string",
-            "enum": [
-              "adaptive",
-              "16:9",
-              "9:16",
-              "1:1",
-              "4:3",
-              "3:4",
-              "21:9"
-            ],
-            "description": "Canonical video aspect ratio. Seedance defaults to adaptive when omitted. The ratio alias is accepted for compatibility."
+            "description": "Aspect ratio, for example 16:9; allowed values depend on the model (400 invalid_aspect_ratio)."
           },
           "resolution": {
             "type": "string",
-            "enum": [
-              "480p",
-              "720p",
-              "1080p",
-              "4k"
-            ],
-            "description": "Video resolution. Seedance defaults to 720p when omitted; available values are model-dependent."
+            "description": "Resolution, for example 720p; allowed values depend on the model (400 invalid_resolution)."
           },
           "output_format": {
             "type": "string",
@@ -3818,7 +3841,7 @@
               "mp4",
               "mov"
             ],
-            "description": "Video container format for compatible models. Seedance 2.5 supports mp4 and mov; omit this field for Seedance 2.0 and other models that do not publish an output-format selector."
+            "description": "Video container format for models that list this field, such as Seedance 2.5 (`mp4` or `mov`). Omit it for models that do not list it."
           },
           "output_audio": {
             "type": "boolean",
@@ -3832,13 +3855,14 @@
           },
           "negative_prompt": {
             "type": "string",
+            "maxLength": 5000,
             "description": "What to avoid in the video"
           },
           "seed": {
             "type": "integer",
             "minimum": -1,
             "maximum": 4294967295,
-            "description": "Seed for reproducibility on compatible models. Compatible Seedance models use -1 for a random seed when omitted; Seedance 2.5 does not support this field."
+            "description": "Seed for reproducibility, for models that list this field. Seedance 2.0 models accept -1 for a random seed; Seedance 2.5 does not accept this field."
           },
           "cfg_scale": {
             "type": "number",
@@ -3854,11 +3878,11 @@
           },
           "start_image": {
             "type": "string",
-            "description": "First frame image input for start-end-to-video flows. Seedance accepts a public image reference or asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab material owned by the requesting organization. Ordinary HTTP(S) and data-URL image inputs follow the normal media path and do not automatically create reusable material IDs. Use asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab Seedance material; if an explicit material is still preparing, the API returns 409 seedance_material_preparing with inactive_asset_ids."
+            "description": "First frame image for start-end-to-video. Send it with end_image. Accepts a public image URL or a data URL; Seedance 2.0 models also accept asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab material owned by your organization."
           },
           "end_image": {
             "type": "string",
-            "description": "Last frame image input for start-end-to-video flows. Seedance accepts a public image reference or asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab material owned by the requesting organization. Ordinary HTTP(S) and data-URL image inputs follow the normal media path and do not automatically create reusable material IDs. Use asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab Seedance material; if an explicit material is still preparing, the API returns 409 seedance_material_preparing with inactive_asset_ids."
+            "description": "Last frame image for start-end-to-video. Send it with start_image. Accepts the same inputs as start_image."
           },
           "user": {
             "type": "string",
@@ -3866,7 +3890,7 @@
           },
           "image_urls": {
             "type": "array",
-            "description": "Image URL array for compatible image-conditioned video flows. Seedance 2.5 accepts up to 30 aggregate image inputs; other video models retain the shared limit of 9 entries unless the model details specify a lower limit. Ordinary HTTP(S) and data-URL image inputs follow the normal media path and do not automatically create reusable material IDs. Use asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab Seedance material; if an explicit material is still preparing, the API returns 409 seedance_material_preparing with inactive_asset_ids.",
+            "description": "Image URLs for models that list this field. Seedance 2.5 accepts up to 30 image inputs in total across `image_urls` and `reference_images`. Seedance 2.0 models accept up to 9 image references in total, including material assets (more returns 400 `too_many_seedance_reference_images`). For other models see the model details; a request over a model's limit returns 400 `too_many_items`. Seedance 2.0 models also accept asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab material.",
             "minItems": 1,
             "maxItems": 30,
             "items": {
@@ -3914,7 +3938,7 @@
           },
           "reference_images": {
             "type": "array",
-            "description": "Canonical public reference-image field for reference-to-video conditioning. Seedance 2.5 accepts up to 30 aggregate image inputs; other video models retain the shared limit of 9 URLs or compatible data URLs unless the model details specify a lower limit. xAI grok-imagine-video accepts up to 7 image references with duration capped at 10 seconds; grok-imagine-video-1.5 and grok-imagine-video-1.5-preview are image-to-video only and do not accept reference images. Ordinary HTTP(S) and data-URL image inputs follow the normal media path and do not automatically create reusable material IDs. Use asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab Seedance material; if an explicit material is still preparing, the API returns 409 seedance_material_preparing with inactive_asset_ids.",
+            "description": "Reference images for reference-to-video, as public image URLs or data URLs. The count limit depends on the model: Seedance 2.5 accepts up to 30 image inputs in total across `image_urls` and `reference_images`; Seedance 2.0 models accept up to 9 image references in total, including material assets; `grok-imagine-video` accepts up to 7 and caps `duration` at 10 seconds. `grok-imagine-video-1.5` and `grok-imagine-video-1.5-preview` take no reference images. Seedance 2.0 models also accept asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab material; if an explicit material is still preparing, the API returns 409 seedance_material_preparing with inactive_asset_ids.",
             "minItems": 1,
             "maxItems": 30,
             "items": {
@@ -3927,7 +3951,7 @@
           },
           "material_asset_ids": {
             "type": "array",
-            "description": "TokenLab Seedance material asset IDs returned by /v1/videos/assets. They share the Seedance image-reference limit; the selected model must be able to use the TokenLab material library and all assets must belong to the current account and be ACTIVE.",
+            "description": "TokenLab Seedance material asset IDs returned by /v1/videos/assets. Accepted by the Seedance 2.0 models only. They count toward the 9 image references of those models; all assets must belong to the current account and be ACTIVE.",
             "minItems": 1,
             "maxItems": 9,
             "items": {
@@ -3945,6 +3969,7 @@
           "audio_url": {
             "type": "string",
             "format": "uri",
+            "maxLength": 8192,
             "description": "Public audio URL for a supported audio-input operation."
           },
           "task_id": {
@@ -4000,15 +4025,6 @@
           },
           "ratio": {
             "type": "string",
-            "enum": [
-              "adaptive",
-              "16:9",
-              "9:16",
-              "1:1",
-              "4:3",
-              "3:4",
-              "21:9"
-            ],
             "description": "aspect_ratio alias; if both are sent, values must match."
           },
           "outputAudio": {
@@ -4023,14 +4039,12 @@
             "type": "integer",
             "minimum": 3600,
             "maximum": 259200,
-            "default": 172800,
             "description": "Optional execution expiry window in seconds for compatible video models. Seedance defaults to 172800 seconds when omitted."
           },
           "priority": {
             "type": "integer",
             "minimum": 0,
             "maximum": 9,
-            "default": 0,
             "description": "Task priority where supported; incompatible with service_tier=flex."
           },
           "safety_identifier": {
@@ -4049,7 +4063,7 @@
           "frames": {
             "type": "integer",
             "minimum": 1,
-            "description": "Optional frame count for compatible video models. Seedance 1.5 Pro, Seedance 2.0, and Seedance 2.5 do not support this field."
+            "description": "Frame count, for models that list this field. Seedance models do not accept it."
           },
           "camera_fixed": {
             "type": "boolean",
@@ -4057,21 +4071,19 @@
           },
           "return_last_frame": {
             "type": "boolean",
-            "default": false,
             "description": "Return last frame where supported; Seedance default: false."
           },
           "draft": {
             "type": "boolean",
-            "default": false,
-            "description": "Seedance 1.5 Pro draft workflow flag. Only supported by Seedance models supporting drafts; draft=true creates a low-cost draft task."
+            "description": "Draft workflow flag. Accepted only by models whose details list this field."
           },
           "draft_task_id": {
             "type": "string",
-            "description": "Seedance 1.5 Pro draft promotion task ID. Provide this instead of draft=true to create the final video from a previous draft task."
+            "description": "ID of an earlier draft task to turn into the final video. Accepted only by models whose details list this field."
           },
           "audio": {
             "type": "boolean",
-            "description": "Audio-output selector for operations that declare it. Omission follows the model default; `false` requests silent output only when allowed. See the audio behavior above and the selected model detail."
+            "description": "Audio selector accepted by a few models, such as the Vidu models and `wan-2.6`. It must match `output_audio` when both are sent."
           },
           "bgm": {
             "type": "boolean",
@@ -4276,16 +4288,16 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 255,
-            "description": "Client-generated key for idempotent REST task creation. Under the same TokenLab API credential, reusing the same key with the same JSON body returns the original cgt task ID; reusing it with a different body returns 409. Keep the credential, key, and request body unchanged when retrying after a timeout or disconnect."
+            "description": "Client-generated key for idempotent REST task creation, 1-255 characters without line breaks. Under the same TokenLab API credential, reusing the same key with the same JSON body returns the original cgt task ID; reusing it with a different body returns 409 with code idempotency_conflict. A key that is too long or contains line breaks returns 400. Keep the credential, key, and request body unchanged when retrying after a timeout or disconnect."
           },
           "model": {
             "type": "string",
-            "description": "Seedance model or endpoint identifier. TokenLab maps supported Seedance 2.0 identifiers to the matching platform model."
+            "description": "TokenLab model ID (seedance-2.0 or seedance-2.5), or the Volcengine model ID that existing clients already send for these models. The get-task response returns this value."
           },
           "content": {
             "type": "array",
             "minItems": 1,
-            "maxItems": 16,
+            "maxItems": 51,
             "items": {
               "type": "object",
               "description": "Volc-style content item. Use text, image_url, video_url, audio_url, or draft_task. For image_url, omitting role treats the image as first_frame; use role=reference_image for reference images.",
@@ -4373,7 +4385,7 @@
               },
               "additionalProperties": false
             },
-            "description": "At most 16 content items: one text item, nine image_url items, three video_url items, three audio_url items, and one draft_task item. Model- and operation-specific combination rules still apply."
+            "description": "Up to 16 items for Seedance 2.0 (1 text, 9 image_url, 3 video_url, 3 audio_url, 1 draft_task) and up to 51 for Seedance 2.5 (1 text, 30 image_url, 10 video_url, 10 audio_url, 1 draft_task). Model- and operation-specific combination rules still apply."
           },
           "ratio": {
             "type": "string",
@@ -4400,11 +4412,10 @@
               {
                 "type": "integer",
                 "minimum": 4,
-                "maximum": 15
+                "maximum": 30
               }
             ],
-            "default": 5,
-            "description": "Video duration in seconds. Seedance 2.0 supports normal integer durations and -1 for automatic duration where the selected model supports it."
+            "description": "Video duration in seconds; -1 selects automatic duration. Seedance 2.0: 4-15 (default 5). Seedance 2.5: 4-30 (default -1)."
           },
           "resolution": {
             "type": "string",
@@ -4413,12 +4424,10 @@
               "720p",
               "1080p"
             ],
-            "default": "720p",
             "description": "Requested output resolution. Model-specific availability still applies."
           },
           "generate_audio": {
             "type": "boolean",
-            "default": false,
             "description": "Whether to generate synchronized audio. The official default is false."
           },
           "return_last_frame": {
@@ -4435,7 +4444,7 @@
             "minimum": -1,
             "maximum": 4294967295,
             "default": -1,
-            "description": "Random seed. -1 lets the model choose a seed. Accepted on a best-effort basis where supported by the model."
+            "description": "Random seed. -1 lets the model choose a seed. Seedance 2.0 only; Seedance 2.5 rejects this field."
           },
           "execution_expires_after": {
             "type": "integer",
@@ -4456,7 +4465,7 @@
               "flex"
             ],
             "default": "default",
-            "description": "default is accepted. flex is rejected for Seedance 2.0 compatibility tasks because the selected model family does not support it here."
+            "description": "Only default is accepted. flex is rejected with 400 UnsupportedParameter."
           },
           "tools": {
             "type": "array",
@@ -4476,19 +4485,33 @@
               },
               "additionalProperties": false
             },
-            "description": "Optional tools such as {\"type\":\"web_search\"} when supported by the selected model."
+            "description": "Optional. At most one item, {\"type\":\"web_search\"}."
           },
           "draft": {
             "type": "boolean",
-            "description": "draft=true is not supported for Seedance 2.0 compatibility tasks and is rejected."
+            "description": "draft=true is not supported and is rejected."
           },
           "frames": {
             "type": "integer",
-            "description": "Not supported for Seedance 2.0 compatibility tasks. Use duration instead."
+            "description": "Not supported. Use duration instead."
           },
           "camera_fixed": {
             "type": "boolean",
-            "description": "camera_fixed=true is not supported for Seedance 2.0 compatibility tasks. false is accepted as a no-op."
+            "description": "camera_fixed=true is rejected. false is accepted as a no-op for Seedance 2.0; Seedance 2.5 rejects this field."
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9,
+            "description": "Task priority. Seedance 2.5 only; Seedance 2.0 rejects this field."
+          },
+          "output_format": {
+            "type": "string",
+            "enum": [
+              "mp4",
+              "mov"
+            ],
+            "description": "Output container. Seedance 2.5 only; Seedance 2.0 rejects this field."
           },
           "callback_url": {
             "type": "string",
@@ -4527,6 +4550,8 @@
           "draft",
           "frames",
           "camera_fixed",
+          "priority",
+          "output_format",
           "callback_url"
         ],
         "files": []
@@ -4644,13 +4669,15 @@
             "default": "marble-1.0",
             "enum": [
               "marble-1.0",
+              "marble-1.0-draft",
               "marble-1.1",
               "marble-1.1-plus"
             ],
-            "description": "Marble model to use. Defaults to marble-1.0 to match the current World Labs compatibility default when model is omitted."
+            "description": "Marble model to use. Defaults to marble-1.0 when model is omitted."
           },
           "prompt": {
             "type": "string",
+            "maxLength": 4000,
             "description": "Text prompt used for text or guided image/video world generation."
           },
           "display_name": {
@@ -4661,7 +4688,7 @@
           "world_prompt": {
             "type": "object",
             "additionalProperties": true,
-            "description": "Native World Labs world_prompt object for advanced callers. Supported prompt types are text, image, multi-image, and video. Content references may use source=media_asset with a media_asset_id prepared by /v1/worlds/media-assets/prepare-upload."
+            "description": "Native World Labs world_prompt object for advanced callers. Supported prompt types are text, image, multi-image, and video. A content reference may be {\"source\": \"media_asset\", \"media_asset_id\": \"...\"} with an ID prepared by /v1/worlds/media-assets/prepare-upload."
           },
           "image": {
             "type": "string",
@@ -4817,7 +4844,7 @@
         "properties": {
           "message_batch_id": {
             "type": "string",
-            "description": "Anthropic message batch identifier"
+            "description": "Message batch identifier"
           }
         },
         "required": [
@@ -5510,7 +5537,8 @@
             "description": "Explicit image-edit model ID."
           },
           "prompt": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 32000
           },
           "image_url": {
             "type": "string",
@@ -5684,8 +5712,7 @@
           }
         },
         "required": [
-          "model",
-          "prompt"
+          "model"
         ],
         "additionalProperties": false
       },
@@ -5816,7 +5843,8 @@
             "description": "Explicit image-edit model ID."
           },
           "prompt": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 32000
           },
           "n": {
             "type": "integer",
@@ -5915,8 +5943,7 @@
           }
         },
         "required": [
-          "model",
-          "prompt"
+          "model"
         ],
         "additionalProperties": false
       },
@@ -6340,10 +6367,12 @@
         "type": "object",
         "properties": {
           "model": {
-            "type": "string"
+            "type": "string",
+            "description": "Model name (e.g., gemini-2.5-pro)"
           },
           "key": {
-            "type": "string"
+            "type": "string",
+            "description": "API key (alternative to header auth)"
           },
           "contents": {
             "type": "array",
@@ -6495,7 +6524,8 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "description": "The 3D generation task ID."
           }
         },
         "required": [
@@ -6539,7 +6569,8 @@
         "type": "object",
         "properties": {
           "model": {
-            "type": "string"
+            "type": "string",
+            "description": "Model name or alias (e.g., gemini-2.5-pro)"
           }
         },
         "required": [
@@ -6672,7 +6703,7 @@
         "core",
         "full"
       ],
-      "description": "Retrieves pricing-only detail for one model. Use this endpoint for price explanation, not for non-chat request construction.",
+      "description": "Retrieves pricing-only detail for one model. No API key is needed. Use it to explain a price, not to build a request.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -6723,7 +6754,8 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "description": "The music generation task ID."
           }
         },
         "required": [
@@ -7399,10 +7431,26 @@
           "limit": {
             "type": "integer",
             "minimum": 1,
-            "maximum": 100
+            "maximum": 100,
+            "default": 20,
+            "description": "Number of batches to return. Default 20."
           },
           "after": {
-            "type": "string"
+            "type": "string",
+            "description": "Batch ID cursor (after)."
+          },
+          "before": {
+            "type": "string",
+            "description": "Batch ID cursor (before)."
+          },
+          "order": {
+            "type": "string",
+            "enum": [
+              "asc",
+              "desc"
+            ],
+            "default": "desc",
+            "description": "Sort order by creation time."
           }
         },
         "additionalProperties": false
@@ -7411,7 +7459,9 @@
         "path": [],
         "query": [
           "limit",
-          "after"
+          "after",
+          "before",
+          "order"
         ],
         "header": [],
         "body": [],
@@ -7447,8 +7497,8 @@
           "limit": {
             "type": "integer",
             "minimum": 1,
-            "maximum": 1000,
-            "default": 20
+            "maximum": 10000,
+            "description": "Files to return."
           },
           "after": {
             "type": "string"
@@ -7527,10 +7577,13 @@
           "pageSize": {
             "type": "integer",
             "minimum": 1,
-            "maximum": 1000
+            "maximum": 1000,
+            "default": 50,
+            "description": "Maximum number of models to return. Default: 50."
           },
           "pageToken": {
-            "type": "string"
+            "type": "string",
+            "description": "Token from the previous page."
           }
         },
         "additionalProperties": false
@@ -7861,6 +7914,10 @@
           },
           "filter.service_tier": {
             "type": "string",
+            "enum": [
+              "default",
+              "flex"
+            ],
             "description": "Filter by service tier."
           }
         },
@@ -8050,7 +8107,8 @@
               "marble-1.1",
               "marble-1.1-plus",
               "marble-1.0-draft"
-            ]
+            ],
+            "description": "Model filter."
           },
           "tags": {
             "type": [
@@ -8059,7 +8117,8 @@
             ],
             "items": {
               "type": "string"
-            }
+            },
+            "description": "Tag filter. A world matches when it has at least one of the tags."
           },
           "is_public": {
             "type": [
@@ -8234,17 +8293,23 @@
           },
           "query": {
             "type": "string",
-            "description": "Query to rank against"
+            "minLength": 1,
+            "maxLength": 32000,
+            "description": "Search query."
           },
           "documents": {
             "type": "array",
+            "minItems": 1,
+            "maxItems": 1000,
             "items": {
-              "type": "string"
+              "type": "string",
+              "maxLength": 100000
             },
-            "description": "Documents to rerank"
+            "description": "Documents to rerank."
           },
           "top_n": {
             "type": "integer",
+            "minimum": 1,
             "description": "Number of results to return"
           },
           "return_documents": {
@@ -8301,7 +8366,7 @@
         "properties": {
           "message_batch_id": {
             "type": "string",
-            "description": "Anthropic message batch identifier"
+            "description": "Message batch identifier"
           }
         },
         "required": [
@@ -8346,7 +8411,7 @@
         "properties": {
           "message_batch_id": {
             "type": "string",
-            "description": "Anthropic message batch identifier"
+            "description": "Message batch identifier"
           }
         },
         "required": [
@@ -8717,13 +8782,6 @@
           },
           "response_format": {
             "type": "string",
-            "enum": [
-              "json",
-              "text",
-              "srt",
-              "verbose_json",
-              "vtt"
-            ],
             "default": "json",
             "description": "Response format"
           },
@@ -8888,23 +8946,15 @@
             "type": "string"
           },
           "text": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
           },
           "source_language": {
             "type": "string"
           },
           "target_language": {
-            "type": "string"
-          },
-          "mime_type": {
             "type": "string",
-            "enum": [
-              "text/plain",
-              "text/html"
-            ]
-          },
-          "user": {
-            "type": "string"
+            "minLength": 1
           }
         },
         "required": [
@@ -8924,9 +8974,7 @@
           "model",
           "text",
           "source_language",
-          "target_language",
-          "mime_type",
-          "user"
+          "target_language"
         ],
         "files": []
       },
@@ -9202,7 +9250,7 @@
           },
           "file": {
             "type": "string",
-            "description": "Pass local file path."
+            "description": "The file: up to 200 MiB for batch, 50 MiB for images. Pass local file path."
           },
           "purpose": {
             "type": "string",

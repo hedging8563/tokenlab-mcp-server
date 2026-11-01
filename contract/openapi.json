@@ -223,7 +223,7 @@
           "Embeddings"
         ],
         "summary": "Create embeddings",
-        "description": "Creates an embedding vector representing the input text.",
+        "description": "Creates embedding vectors for text or token input. Use a model whose details list the `embedding` or `text-embedding` operation; models that list `multimodal-embedding` use `POST /v1/multimodal/embeddings`. Limits on items and tokens depend on the model.",
         "operationId": "createEmbedding",
         "requestBody": {
           "required": true,
@@ -274,6 +274,16 @@
           "402": {
             "$ref": "#/components/responses/PaymentRequired"
           },
+          "413": {
+            "description": "Request body too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "429": {
             "$ref": "#/components/responses/RateLimitExceeded"
           },
@@ -297,7 +307,7 @@
           "Embeddings"
         ],
         "summary": "Create multimodal embeddings",
-        "description": "Creates embeddings for multimodal input items. Text input is generally available; image input may require feature enablement.",
+        "description": "Creates embeddings for multimodal input items with a model that lists the `multimodal-embedding` operation. Only text input is active; a request with an image returns 400 `image_input_deferred`.",
         "operationId": "createMultimodalEmbedding",
         "requestBody": {
           "required": true,
@@ -720,7 +730,7 @@
           "Video"
         ],
         "summary": "Create video generation task",
-        "description": "Creates an asynchronous video generation task. The response returns a canonical task ID and usually a preferred `poll_url`; clients should poll `poll_url` first, or use `/v1/tasks/{id}` as the fixed status endpoint.",
+        "description": "Creates an asynchronous video generation task. The response returns the task ID (`id` and `task_id`) and a `poll_url`; poll `GET /v1/tasks/{id}` until `status` is `completed` or `failed`, then read `video_url`. The accepted operations, fields, resolutions, durations and aspect ratios depend on the model; `GET /v1/models/{model}` lists them per operation.",
         "operationId": "createVideo",
         "requestBody": {
           "required": true,
@@ -735,7 +745,8 @@
                   "value": {
                     "model": "veo3.1",
                     "prompt": "A cinematic shot of a golden retriever running through a field of sunflowers",
-                    "duration": 5,
+                    "operation": "text-to-video",
+                    "duration": 8,
                     "aspect_ratio": "16:9"
                   }
                 },
@@ -787,8 +798,18 @@
           "402": {
             "$ref": "#/components/responses/PaymentRequired"
           },
+          "403": {
+            "description": "The `task_id` of a continuation request does not belong to your workspace (`task_not_owned`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "409": {
-            "description": "Seedance material is still preparing",
+            "description": "A Seedance material is still preparing (`seedance_material_preparing`), or the selected model cannot use the provided materials (`seedance_material_route_unavailable`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -834,7 +855,7 @@
           "Video"
         ],
         "summary": "Get video task status",
-        "description": "Retrieves the status and result of a video generation task. New clients should prefer the `poll_url` returned by create responses, or use `/v1/tasks/{id}` as the canonical fixed status endpoint. The `/v1/videos/generations/{id}` path remains for backward compatibility.",
+        "description": "Retrieves the status and result of a video generation task. This path remains for existing integrations and returns the result in the same format as `GET /v1/tasks/{id}`; new clients should poll `/v1/tasks/{id}`. A failed task is still returned with HTTP 200 and `status: failed`.",
         "operationId": "getVideoTask",
         "parameters": [
           {
@@ -861,8 +882,18 @@
           "401": {
             "$ref": "#/components/responses/Unauthorized"
           },
+          "403": {
+            "description": "The task does not belong to your workspace (`task_not_owned`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "404": {
-            "description": "Task not found",
+            "description": "The task has expired or is no longer available (`async_task_not_found`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -873,6 +904,16 @@
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "description": "The task cannot be read at the moment; retry (`async_task_owner_unavailable`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -1172,7 +1213,7 @@
         ],
         "operationId": "updateSeedanceMaterialAsset",
         "summary": "Update Seedance material asset",
-        "description": "Updates a Seedance material asset owned by the authenticated organization.",
+        "description": "Updates the name or metadata of an ACTIVE Seedance material asset owned by the authenticated organization.",
         "parameters": [
           {
             "name": "assetId",
@@ -1247,7 +1288,7 @@
             "$ref": "#/components/responses/NotFound"
           },
           "409": {
-            "description": "Material asset is still processing or has failed without an active replica",
+            "description": "The material asset is still processing (code seedance_material_preparing) and cannot be updated yet.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1257,7 +1298,7 @@
             }
           },
           "422": {
-            "description": "The stored material source failed permanent validation",
+            "description": "The material asset failed processing and cannot be updated.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1343,6 +1384,16 @@
           "404": {
             "$ref": "#/components/responses/NotFound"
           },
+          "409": {
+            "description": "The material is still being prepared. Retry shortly.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "500": {
             "$ref": "#/components/responses/ServerError"
           },
@@ -1358,7 +1409,7 @@
           "Tasks"
         ],
         "summary": "Get async task status",
-        "description": "Retrieves the status and result of an asynchronous generation task. Prefer the `poll_url` returned by the create response; `/v1/tasks/{id}` is the canonical fixed status endpoint for video, music, and 3D jobs.",
+        "description": "Retrieves the status and result of an asynchronous generation task: image, video, music, 3D, Worlds, and asynchronous audio transcription. Prefer the `poll_url` returned by the create response; `/v1/tasks/{id}` is the canonical fixed status endpoint. A failed task still returns HTTP 200; read `status`.",
         "operationId": "getAsyncTask",
         "parameters": [
           {
@@ -1382,11 +1433,31 @@
               }
             }
           },
+          "400": {
+            "description": "`missing_task_id` or `invalid_task_id`: the task ID is missing or not valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
           },
           "403": {
-            "description": "Task not available to the current API key",
+            "description": "`task_not_owned`: task not available to the current API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`async_task_not_found`: the task has expired or is not available",
             "content": {
               "application/json": {
                 "schema": {
@@ -1397,6 +1468,16 @@
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
+          },
+          "503": {
+            "description": "`async_task_owner_unavailable`: the task cannot be read right now. Retry",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       },
@@ -1405,7 +1486,7 @@
           "Tasks"
         ],
         "summary": "Cancel async task",
-        "description": "Cancels a queued asynchronous task when cancellation is supported for the selected task. Cancellation currently supports queued Seedance video tasks (`seedance-2.0` and `seedance-2.0-fast`) while they are still waiting to run. Tasks that are already processing, completed, failed, expired, or unsupported are not cancelled.",
+        "description": "Cancels a queued asynchronous task when cancellation is supported for the selected task. Cancellation currently supports queued Seedance video tasks (`seedance-2.0`, `seedance-2.0-fast`, and `seedance-2.5`) while they are still waiting to run. Tasks that are already processing, completed, failed, expired, or unsupported are not cancelled.",
         "operationId": "cancelAsyncTask",
         "parameters": [
           {
@@ -1493,7 +1574,7 @@
           "Models"
         ],
         "summary": "List models",
-        "description": "Lists the currently available models. Use `view=compact` for model selection and `view=full` for the existing OpenAI-compatible discovery shape. Native API calls default to `full`; integrations may choose `compact` as their default. Non-chat recommendations are available through `recommended_for`.",
+        "description": "Lists the currently available models. Use `view=compact` for model selection and `view=full` for the existing OpenAI-compatible discovery shape. Native API calls default to `full`. Non-chat recommendations are available through `recommended_for`. No API key is needed; a valid key filters the list by its model permissions and delivery option, and an invalid key returns 401.",
         "operationId": "listModels",
         "parameters": [
           {
@@ -1509,7 +1590,7 @@
             "name": "tag",
             "in": "query",
             "required": false,
-            "description": "Filter by a public capability tag.",
+            "description": "Filter by a capability tag such as `reasoning`, `tool-use`, `vision`, or `text-to-image`. The values in a model's `tokenlab.capabilities` are valid tags. To filter by kind of model, use `category`.",
             "schema": {
               "type": "string"
             }
@@ -1612,8 +1693,9 @@
           "Models"
         ],
         "summary": "Get model",
-        "description": "Retrieves current model details, including supported operations, request parameters, request endpoints, selector limits, and pricing when available. Non-chat integrations should read these current model-specific request details before creating a request.",
+        "description": "Retrieves current model details, including supported operations, request parameters, request endpoints, selector limits, and pricing when available. Non-chat integrations should read these current model-specific request details before creating a request. No API key is needed.",
         "operationId": "getModel",
+        "security": [],
         "parameters": [
           {
             "name": "model",
@@ -1635,9 +1717,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
           },
           "404": {
             "description": "Model not found",
@@ -1661,7 +1740,7 @@
           "Anthropic"
         ],
         "summary": "Create message (Anthropic-compatible)",
-        "description": "Creates a model response using Anthropic's native request format. Supports Claude models with vision and streaming.\n\n**Authentication:** Use `x-api-key` header or `Authorization: Bearer` header.",
+        "description": "Creates a model response using Anthropic's native Messages request format. Works with models whose `accepted_request_formats` lists `anthropic_messages`. Supports streaming (`stream: true`, Anthropic server-sent events). Errors use the Anthropic error format.\n\n**Authentication:** Use `x-api-key` header or `Authorization: Bearer` header. If both are sent with different values, `x-api-key` is used. The `anthropic-version` header is optional; use `2023-06-01`.",
         "operationId": "createAnthropicMessage",
         "requestBody": {
           "required": true,
@@ -1728,28 +1807,43 @@
               "text/event-stream": {
                 "schema": {
                   "type": "string",
-                  "description": "Anthropic-style SSE stream with message_start, content_block_delta, message_stop events"
+                  "description": "Anthropic server-sent events: message_start, content_block_start, content_block_delta, content_block_stop, message_delta, and message_stop. SSE comment lines may appear while the model works. A failure after the stream has started arrives as an `event: error` event with the error body of this endpoint."
                 }
               }
             }
           },
           "400": {
-            "$ref": "#/components/responses/BadRequest"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "401": {
-            "$ref": "#/components/responses/Unauthorized"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "402": {
-            "$ref": "#/components/responses/PaymentRequired"
+            "$ref": "#/components/responses/AnthropicError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AnthropicError"
+          },
+          "409": {
+            "$ref": "#/components/responses/AnthropicError"
+          },
+          "413": {
+            "$ref": "#/components/responses/AnthropicError"
           },
           "429": {
-            "$ref": "#/components/responses/RateLimitExceeded"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "500": {
-            "$ref": "#/components/responses/ServerError"
+            "$ref": "#/components/responses/AnthropicError"
+          },
+          "502": {
+            "$ref": "#/components/responses/AnthropicError"
           },
           "503": {
-            "$ref": "#/components/responses/DeliveryUnavailable"
+            "$ref": "#/components/responses/AnthropicError"
+          },
+          "504": {
+            "$ref": "#/components/responses/AnthropicError"
           }
         },
         "parameters": [
@@ -1768,7 +1862,7 @@
           "Anthropic"
         ],
         "summary": "Count message tokens (Anthropic-compatible)",
-        "description": "Counts input tokens for an Anthropic-compatible messages request without creating a model response. Authentication is required; the operation is not billed. Verified upstream counting is preferred. Upstream availability failures return a local estimate marked by X-TokenLab-Count-Tokens-Source: local_estimate. Platform authentication, permission and input errors remain errors. Bound files unreadable locally require upstream counting.",
+        "description": "Counts the input tokens of a Messages-format request without creating a response. Authentication is required; the call is not billed. The count is for planning; the charge for the real request comes from its usage. TokenLab prefers a count from the model's own counter. When that is not available, it returns a local estimate and sets the response header `X-TokenLab-Count-Tokens-Source: local_estimate`. Authentication, permission and input errors are still errors. A request that references `file_id` content needs the model's own counter and returns 503 when none is available.",
         "operationId": "countAnthropicMessageTokens",
         "requestBody": {
           "required": true,
@@ -1783,6 +1877,17 @@
         "responses": {
           "200": {
             "description": "Token count response",
+            "headers": {
+              "X-TokenLab-Count-Tokens-Source": {
+                "description": "`local_estimate` when TokenLab returned its own estimate. Absent when the count came from the model's counter.",
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "local_estimate"
+                  ]
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -1792,22 +1897,28 @@
             }
           },
           "400": {
-            "$ref": "#/components/responses/BadRequest"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "401": {
-            "$ref": "#/components/responses/Unauthorized"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "402": {
-            "$ref": "#/components/responses/PaymentRequired"
+            "$ref": "#/components/responses/AnthropicError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AnthropicError"
           },
           "429": {
-            "$ref": "#/components/responses/RateLimitExceeded"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "500": {
-            "$ref": "#/components/responses/ServerError"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "502": {
-            "$ref": "#/components/responses/UpstreamError"
+            "$ref": "#/components/responses/AnthropicError"
+          },
+          "503": {
+            "$ref": "#/components/responses/AnthropicError"
           }
         }
       }
@@ -1818,7 +1929,7 @@
           "Anthropic"
         ],
         "summary": "Create message batch (Anthropic-compatible)",
-        "description": "Creates a native Anthropic Message Batch. Requests use the same Anthropic message parameters as /v1/messages.",
+        "description": "Creates a native Anthropic Message Batch. Each item in `requests` has a unique `custom_id` and the same `params` as `/v1/messages`. Items cannot use `speed: \"fast\"`. Every model in the batch must be available for batches; otherwise the request is rejected with 400. TokenLab reserves the estimated cost when the batch is created and returns 402 when the balance cannot cover it. If an item references `file_id` content, send the header `anthropic-beta: files-api-2025-04-14`.",
         "operationId": "createAnthropicMessageBatch",
         "requestBody": {
           "required": true,
@@ -1842,25 +1953,34 @@
             }
           },
           "400": {
-            "$ref": "#/components/responses/BadRequest"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "401": {
-            "$ref": "#/components/responses/Unauthorized"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "402": {
-            "$ref": "#/components/responses/PaymentRequired"
+            "$ref": "#/components/responses/AnthropicError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AnthropicError"
+          },
+          "409": {
+            "$ref": "#/components/responses/AnthropicError"
           },
           "429": {
-            "$ref": "#/components/responses/RateLimitExceeded"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "500": {
-            "$ref": "#/components/responses/ServerError"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "502": {
-            "$ref": "#/components/responses/UpstreamError"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "503": {
-            "$ref": "#/components/responses/DeliveryUnavailable"
+            "$ref": "#/components/responses/AnthropicError"
+          },
+          "504": {
+            "$ref": "#/components/responses/AnthropicError"
           }
         },
         "parameters": [
@@ -1877,7 +1997,7 @@
           "Anthropic"
         ],
         "summary": "List message batches (Anthropic-compatible)",
-        "description": "Lists native Anthropic Message Batches for the authenticated organization.",
+        "description": "Lists the Message Batches that the current organization created through this API, newest first. Use `after_id` or `before_id` (not both) to page.",
         "operationId": "listAnthropicMessageBatches",
         "parameters": [
           {
@@ -1887,7 +2007,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "Return batches before this batch id"
+            "description": "Return batches before this batch id. Cannot be combined with `after_id`."
           },
           {
             "name": "after_id",
@@ -1896,7 +2016,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "Return batches after this batch id"
+            "description": "Return batches after this batch id. Cannot be combined with `before_id`."
           },
           {
             "name": "limit",
@@ -1923,22 +2043,22 @@
             }
           },
           "400": {
-            "$ref": "#/components/responses/BadRequest"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "401": {
-            "$ref": "#/components/responses/Unauthorized"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "402": {
-            "$ref": "#/components/responses/PaymentRequired"
+            "$ref": "#/components/responses/AnthropicError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AnthropicError"
           },
           "429": {
-            "$ref": "#/components/responses/RateLimitExceeded"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "500": {
-            "$ref": "#/components/responses/ServerError"
-          },
-          "502": {
-            "$ref": "#/components/responses/UpstreamError"
+            "$ref": "#/components/responses/AnthropicError"
           }
         }
       }
@@ -1949,14 +2069,14 @@
           "Anthropic"
         ],
         "summary": "Retrieve message batch (Anthropic-compatible)",
-        "description": "Retrieves the status and metadata for a native Anthropic Message Batch.",
+        "description": "Retrieves the status and metadata for a Message Batch that the current organization created. Returns 404 when the batch does not exist or was deleted.",
         "operationId": "retrieveAnthropicMessageBatch",
         "parameters": [
           {
             "name": "message_batch_id",
             "in": "path",
             "required": true,
-            "description": "Anthropic message batch identifier",
+            "description": "Message batch identifier",
             "schema": {
               "type": "string"
             }
@@ -1974,22 +2094,31 @@
             }
           },
           "400": {
-            "$ref": "#/components/responses/BadRequest"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "401": {
-            "$ref": "#/components/responses/Unauthorized"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "402": {
-            "$ref": "#/components/responses/PaymentRequired"
+            "$ref": "#/components/responses/AnthropicError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AnthropicError"
+          },
+          "404": {
+            "$ref": "#/components/responses/AnthropicError"
+          },
+          "409": {
+            "$ref": "#/components/responses/AnthropicError"
           },
           "429": {
-            "$ref": "#/components/responses/RateLimitExceeded"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "500": {
-            "$ref": "#/components/responses/ServerError"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "502": {
-            "$ref": "#/components/responses/UpstreamError"
+            "$ref": "#/components/responses/AnthropicError"
           }
         }
       },
@@ -1998,14 +2127,14 @@
           "Anthropic"
         ],
         "summary": "Delete message batch (Anthropic-compatible)",
-        "description": "Deletes an Anthropic Message Batch when deletion is supported for that batch.",
+        "description": "Deletes a Message Batch that has ended and whose usage TokenLab has settled. Returns 409 before that point, so a batch that is still processing must be cancelled first or must finish. After deletion the batch and its results are no longer available (404).",
         "operationId": "deleteAnthropicMessageBatch",
         "parameters": [
           {
             "name": "message_batch_id",
             "in": "path",
             "required": true,
-            "description": "Anthropic message batch identifier",
+            "description": "Message batch identifier",
             "schema": {
               "type": "string"
             }
@@ -2023,22 +2152,34 @@
             }
           },
           "400": {
-            "$ref": "#/components/responses/BadRequest"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "401": {
-            "$ref": "#/components/responses/Unauthorized"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "402": {
-            "$ref": "#/components/responses/PaymentRequired"
+            "$ref": "#/components/responses/AnthropicError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AnthropicError"
+          },
+          "404": {
+            "$ref": "#/components/responses/AnthropicError"
+          },
+          "409": {
+            "$ref": "#/components/responses/AnthropicError"
           },
           "429": {
-            "$ref": "#/components/responses/RateLimitExceeded"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "500": {
-            "$ref": "#/components/responses/ServerError"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "502": {
-            "$ref": "#/components/responses/UpstreamError"
+            "$ref": "#/components/responses/AnthropicError"
+          },
+          "503": {
+            "$ref": "#/components/responses/AnthropicError"
           }
         }
       }
@@ -2049,14 +2190,14 @@
           "Anthropic"
         ],
         "summary": "Retrieve message batch results (Anthropic-compatible)",
-        "description": "Downloads JSONL results for a completed native Anthropic Message Batch.",
+        "description": "Streams the results of a Message Batch as JSONL, one line per request: `{\"custom_id\": \"...\", \"result\": {\"type\": \"succeeded | errored | canceled | expired\", ...}}`. Line order is not guaranteed; match lines by `custom_id`. Read results after `processing_status` is `ended`.",
         "operationId": "retrieveAnthropicMessageBatchResults",
         "parameters": [
           {
             "name": "message_batch_id",
             "in": "path",
             "required": true,
-            "description": "Anthropic message batch identifier",
+            "description": "Message batch identifier",
             "schema": {
               "type": "string"
             }
@@ -2066,13 +2207,7 @@
           "200": {
             "description": "Message batch results in JSONL format",
             "content": {
-              "application/x-jsonl": {
-                "schema": {
-                  "type": "string",
-                  "description": "Newline-delimited JSON result records"
-                }
-              },
-              "text/plain": {
+              "application/x-ndjson": {
                 "schema": {
                   "type": "string",
                   "description": "Newline-delimited JSON result records"
@@ -2081,22 +2216,31 @@
             }
           },
           "400": {
-            "$ref": "#/components/responses/BadRequest"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "401": {
-            "$ref": "#/components/responses/Unauthorized"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "402": {
-            "$ref": "#/components/responses/PaymentRequired"
+            "$ref": "#/components/responses/AnthropicError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AnthropicError"
+          },
+          "404": {
+            "$ref": "#/components/responses/AnthropicError"
+          },
+          "409": {
+            "$ref": "#/components/responses/AnthropicError"
           },
           "429": {
-            "$ref": "#/components/responses/RateLimitExceeded"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "500": {
-            "$ref": "#/components/responses/ServerError"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "502": {
-            "$ref": "#/components/responses/UpstreamError"
+            "$ref": "#/components/responses/AnthropicError"
           }
         }
       }
@@ -2107,14 +2251,14 @@
           "Anthropic"
         ],
         "summary": "Cancel message batch (Anthropic-compatible)",
-        "description": "Cancels an Anthropic Message Batch when cancellation is still available for that batch.",
+        "description": "Requests cancellation of a Message Batch that is still processing. The response shows the current state: `processing_status` is usually `canceling`, and requests already running can still finish. A batch that has already ended is returned unchanged.",
         "operationId": "cancelAnthropicMessageBatch",
         "parameters": [
           {
             "name": "message_batch_id",
             "in": "path",
             "required": true,
-            "description": "Anthropic message batch identifier",
+            "description": "Message batch identifier",
             "schema": {
               "type": "string"
             }
@@ -2122,7 +2266,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Cancelled message batch",
+            "description": "Message batch after the cancel request",
             "content": {
               "application/json": {
                 "schema": {
@@ -2132,22 +2276,31 @@
             }
           },
           "400": {
-            "$ref": "#/components/responses/BadRequest"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "401": {
-            "$ref": "#/components/responses/Unauthorized"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "402": {
-            "$ref": "#/components/responses/PaymentRequired"
+            "$ref": "#/components/responses/AnthropicError"
+          },
+          "403": {
+            "$ref": "#/components/responses/AnthropicError"
+          },
+          "404": {
+            "$ref": "#/components/responses/AnthropicError"
+          },
+          "409": {
+            "$ref": "#/components/responses/AnthropicError"
           },
           "429": {
-            "$ref": "#/components/responses/RateLimitExceeded"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "500": {
-            "$ref": "#/components/responses/ServerError"
+            "$ref": "#/components/responses/AnthropicError"
           },
           "502": {
-            "$ref": "#/components/responses/UpstreamError"
+            "$ref": "#/components/responses/AnthropicError"
           }
         }
       }
@@ -2160,6 +2313,14 @@
         "summary": "Generate content (Gemini-compatible)",
         "description": "Generates content using the Gemini GenerateContent request shape. The model details must advertise Gemini requests and the model must be available. ProtoJSON lowerCamelCase and original proto snake_case field names are preserved. Unknown fields are accepted on a best-effort basis; model-specific support is not guaranteed.\n\n**Authentication:** Use `?key=` query parameter, `x-goog-api-key` header, or `Authorization: Bearer` header.",
         "operationId": "geminiGenerateContent",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "GeminiApiKey": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/DeliveryPolicy"
@@ -2292,6 +2453,14 @@
         "summary": "Stream generate content (Gemini-compatible)",
         "description": "Streams native Gemini GenerateContent Server-Sent Events without adding Chat Completions terminators. Metadata-only chunks, intermediate chunks without finishReason, and natural EOF are valid.\n\n**Authentication:** Use `?key=` query parameter, `x-goog-api-key` header, or `Authorization: Bearer` header.",
         "operationId": "geminiStreamGenerateContent",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "GeminiApiKey": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/DeliveryPolicy"
@@ -2389,13 +2558,22 @@
           "Gemini"
         ],
         "summary": "Count tokens (Gemini-compatible)",
-        "description": "Counts tokens using the native Gemini CountTokens contract. Unknown fields and either official ProtoJSON field-name spelling are forwarded best-effort.",
+        "description": "Counts the input tokens of a Gemini request. The call is not billed and needs no account balance. Send `contents` or a full `generateContentRequest`. Either official ProtoJSON field-name spelling is accepted; other fields are forwarded on a best-effort basis. Use only with a model whose model details list `countTokens`.\n\n**Authentication:** Use `?key=` query parameter, `x-goog-api-key` header, or `Authorization: Bearer` header.",
         "operationId": "geminiCountTokens",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "GeminiApiKey": []
+          }
+        ],
         "parameters": [
           {
             "name": "model",
             "in": "path",
             "required": true,
+            "description": "Model name (e.g., gemini-2.5-pro)",
             "schema": {
               "type": "string"
             }
@@ -2404,6 +2582,7 @@
             "name": "key",
             "in": "query",
             "required": false,
+            "description": "API key (alternative to header auth)",
             "schema": {
               "type": "string"
             }
@@ -2444,6 +2623,16 @@
               "application/json": {
                 "schema": {
                   "type": "object",
+                  "required": [
+                    "totalTokens"
+                  ],
+                  "properties": {
+                    "totalTokens": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Number of input tokens in the request."
+                    }
+                  },
                   "additionalProperties": true
                 }
               }
@@ -2451,6 +2640,26 @@
           },
           "400": {
             "description": "Gemini-native error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeminiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Gemini-native authentication error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeminiErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No route is available for the model right now",
             "content": {
               "application/json": {
                 "schema": {
@@ -2470,6 +2679,14 @@
         "summary": "Embed content (Gemini-compatible)",
         "description": "Creates an embedding using the native Gemini EmbedContent contract.",
         "operationId": "geminiEmbedContent",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "GeminiApiKey": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/DeliveryPolicy"
@@ -2562,6 +2779,14 @@
         "summary": "Batch embed contents (Gemini-compatible)",
         "description": "Creates multiple embeddings using the native Gemini BatchEmbedContents contract.",
         "operationId": "geminiBatchEmbedContents",
+        "security": [
+          {
+            "BearerAuth": []
+          },
+          {
+            "GeminiApiKey": []
+          }
+        ],
         "parameters": [
           {
             "$ref": "#/components/parameters/DeliveryPolicy"
@@ -2678,10 +2903,13 @@
                     "description": "Maximum output tokens"
                   },
                   "temperature": {
-                    "type": "number"
+                    "type": "number",
+                    "description": "Sampling temperature. Range and default depend on the model."
                   },
                   "stream": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "default": false,
+                    "description": "If true, returns a stream of server-sent events."
                   },
                   "tools": {
                     "type": "array",
@@ -2734,11 +2962,12 @@
                   },
                   "background": {
                     "type": "boolean",
-                    "description": "Whether to run the response asynchronously."
+                    "default": false,
+                    "description": "Run asynchronously, where supported. Poll GET /v1/responses/{id}."
                   },
                   "previous_response_id": {
                     "type": "string",
-                    "description": "ID of a previous response to continue."
+                    "description": "Stored response of your account to continue (404 response_not_found otherwise)."
                   },
                   "prompt": {
                     "type": "object",
@@ -2747,7 +2976,8 @@
                   },
                   "store": {
                     "type": "boolean",
-                    "description": "Whether the response is stored for later retrieval."
+                    "default": true,
+                    "description": "Store the response for retrieval and previous_response_id."
                   },
                   "reasoning": {
                     "type": "object",
@@ -2760,7 +2990,7 @@
                   },
                   "parallel_tool_calls": {
                     "type": "boolean",
-                    "description": "Whether the model may issue parallel tool calls."
+                    "description": "Whether the model may issue parallel tool calls, when the model supports it."
                   },
                   "metadata": {
                     "type": "object",
@@ -2787,6 +3017,12 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitExceeded"
           },
           "503": {
             "$ref": "#/components/responses/DeliveryUnavailable"
@@ -2816,7 +3052,7 @@
           "Responses"
         ],
         "summary": "Retrieve response",
-        "description": "Retrieves a stored Responses API response by TokenLab response id. Ownership checks return 404 when the response is missing or unavailable to the current API key.",
+        "description": "Retrieves a stored response by ID, or polls a background response. It returns 404 with code response_not_found when the ID is unknown, belongs to another account, was deleted, was created with store false, or is past its retention. TokenLab keeps a stored response for 24 hours; some stay retrievable for up to 30 days.",
         "operationId": "retrieveResponse",
         "parameters": [
           {
@@ -2837,7 +3073,7 @@
                 "type": "string"
               }
             },
-            "description": "Additional response fields to include."
+            "description": "Additional response fields to include, forwarded where the model supports them."
           },
           {
             "name": "include_obfuscation",
@@ -2845,7 +3081,7 @@
             "schema": {
               "type": "boolean"
             },
-            "description": "Whether streamed events include obfuscation fields."
+            "description": "Whether streamed events include obfuscation fields, forwarded where the model supports it."
           },
           {
             "name": "stream",
@@ -2853,7 +3089,7 @@
             "schema": {
               "type": "boolean"
             },
-            "description": "Whether to retrieve the response as an event stream."
+            "description": "Whether to retrieve the response as an event stream. Applies while the response is still running; a finished response is returned as JSON."
           },
           {
             "name": "starting_after",
@@ -2861,7 +3097,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "Sequence number after which streaming events are returned."
+            "description": "Sequence number after which streaming events are returned. Applies only with stream."
           }
         ],
         "responses": {
@@ -2876,6 +3112,9 @@
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamError"
           }
         }
       },
@@ -2884,7 +3123,7 @@
           "Responses"
         ],
         "summary": "Delete response",
-        "description": "Deletes a stored Responses API response. This operation is deletion, not cancellation of an in-progress response.",
+        "description": "Deletes a stored response. This operation is deletion, not cancellation of an in-progress response. An unknown ID, an ID from another account, and an ID that was already deleted return 404 with code response_not_found. A successful call returns 200 with deleted true.",
         "operationId": "deleteResponse",
         "parameters": [
           {
@@ -2909,6 +3148,9 @@
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamError"
           }
         }
       }
@@ -2919,7 +3161,7 @@
           "Responses"
         ],
         "summary": "Compact response context (OpenAI Responses API)",
-        "description": "Compacts Responses input and returns the native `response.compaction` contract. The request model must be available on a same-protocol Responses path.",
+        "description": "Compacts Responses input and returns a `response.compaction` object. Send its output items unchanged as input of the next Responses request, with the same model. The model must list openai_responses in accepted_request_formats, or the request returns 400. Streaming is not supported. The request is billed by token usage.",
         "operationId": "compactResponse",
         "requestBody": {
           "required": true,
@@ -2954,7 +3196,7 @@
                   },
                   "stream": {
                     "type": "boolean",
-                    "description": "Streaming is not supported for compaction."
+                    "description": "Streaming is not supported for compaction. stream true returns 400."
                   },
                   "metadata": {
                     "type": "object",
@@ -2997,7 +3239,7 @@
           "Embeddings"
         ],
         "summary": "Rerank documents",
-        "description": "Reranks documents by relevance to a query using semantic similarity.",
+        "description": "Reranks documents by relevance to a query. Use a model whose details list the `rerank` operation. Limits: query up to 32,000 characters; 1 to 1,000 documents, each up to 100,000 characters and 2,000,000 characters in total.",
         "operationId": "rerankDocuments",
         "requestBody": {
           "required": true,
@@ -3017,21 +3259,28 @@
                   },
                   "query": {
                     "type": "string",
+                    "minLength": 1,
+                    "maxLength": 32000,
                     "description": "Query to rank against"
                   },
                   "documents": {
                     "type": "array",
+                    "minItems": 1,
+                    "maxItems": 1000,
                     "items": {
-                      "type": "string"
+                      "type": "string",
+                      "maxLength": 100000
                     },
-                    "description": "Documents to rerank"
+                    "description": "Documents to rerank, up to 2,000,000 characters in total."
                   },
                   "top_n": {
                     "type": "integer",
-                    "description": "Number of results to return"
+                    "minimum": 1,
+                    "description": "Number of results, from 1 to the number of documents."
                   },
                   "return_documents": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "description": "Include document text, for models that list it."
                   }
                 }
               }
@@ -3055,8 +3304,25 @@
                     },
                     "results": {
                       "type": "array",
+                      "description": "Documents ranked by relevance, best first.",
                       "items": {
                         "type": "object",
+                        "required": [
+                          "index"
+                        ],
+                        "properties": {
+                          "index": {
+                            "type": "integer",
+                            "description": "Index of the document in the request"
+                          },
+                          "relevance_score": {
+                            "type": "number",
+                            "description": "Relevance score. Its range depends on the model."
+                          },
+                          "document": {
+                            "description": "Document text, when requested and returned by the model"
+                          }
+                        },
                         "additionalProperties": true
                       }
                     },
@@ -3065,6 +3331,15 @@
                     },
                     "usage": {
                       "type": "object",
+                      "description": "Usage reported for the request: `total_tokens`, or `search_units` for models billed per search.",
+                      "properties": {
+                        "total_tokens": {
+                          "type": "integer"
+                        },
+                        "search_units": {
+                          "type": "integer"
+                        }
+                      },
                       "additionalProperties": true
                     }
                   },
@@ -3078,6 +3353,15 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitExceeded"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
           },
           "503": {
             "$ref": "#/components/responses/DeliveryUnavailable"
@@ -3096,7 +3380,7 @@
           "Audio"
         ],
         "summary": "Create music generation task",
-        "description": "Creates a music generation task using Suno. Returns a task ID for polling.",
+        "description": "Creates a music, lyrics, or sound generation task. Returns a task ID for polling. Models differ in the fields they accept; read the model's details with GET /v1/models/{model} before sending optional fields. The user field is not supported.",
         "operationId": "createMusic",
         "requestBody": {
           "required": true,
@@ -3107,20 +3391,26 @@
                 "properties": {
                   "model": {
                     "type": "string",
-                    "default": "suno_music"
+                    "default": "suno-music",
+                    "description": "Music model ID, for example suno-music."
                   },
                   "prompt": {
                     "type": "string",
-                    "description": "Music description. Required for music, lyrics, upload-cover, and upload-extend requests; omit for add-instrumental."
+                    "maxLength": 5000,
+                    "description": "Music description or replacement text."
                   },
                   "title": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Title for the generated song."
                   },
                   "tags": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 1000,
+                    "description": "Style tags, for example pop, upbeat, electronic."
                   },
                   "negative_tags": {
                     "type": "string",
+                    "maxLength": 1000,
                     "description": "Styles to avoid. Required when audio_operation is add-instrumental."
                   },
                   "action": {
@@ -3128,7 +3418,8 @@
                     "enum": [
                       "MUSIC",
                       "LYRICS"
-                    ]
+                    ],
+                    "description": "MUSIC or LYRICS."
                   },
                   "mv": {
                     "type": "string",
@@ -3145,7 +3436,7 @@
                       "chirp-v5-5",
                       "chirp-v5.5"
                     ],
-                    "description": "Official Suno model version. Required when creating music (action omitted or MUSIC); omit for lyrics-only requests."
+                    "description": "Suno model version. Required when generating new audio."
                   },
                   "make_instrumental": {
                     "type": "boolean",
@@ -3161,9 +3452,13 @@
                     "enum": [
                       "upload-cover",
                       "upload-extend",
-                      "add-instrumental"
+                      "add-instrumental",
+                      "replace-section",
+                      "vocal-separate",
+                      "multi-stem-separation",
+                      "advanced-split"
                     ],
-                    "description": "Uploaded-audio mode. upload-extend requires continue_at; add-instrumental requires audio_url, title, tags, and negative_tags."
+                    "description": "Operation on existing audio; each needs its own fields (see the music guide)."
                   },
                   "continue_clip_id": {
                     "type": "string",
@@ -3171,7 +3466,65 @@
                   },
                   "continue_at": {
                     "type": "number",
-                    "description": "Timestamp in seconds for continuation flows. Required when audio_operation is upload-extend."
+                    "description": "Timestamp in seconds for continuation flows. Required and greater than 0 when audio_operation is upload-extend."
+                  },
+                  "task_id": {
+                    "type": "string",
+                    "description": "Earlier music task, for replacement or stem separation."
+                  },
+                  "audio_id": {
+                    "type": "string",
+                    "description": "Audio ID from that task. Required with task_id."
+                  },
+                  "infill_start_s": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "Replacement start, in seconds."
+                  },
+                  "infill_end_s": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "Replacement end, 6 to 60 seconds after the start."
+                  },
+                  "full_lyrics": {
+                    "type": "string",
+                    "description": "Full lyrics after replacement."
+                  },
+                  "stem_name": {
+                    "type": "string",
+                    "description": "Stem name. Required for advanced-split."
+                  },
+                  "duration": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 380,
+                    "description": "Length in seconds, where listed."
+                  },
+                  "output_format": {
+                    "type": "string",
+                    "enum": [
+                      "mp3",
+                      "wav"
+                    ],
+                    "description": "Audio file format, for models that list this parameter."
+                  },
+                  "seed": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 4294967294,
+                    "description": "Seed, where listed."
+                  },
+                  "steps": {
+                    "type": "integer",
+                    "minimum": 4,
+                    "maximum": 8,
+                    "description": "Generation steps, where listed."
+                  },
+                  "cfg_scale": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 25,
+                    "description": "Prompt guidance strength, where listed."
                   }
                 }
               }
@@ -3180,10 +3533,55 @@
         },
         "responses": {
           "200": {
-            "description": "Task created"
+            "description": "Task created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Task ID. Poll GET /v1/tasks/{id} with it."
+                    },
+                    "task_id": {
+                      "type": "string",
+                      "description": "Alias of id."
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "pending",
+                        "processing",
+                        "completed",
+                        "failed"
+                      ]
+                    },
+                    "poll_url": {
+                      "type": "string"
+                    },
+                    "model": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitExceeded"
           },
           "503": {
             "$ref": "#/components/responses/DeliveryUnavailable"
@@ -3214,12 +3612,97 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "The music generation task ID."
           }
         ],
         "responses": {
           "200": {
-            "description": "Task status"
+            "description": "Task status. A failed task still returns HTTP 200; read status, error, and error_details.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "status"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "task_id": {
+                      "type": "string"
+                    },
+                    "poll_url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "pending",
+                        "processing",
+                        "completed",
+                        "failed",
+                        "timeout"
+                      ]
+                    },
+                    "progress": {
+                      "type": "integer",
+                      "description": "Returned only when a real progress value is available."
+                    },
+                    "audio_id": {
+                      "type": "string",
+                      "description": "Source audio ID, usable with this task's ID in follow-up operations."
+                    },
+                    "audio_url": {
+                      "type": "string",
+                      "format": "uri",
+                      "description": "Audio file URL when completed. A TokenLab media-result link that stays valid for 30 days."
+                    },
+                    "video_url": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "image_url": {
+                      "type": "string",
+                      "format": "uri",
+                      "description": "Cover image URL, when the model returns one."
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "lyrics": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "array",
+                      "description": "Output files, for example separated audio, each with audio_url or url.",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": true
+                      }
+                    },
+                    "error": {
+                      "$ref": "#/components/schemas/AsyncTaskError"
+                    },
+                    "error_details": {
+                      "$ref": "#/components/schemas/AsyncTaskErrorDetails"
+                    },
+                    "media_retention": {
+                      "$ref": "#/components/schemas/MediaRetention"
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
           },
           "404": {
             "description": "Task not found"
@@ -3233,7 +3716,7 @@
           "Video"
         ],
         "summary": "Create 3D model generation task",
-        "description": "Creates a 3D model generation task using Tripo3D. Returns a task ID for polling.",
+        "description": "Creates a 3D model generation task from text or an image. Returns a task ID for polling. Models differ in the operations and fields they accept; read the model's details with GET /v1/models/{model} before sending optional fields.",
         "operationId": "create3D",
         "requestBody": {
           "required": true,
@@ -3244,18 +3727,30 @@
                 "properties": {
                   "model": {
                     "type": "string",
-                    "default": "tripo-h3.1"
+                    "default": "tripo-h3.1",
+                    "description": "3D model ID. Send it explicitly."
+                  },
+                  "operation": {
+                    "type": "string",
+                    "enum": [
+                      "text-to-3d",
+                      "image-to-3d"
+                    ],
+                    "description": "Optional; inferred from whether an image is sent."
                   },
                   "prompt": {
                     "type": "string",
-                    "description": "3D model description. Required for every model that takes a prompt; an image-to-3D model whose contract lists no prompt is called without one."
+                    "maxLength": 2000,
+                    "description": "3D model description, up to 2000 characters; a model can set a lower limit. Required whenever the model's details list prompt, which includes image-to-3D requests for the current models."
                   },
                   "image": {
                     "type": "string",
                     "description": "Base64 image for image-to-3D"
                   },
                   "image_url": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Public image URL for image-to-3D."
                   },
                   "format": {
                     "type": "string",
@@ -3293,10 +3788,55 @@
         },
         "responses": {
           "200": {
-            "description": "Task created"
+            "description": "Task created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Task ID. Poll GET /v1/tasks/{id} with it."
+                    },
+                    "task_id": {
+                      "type": "string",
+                      "description": "Alias of id."
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "pending",
+                        "processing",
+                        "completed",
+                        "failed"
+                      ]
+                    },
+                    "poll_url": {
+                      "type": "string"
+                    },
+                    "model": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitExceeded"
           },
           "503": {
             "$ref": "#/components/responses/DeliveryUnavailable"
@@ -3327,12 +3867,78 @@
             "required": true,
             "schema": {
               "type": "string"
-            }
+            },
+            "description": "The 3D generation task ID."
           }
         ],
         "responses": {
           "200": {
-            "description": "Task status"
+            "description": "Task status. A failed task still returns HTTP 200; read status, error, and error_details.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "status"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "task_id": {
+                      "type": "string"
+                    },
+                    "poll_url": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "pending",
+                        "processing",
+                        "completed",
+                        "failed",
+                        "timeout"
+                      ]
+                    },
+                    "progress": {
+                      "type": "integer",
+                      "description": "Returned only when a real progress value is available."
+                    },
+                    "model_url": {
+                      "type": "string",
+                      "format": "uri",
+                      "description": "3D model file URL when completed. A TokenLab media-result link that stays valid for 30 days."
+                    },
+                    "glb_url": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "fbx_url": {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    "error": {
+                      "$ref": "#/components/schemas/AsyncTaskError"
+                    },
+                    "error_details": {
+                      "$ref": "#/components/schemas/AsyncTaskErrorDetails"
+                    },
+                    "media_retention": {
+                      "$ref": "#/components/schemas/MediaRetention"
+                    }
+                  },
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
           },
           "404": {
             "description": "Task not found"
@@ -3760,7 +4366,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "Inclusive date filter. Accepts either RFC3339 with timezone (for example 2026-03-28T00:00:00+08:00) or YYYY-MM-DD."
+            "description": "Lower bound, inclusive. Accepts RFC3339 with timezone (for example 2026-03-28T00:00:00+08:00) or YYYY-MM-DD, which means 00:00 UTC."
           },
           {
             "name": "endDate",
@@ -3768,7 +4374,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "Inclusive date filter. Accepts either RFC3339 with timezone (for example 2026-03-28T00:00:00+08:00) or YYYY-MM-DD."
+            "description": "Upper bound, inclusive. Accepts RFC3339 with timezone (for example 2026-03-28T23:59:59+08:00) or YYYY-MM-DD, which means 00:00 UTC at the start of that day. To include a whole day, pass the next day's date or an RFC3339 time at the end of the day."
           }
         ],
         "responses": {
@@ -3793,6 +4399,9 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitExceeded"
           }
         },
         "x-mint": {
@@ -3866,6 +4475,7 @@
           {
             "name": "startDate",
             "in": "query",
+            "description": "Lower bound, inclusive. Accepts RFC3339 with timezone (for example 2026-03-28T00:00:00+08:00) or YYYY-MM-DD, which means 00:00 UTC.",
             "schema": {
               "type": "string"
             }
@@ -3873,6 +4483,7 @@
           {
             "name": "endDate",
             "in": "query",
+            "description": "Upper bound, inclusive. Accepts RFC3339 with timezone (for example 2026-03-28T23:59:59+08:00) or YYYY-MM-DD, which means 00:00 UTC at the start of that day. To include a whole day, pass the next day's date or an RFC3339 time at the end of the day.",
             "schema": {
               "type": "string"
             }
@@ -3900,6 +4511,9 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitExceeded"
           }
         },
         "x-mint": {
@@ -3915,8 +4529,9 @@
           "Models"
         ],
         "summary": "Get model pricing",
-        "description": "Retrieves pricing-only detail for one model. Use this endpoint for price explanation, not for non-chat request construction.",
+        "description": "Retrieves pricing-only detail for one model. No API key is needed. Use it to explain a price, not to build a request.",
         "operationId": "getModelPricing",
+        "security": [],
         "parameters": [
           {
             "name": "model",
@@ -3938,9 +4553,6 @@
                 }
               }
             }
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
           },
           "404": {
             "description": "Model not found",
@@ -3989,7 +4601,8 @@
                 "properties": {
                   "file": {
                     "type": "string",
-                    "format": "binary"
+                    "format": "binary",
+                    "description": "The file: up to 200 MiB for batch, 50 MiB for images."
                   },
                   "purpose": {
                     "type": "string",
@@ -4003,6 +4616,19 @@
                   "model": {
                     "type": "string",
                     "description": "Optional TokenLab extension for image file uploads. Defaults to gpt-image-2 and binds the returned file_id to the selected image-edit configuration."
+                  },
+                  "expires_after[anchor]": {
+                    "type": "string",
+                    "enum": [
+                      "created_at"
+                    ],
+                    "description": "For `purpose=batch`: counts the expiry from the upload time. Send it together with `expires_after[seconds]`. Without it, a batch file expires 24 hours after upload."
+                  },
+                  "expires_after[seconds]": {
+                    "type": "integer",
+                    "minimum": 3600,
+                    "maximum": 2592000,
+                    "description": "For `purpose=batch`: seconds until the file expires, from 1 hour to 30 days."
                   }
                 }
               }
@@ -4034,7 +4660,14 @@
             "$ref": "#/components/responses/Unauthorized"
           },
           "413": {
-            "$ref": "#/components/responses/BadRequest"
+            "description": "File too large: batch files up to 200 MiB, image files up to 50 MiB, Anthropic Files up to 500 MB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       },
@@ -4048,11 +4681,11 @@
           {
             "name": "limit",
             "in": "query",
+            "description": "Number of files to return. 1 to 10,000 (default 10,000) for batch and image files; 1 to 1,000 (default 20) in Anthropic Files mode.",
             "schema": {
               "type": "integer",
               "minimum": 1,
-              "maximum": 1000,
-              "default": 20
+              "maximum": 10000
             }
           },
           {
@@ -4178,8 +4811,18 @@
               }
             }
           },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
           "404": {
-            "$ref": "#/components/responses/BadRequest"
+            "description": "File not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       },
@@ -4258,15 +4901,31 @@
           "200": {
             "description": "File content",
             "content": {
-              "text/plain": {
+              "application/jsonl": {
                 "schema": {
                   "type": "string"
+                }
+              },
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
           },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
           "404": {
-            "$ref": "#/components/responses/BadRequest"
+            "description": "File not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -4277,7 +4936,7 @@
           "Batches"
         ],
         "summary": "Create batch",
-        "description": "Creates an OpenAI-compatible batch job.",
+        "description": "Creates a batch job from an uploaded JSONL file with `purpose` set to `batch`. Endpoints: `/v1/chat/completions` and `/v1/embeddings`. A file holds up to 50,000 requests and 200 MiB; every line needs a unique `custom_id`, `method` `POST`, a `url` equal to `endpoint`, and a `body` with `model`. Streaming is not supported. The estimated cost is reserved when the batch is created; a balance that is too low returns 402.",
         "operationId": "createBatch",
         "requestBody": {
           "required": true,
@@ -4324,22 +4983,47 @@
           "Batches"
         ],
         "summary": "List batches",
+        "description": "Lists the batches created through this endpoint in the current Workspace, newest first by default.",
         "operationId": "listBatches",
         "parameters": [
           {
             "name": "limit",
             "in": "query",
+            "description": "Number of batches to return. Default 20.",
             "schema": {
               "type": "integer",
               "minimum": 1,
-              "maximum": 100
+              "maximum": 100,
+              "default": 20
             }
           },
           {
             "name": "after",
             "in": "query",
+            "description": "Batch ID cursor: return batches after this one. Cannot be combined with `before`.",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "description": "Batch ID cursor: return batches before this one. Cannot be combined with `after`.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "description": "Sort order by creation time.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
             }
           }
         ],
@@ -4354,6 +5038,9 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
           }
@@ -4366,6 +5053,7 @@
           "Batches"
         ],
         "summary": "Retrieve batch",
+        "description": "Returns the current status, request counts, and result file IDs of a batch.",
         "operationId": "retrieveBatch",
         "parameters": [
           {
@@ -4388,8 +5076,18 @@
               }
             }
           },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
           "404": {
-            "$ref": "#/components/responses/BadRequest"
+            "description": "Batch not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -4400,6 +5098,7 @@
           "Batches"
         ],
         "summary": "Cancel batch",
+        "description": "Requests cancellation of a batch that has not finished. The response shows the current status, which may be `cancelling` or already `cancelled`; a finished batch keeps its status.",
         "operationId": "cancelBatch",
         "parameters": [
           {
@@ -4422,8 +5121,18 @@
               }
             }
           },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
           "404": {
-            "$ref": "#/components/responses/BadRequest"
+            "description": "Batch not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -4434,13 +5143,14 @@
           "Models"
         ],
         "summary": "List model pricing",
-        "description": "Returns the public pricing surface for active models, with optional provider and tag filters.",
+        "description": "Returns the current public prices of active models, with optional provider and tag filters. No API key is needed.",
         "operationId": "getPricing",
+        "security": [],
         "parameters": [
           {
             "name": "provider",
             "in": "query",
-            "description": "Filter by provider ID.",
+            "description": "Filter by model maker, for example `openai`, `anthropic`, `google`, or `deepseek`.",
             "schema": {
               "type": "string"
             }
@@ -4448,7 +5158,7 @@
           {
             "name": "tag",
             "in": "query",
-            "description": "Filter by model tag.",
+            "description": "Filter by a capability tag such as `reasoning`, `tool-use`, `vision`, or `text-to-image`. The values in a model's `capabilities` are valid tags.",
             "schema": {
               "type": "string"
             }
@@ -4468,9 +5178,6 @@
           "400": {
             "$ref": "#/components/responses/BadRequest"
           },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
           "500": {
             "$ref": "#/components/responses/ServerError"
           }
@@ -4483,7 +5190,7 @@
           "Text"
         ],
         "summary": "Translate text",
-        "description": "Translates text into a target language using the current translation request format.",
+        "description": "Translates text into a target language with a model that lists the `translation` operation. This is text-to-text translation; audio translation uses `POST /v1/audio/translations`.",
         "operationId": "createTranslation",
         "requestBody": {
           "required": true,
@@ -4611,14 +5318,14 @@
           "Realtime"
         ],
         "summary": "Connect to realtime WebSocket",
-        "description": "Returns realtime endpoint metadata for normal HTTP GET requests. WebSocket clients use the same path with `?model={model}` and Bearer API key authentication to open realtime speech or multimodal sessions. This public surface is a TokenLab WebSocket subset of OpenAI Realtime; it does not expose its REST helper endpoints such as client secrets, translation client secrets, Calls, or legacy beta session creation.",
+        "description": "Returns realtime endpoint metadata for a normal HTTP GET request; no API key is needed. WebSocket clients use the same path with `?model={model}` and an `Authorization: Bearer` or `x-api-key` header to open a realtime voice session with a model that lists the `realtime` operation. A credential that names no usable API key is refused before the upgrade with 401, 403, 429, or 503. Other rejections arrive as one JSON message with `type: \"error\"`, followed by a close code. This surface is a TokenLab WebSocket subset of OpenAI Realtime; it does not expose REST helper endpoints such as client secrets, Calls, or legacy beta session creation.",
         "operationId": "connectRealtime",
         "parameters": [
           {
             "name": "model",
             "in": "query",
             "required": false,
-            "description": "Realtime model ID to route the WebSocket session. Required for WebSocket upgrade requests; optional for plain HTTP metadata checks.",
+            "description": "Realtime model ID. Required for WebSocket upgrade requests; optional for plain HTTP metadata checks.",
             "schema": {
               "type": "string"
             },
@@ -4658,20 +5365,24 @@
               }
             }
           },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
           },
-          "402": {
-            "$ref": "#/components/responses/PaymentRequired"
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
           },
           "429": {
             "$ref": "#/components/responses/RateLimitExceeded"
           },
-          "500": {
-            "$ref": "#/components/responses/ServerError"
+          "503": {
+            "description": "Authentication service temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -4691,8 +5402,7 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "model",
-                  "prompt"
+                  "model"
                 ],
                 "properties": {
                   "model": {
@@ -4700,7 +5410,9 @@
                     "description": "Model to use for image edits. Send this explicitly."
                   },
                   "prompt": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 32000,
+                    "description": "Description of the edit. Required unless the model takes no prompt."
                   },
                   "image_url": {
                     "type": "string",
@@ -4761,7 +5473,7 @@
                   },
                   "async": {
                     "type": "boolean",
-                    "description": "Return a task before the edited image is ready for models that support public async execution."
+                    "description": "Return a task at once, for models that list async (else 400 unsupported_async_mode). Poll GET /v1/tasks/{id}."
                   },
                   "stream": {
                     "type": "boolean",
@@ -4901,8 +5613,7 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "model",
-                  "prompt"
+                  "model"
                 ],
                 "properties": {
                   "image": {
@@ -4932,7 +5643,9 @@
                     "description": "Model to use for image edits. Send this explicitly, for example gpt-image-2."
                   },
                   "prompt": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 32000,
+                    "description": "Description of the edit. Required unless the model takes no prompt."
                   },
                   "n": {
                     "type": "integer",
@@ -5076,8 +5789,14 @@
           "401": {
             "$ref": "#/components/responses/Unauthorized"
           },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
           "413": {
             "$ref": "#/components/responses/BadRequest"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitExceeded"
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
@@ -5159,8 +5878,14 @@
           "401": {
             "$ref": "#/components/responses/Unauthorized"
           },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
           "413": {
             "$ref": "#/components/responses/BadRequest"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitExceeded"
           },
           "500": {
             "$ref": "#/components/responses/ServerError"
@@ -5182,21 +5907,24 @@
           "Gemini"
         ],
         "summary": "List Gemini-native models",
-        "description": "Lists enabled models through the Gemini-compatible v1beta model discovery surface.",
+        "description": "Lists the models that accept Gemini requests. Each model's `supportedGenerationMethods` lists the actions you can call on it. No API key is needed.",
         "operationId": "listGeminiModels",
         "parameters": [
           {
             "name": "pageSize",
             "in": "query",
+            "description": "Maximum number of models to return. Default: 50.",
             "schema": {
               "type": "integer",
               "minimum": 1,
-              "maximum": 1000
+              "maximum": 1000,
+              "default": 50
             }
           },
           {
             "name": "pageToken",
             "in": "query",
+            "description": "Continuation token from a previous page. An invalid token returns 400.",
             "schema": {
               "type": "string"
             }
@@ -5243,13 +5971,14 @@
           "Gemini"
         ],
         "summary": "Get Gemini-native model",
-        "description": "Retrieves model metadata through the Gemini-compatible v1beta surface.",
+        "description": "Returns metadata for one model that accepts Gemini requests. An alias resolves to the model's canonical ID. A model that does not accept Gemini requests returns 404. No API key is needed.",
         "operationId": "getGeminiModel",
         "parameters": [
           {
             "name": "model",
             "in": "path",
             "required": true,
+            "description": "Model name or alias (e.g., gemini-2.5-pro)",
             "schema": {
               "type": "string"
             }
@@ -5561,13 +6290,15 @@
                     "default": "marble-1.0",
                     "enum": [
                       "marble-1.0",
+                      "marble-1.0-draft",
                       "marble-1.1",
                       "marble-1.1-plus"
                     ],
-                    "description": "Marble model to use. Defaults to marble-1.0 to match the current World Labs compatibility default when model is omitted."
+                    "description": "Marble model to use. Defaults to marble-1.0 when model is omitted."
                   },
                   "prompt": {
                     "type": "string",
+                    "maxLength": 4000,
                     "description": "Text prompt used for text or guided image/video world generation."
                   },
                   "display_name": {
@@ -5578,7 +6309,7 @@
                   "world_prompt": {
                     "type": "object",
                     "additionalProperties": true,
-                    "description": "Native World Labs world_prompt object for advanced callers. Supported prompt types are text, image, multi-image, and video. Content references may use source=media_asset with a media_asset_id prepared by /v1/worlds/media-assets/prepare-upload."
+                    "description": "Native World Labs world_prompt object for advanced callers. Supported prompt types are text, image, multi-image, and video. A content reference may be {\"source\": \"media_asset\", \"media_asset_id\": \"...\"} with an ID prepared by /v1/worlds/media-assets/prepare-upload."
                   },
                   "image": {
                     "type": "string",
@@ -5656,7 +6387,7 @@
                   "permission": {
                     "type": "object",
                     "additionalProperties": true,
-                    "description": "Optional World Labs permission object."
+                    "description": "Optional visibility and access settings: public, allow_id_access, allowed_readers, and allowed_writers."
                   },
                   "user": {
                     "type": "string",
@@ -5749,10 +6480,6 @@
                     "caption": {
                       "type": "string"
                     },
-                    "cost": {
-                      "type": "object",
-                      "additionalProperties": true
-                    },
                     "error": {
                       "$ref": "#/components/schemas/AsyncTaskError"
                     },
@@ -5765,8 +6492,20 @@
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error"
           },
           "503": {
             "$ref": "#/components/responses/DeliveryUnavailable"
@@ -5853,10 +6592,6 @@
                     "caption": {
                       "type": "string"
                     },
-                    "cost": {
-                      "type": "object",
-                      "additionalProperties": true
-                    },
                     "error": {
                       "$ref": "#/components/schemas/AsyncTaskError"
                     },
@@ -5874,6 +6609,9 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error"
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
@@ -5930,7 +6668,8 @@
                       "marble-1.1",
                       "marble-1.1-plus",
                       "marble-1.0-draft"
-                    ]
+                    ],
+                    "description": "Model filter."
                   },
                   "tags": {
                     "type": [
@@ -5939,7 +6678,8 @@
                     ],
                     "items": {
                       "type": "string"
-                    }
+                    },
+                    "description": "Tag filter. A world matches when it has at least one of the tags."
                   },
                   "is_public": {
                     "type": [
@@ -6575,6 +7315,16 @@
           "404": {
             "$ref": "#/components/responses/NotFound"
           },
+          "409": {
+            "description": "The material is still being prepared. Retry shortly.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "500": {
             "$ref": "#/components/responses/ServerError"
           },
@@ -6639,6 +7389,16 @@
           "404": {
             "$ref": "#/components/responses/NotFound"
           },
+          "409": {
+            "description": "The material is still being prepared. Retry shortly.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "500": {
             "$ref": "#/components/responses/ServerError"
           },
@@ -6654,7 +7414,7 @@
           "Seedance Volc Compatible"
         ],
         "summary": "Create Seedance task (Volc wire-compatible)",
-        "description": "Creates a Seedance 2.0 video task with the official Volc REST body and response shape. Authentication uses a TokenLab Bearer API key. TokenLab additionally accepts an optional Idempotency-Key header so a client can recover the same task ID after a lost create response.",
+        "description": "Creates a Seedance 2.0 or Seedance 2.5 video task with the official Volc REST body and response shape. Authentication uses a TokenLab Bearer API key. TokenLab additionally accepts an optional Idempotency-Key header so a client can recover the same task ID after a lost create response.",
         "operationId": "createVolcCompatibleSeedanceTask",
         "parameters": [
           {
@@ -6669,7 +7429,7 @@
               "minLength": 1,
               "maxLength": 255
             },
-            "description": "Client-generated key for idempotent REST task creation. Under the same TokenLab API credential, reusing the same key with the same JSON body returns the original cgt task ID; reusing it with a different body returns 409. Keep the credential, key, and request body unchanged when retrying after a timeout or disconnect."
+            "description": "Client-generated key for idempotent REST task creation, 1-255 characters without line breaks. Under the same TokenLab API credential, reusing the same key with the same JSON body returns the original cgt task ID; reusing it with a different body returns 409 with code idempotency_conflict. A key that is too long or contains line breaks returns 400. Keep the credential, key, and request body unchanged when retrying after a timeout or disconnect."
           }
         ],
         "requestBody": {
@@ -6680,7 +7440,7 @@
                 "$ref": "#/components/schemas/VolcSeedanceCreateTaskRequest"
               },
               "example": {
-                "model": "doubao-seedance-2-0-260128",
+                "model": "seedance-2.0",
                 "content": [
                   {
                     "type": "text",
@@ -6744,16 +7504,28 @@
               }
             }
           },
-          "409": {
-            "description": "Idempotency key conflict or original request still in progress",
-            "headers": {
-              "Retry-After": {
-                "description": "Seconds to wait before retrying an in-progress request with the same key and body.",
+          "402": {
+            "description": "Insufficient balance",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/VolcSeedanceError"
                 }
               }
-            },
+            }
+          },
+          "409": {
+            "description": "The Idempotency-Key was already used with a different request body (code idempotency_conflict).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VolcSeedanceError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
             "content": {
               "application/json": {
                 "schema": {
@@ -6773,7 +7545,14 @@
             }
           },
           "503": {
-            "$ref": "#/components/responses/DeliveryUnavailable"
+            "description": "The service or the requested Delivery tier is temporarily unavailable. Retry later.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VolcSeedanceError"
+                }
+              }
+            }
           }
         }
       },
@@ -6782,7 +7561,7 @@
           "Seedance Volc Compatible"
         ],
         "summary": "List Seedance tasks (Volc-compatible)",
-        "description": "Lists recent Seedance compatibility tasks for the authenticated organization.",
+        "description": "Lists Seedance compatibility tasks of the authenticated organization. Only tasks created through the Volc-compatible create endpoint are listed. Without filter.task_ids, the list covers the past seven days.",
         "operationId": "listVolcCompatibleSeedanceTasks",
         "parameters": [
           {
@@ -6847,14 +7626,18 @@
             "schema": {
               "type": "string"
             },
-            "description": "Filter by model identifier."
+            "description": "Filter by the model value sent when the task was created."
           },
           {
             "name": "filter.service_tier",
             "in": "query",
             "required": false,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "default",
+                "flex"
+              ]
             },
             "description": "Filter by service tier."
           }
@@ -6952,6 +7735,26 @@
               }
             }
           },
+          "403": {
+            "description": "The task belongs to another organization",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VolcSeedanceError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VolcSeedanceError"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal error",
             "content": {
@@ -6983,7 +7786,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Cancellation accepted. The response body is empty."
+            "description": "Cancellation accepted. The response body is empty. Only a queued task can be cancelled."
           },
           "400": {
             "description": "Invalid request",
@@ -6997,6 +7800,36 @@
           },
           "401": {
             "description": "Missing or unsupported authentication",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VolcSeedanceError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The task belongs to another organization",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VolcSeedanceError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Task not found or expired",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VolcSeedanceError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The task is no longer queued (code task_not_cancellable)",
             "content": {
               "application/json": {
                 "schema": {
@@ -7274,7 +8107,7 @@
             }
           },
           "409": {
-            "description": "Material group mapping conflict",
+            "description": "Conflict: Idempotency-Key reuse, task not cancellable, material group mapping conflict, or a verified real-person group that cannot be deleted.",
             "content": {
               "application/json": {
                 "schema": {
@@ -7291,7 +8124,7 @@
             }
           },
           "422": {
-            "description": "Real-person validation is unavailable for the current account configuration",
+            "description": "The request could not be processed, for example a material source failed validation.",
             "content": {
               "application/json": {
                 "schema": {
@@ -7342,7 +8175,21 @@
             }
           },
           "503": {
-            "$ref": "#/components/responses/DeliveryUnavailable"
+            "description": "The service is temporarily unavailable. Retry later.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/VolcSeedanceError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/VolcVisualValidationError"
+                    }
+                  ]
+                }
+              }
+            }
           }
         }
       }
@@ -7741,6 +8588,15 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "402": {
+            "$ref": "#/components/responses/PaymentRequired"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitExceeded"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
           },
           "503": {
             "$ref": "#/components/responses/DeliveryUnavailable"
@@ -8573,7 +9429,7 @@
         ],
         "operationId": "geminiListFiles",
         "summary": "List Gemini files",
-        "description": "Lists files belonging to the current Workspace. Use nextPageToken to continue. Resources can only be read, referenced, changed, or deleted in their owning Workspace. Missing, expired, or inaccessible resources return a Gemini-format error.",
+        "description": "Lists files belonging to the current Workspace. `pageSize` defaults to 50 and is at most 100. Use `nextPageToken` as `pageToken` to continue; an invalid `pageToken` returns 400. Resources can only be read, referenced, changed, or deleted in their owning Workspace. Missing, expired, or inaccessible resources return a Gemini-format error.",
         "security": [
           {
             "BearerAuth": []
@@ -8596,9 +9452,12 @@
             "name": "pageSize",
             "in": "query",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
             },
-            "description": "Requested page size; page_size is also accepted."
+            "description": "Requested page size, 1 to 100. Default: 50. page_size is also accepted."
           },
           {
             "name": "pageToken",
@@ -8897,7 +9756,7 @@
         ],
         "operationId": "geminiListCachedContents",
         "summary": "List Gemini cached content",
-        "description": "Lists cached content belonging to the current Workspace. Use nextPageToken to continue. Resources can only be read, referenced, changed, or deleted in their owning Workspace. Missing, expired, or inaccessible resources return a Gemini-format error.",
+        "description": "Lists cached content belonging to the current Workspace. `pageSize` defaults to 50 and is at most 100. Use `nextPageToken` as `pageToken` to continue; an invalid `pageToken` returns 400. Resources can only be read, referenced, changed, or deleted in their owning Workspace. Missing, expired, or inaccessible resources return a Gemini-format error.",
         "security": [
           {
             "BearerAuth": []
@@ -8920,9 +9779,12 @@
             "name": "pageSize",
             "in": "query",
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
             },
-            "description": "Requested page size; page_size is also accepted."
+            "description": "Requested page size, 1 to 100. Default: 50. page_size is also accepted."
           },
           {
             "name": "pageToken",
@@ -9672,28 +10534,25 @@
           "temperature": {
             "type": "number",
             "minimum": 0,
-            "maximum": 2,
-            "default": 1,
-            "description": "Sampling temperature (0-2)"
+            "description": "Sampling temperature. Range and default depend on the model."
           },
           "top_p": {
             "type": "number",
             "minimum": 0,
             "maximum": 1,
-            "default": 1,
-            "description": "Nucleus sampling probability"
+            "description": "Nucleus sampling probability. The default depends on the model."
           },
           "n": {
             "type": "integer",
             "minimum": 1,
             "maximum": 128,
             "default": 1,
-            "description": "Number of completions to generate"
+            "description": "Number of completions. Many models accept only 1."
           },
           "stream": {
             "type": "boolean",
             "default": false,
-            "description": "If true, returns a stream of events"
+            "description": "If true, returns a stream of server-sent events that ends with `data: [DONE]`."
           },
           "stop": {
             "oneOf": [
@@ -9704,21 +10563,20 @@
                 "type": "array",
                 "items": {
                   "type": "string"
-                },
-                "maxItems": 4
+                }
               }
             ],
-            "description": "Stop sequences"
+            "description": "Stop sequences. The number of sequences allowed depends on the model."
           },
           "max_tokens": {
             "type": "integer",
             "minimum": 1,
-            "description": "Maximum number of tokens to generate"
+            "description": "Maximum output tokens, including thinking tokens. Send max_tokens or max_completion_tokens, not both."
           },
           "max_completion_tokens": {
             "type": "integer",
             "minimum": 1,
-            "description": "Maximum completion tokens for newer reasoning-enabled model families"
+            "description": "Maximum output tokens, including thinking tokens. Send only one of this and max_tokens."
           },
           "presence_penalty": {
             "type": "number",
@@ -9807,15 +10665,42 @@
                 "type": "string",
                 "enum": [
                   "text",
-                  "json_object"
+                  "json_object",
+                  "json_schema"
                 ]
+              },
+              "json_schema": {
+                "type": "object",
+                "description": "Required when type is json_schema.",
+                "required": [
+                  "name",
+                  "schema"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "schema": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "strict": {
+                    "type": [
+                      "boolean",
+                      "null"
+                    ]
+                  }
+                }
               }
             },
-            "description": "Response format specification"
+            "description": "Response format. json_object and json_schema support depends on the model."
           },
           "seed": {
             "type": "integer",
-            "description": "Seed for deterministic generation"
+            "description": "Seed for repeatable output, where supported. Not guaranteed."
           },
           "user": {
             "type": "string",
@@ -9823,7 +10708,13 @@
           },
           "stream_options": {
             "type": "object",
-            "description": "Streaming options such as usage chunk inclusion.",
+            "description": "Streaming options.",
+            "properties": {
+              "include_usage": {
+                "type": "boolean",
+                "description": "When true, the stream carries one extra chunk with token usage before data: [DONE]. Without it, the stream carries no usage."
+              }
+            },
             "additionalProperties": true
           },
           "parallel_tool_calls": {
@@ -9832,7 +10723,7 @@
           },
           "reasoning_effort": {
             "type": "string",
-            "description": "Reasoning effort hint for compatible model families."
+            "description": "Reasoning effort. Values depend on the model; an unsupported value returns 400 invalid_value."
           },
           "logprobs": {
             "type": "boolean",
@@ -9847,9 +10738,11 @@
           "logit_bias": {
             "type": "object",
             "additionalProperties": {
-              "type": "number"
+              "type": "number",
+              "minimum": -100,
+              "maximum": 100
             },
-            "description": "Per-token logit bias map."
+            "description": "Token ID to bias (-100 to 100). Support depends on the model."
           },
           "modalities": {
             "type": "array",
@@ -9898,7 +10791,7 @@
             "properties": {
               "prompt_caching": {
                 "type": "boolean",
-                "description": "Set true to cache the start of the prompt on Claude models. TokenLab marks the end of the system prompt and the latest user message as cache points, unless a message already has cache_control."
+                "description": "Set true to cache the start of the prompt on Claude models. TokenLab marks the end of the system prompt and the latest user message as cache points. Use either this option or your own cache_control marks, not both."
               },
               "prompt_caching_ttl": {
                 "type": "string",
@@ -9906,7 +10799,7 @@
                   "5m",
                   "1h"
                 ],
-                "description": "Cache lifetime. Defaults to 5m. If the serving route does not support 1h, the 5-minute cache is used and the request is not rejected."
+                "description": "Cache lifetime. Defaults to 5m. When the service that handles the request cannot keep a cache for 1h, TokenLab can use the 5-minute cache instead of rejecting the request."
               }
             },
             "additionalProperties": true
@@ -9917,7 +10810,7 @@
             "properties": {
               "prompt_caching": {
                 "type": "boolean",
-                "description": "Set true to cache the start of the prompt on Claude models. TokenLab marks the end of the system prompt and the latest user message as cache points, unless a message already has cache_control."
+                "description": "Set true to cache the start of the prompt on Claude models. TokenLab marks the end of the system prompt and the latest user message as cache points. Use either this option or your own cache_control marks, not both."
               },
               "prompt_caching_ttl": {
                 "type": "string",
@@ -9925,7 +10818,7 @@
                   "5m",
                   "1h"
                 ],
-                "description": "Cache lifetime. Defaults to 5m. If the serving route does not support 1h, the 5-minute cache is used and the request is not rejected."
+                "description": "Cache lifetime. Defaults to 5m. When the service that handles the request cannot keep a cache for 1h, TokenLab can use the 5-minute cache instead of rejecting the request."
               }
             },
             "additionalProperties": true
@@ -10299,17 +11192,22 @@
           },
           "completion_tokens": {
             "type": "integer",
-            "description": "Tokens in the completion"
+            "description": "Tokens in the completion, including thinking tokens"
           },
           "total_tokens": {
             "type": "integer",
             "description": "Total tokens used"
           },
+          "cache_creation_input_tokens": {
+            "type": "integer",
+            "description": "Prompt tokens written to the cache. Present only when the value is greater than 0."
+          },
           "prompt_tokens_details": {
             "type": "object",
             "properties": {
               "cached_tokens": {
-                "type": "integer"
+                "type": "integer",
+                "description": "Prompt tokens read from the cache"
               },
               "audio_tokens": {
                 "type": "integer"
@@ -10355,7 +11253,7 @@
               {
                 "type": "array",
                 "items": {
-                  "type": "number"
+                  "type": "integer"
                 }
               },
               {
@@ -10363,12 +11261,12 @@
                 "items": {
                   "type": "array",
                   "items": {
-                    "type": "number"
+                    "type": "integer"
                   }
                 }
               }
             ],
-            "description": "Input text(s) or token array(s) to embed."
+            "description": "Text(s) or token array(s) to embed. Limits depend on the model."
           },
           "encoding_format": {
             "type": "string",
@@ -10382,7 +11280,7 @@
           "dimensions": {
             "type": "integer",
             "minimum": 1,
-            "description": "Output vector dimensions"
+            "description": "Vector dimensions, for models that list dimensions."
           },
           "user": {
             "type": "string",
@@ -10468,7 +11366,7 @@
         "properties": {
           "prompt": {
             "type": "string",
-            "maxLength": 4000,
+            "maxLength": 32000,
             "description": "Image description. Required for every model that takes a prompt; a tool whose contract lists no prompt (background removal, upscaling, vectorizing) is called without one."
           },
           "model": {
@@ -10563,7 +11461,7 @@
           },
           "async": {
             "type": "boolean",
-            "description": "Return a task before the final image is ready when the selected model supports public async execution."
+            "description": "Return a task at once, for models that list async (else 400 unsupported_async_mode). Poll GET /v1/tasks/{id}."
           },
           "background": {
             "type": "string",
@@ -10657,7 +11555,7 @@
           },
           "prompt": {
             "type": "string",
-            "maxLength": 4000,
+            "maxLength": 32000,
             "description": "Image description. Required for every model that takes a prompt; a tool whose contract lists no prompt (background removal, upscaling, vectorizing) is called without one."
           },
           "operation": {
@@ -10798,9 +11696,37 @@
       "ImageGenerationResponse": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string",
+            "description": "Task ID when the request runs as a task. Same value as task_id."
+          },
           "created": {
             "type": "integer",
             "description": "Unix timestamp"
+          },
+          "usage": {
+            "type": "object",
+            "description": "Token counts for token-priced image models such as gpt-image-2, when available.",
+            "properties": {
+              "input_tokens": {
+                "type": "number"
+              },
+              "output_tokens": {
+                "type": "number"
+              },
+              "total_tokens": {
+                "type": "number"
+              },
+              "input_tokens_details": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "output_tokens_details": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "additionalProperties": true
           },
           "data": {
             "type": "array",
@@ -10884,30 +11810,30 @@
                 "additionalProperties": false
               }
             ],
-            "description": "Voice selector for OpenAI-compatible, Gemini, xAI, and MiniMax-compatible speech models. Some MiniMax models also accept voice_id."
+            "description": "Voice name or voice ID. Accepted values depend on the model; read the model's details. Some models also accept voice_id."
           },
           "voice_id": {
             "type": "string",
-            "description": "Voice selector for MiniMax-compatible speech models."
+            "description": "Voice ID, for models that list this parameter."
           },
           "instructions": {
             "type": "string",
             "maxLength": 2000,
-            "description": "Optional style or delivery instructions for OpenAI-compatible TTS models that support them."
+            "description": "Optional style or delivery instructions, for models that list this parameter."
           },
           "prompt": {
             "type": "string",
             "maxLength": 2000,
-            "description": "Optional speaking style prompt for Gemini TTS models."
+            "description": "Optional speaking style prompt, for models that list this parameter."
           },
           "language_code": {
             "type": "string",
-            "description": "Optional language code for Gemini, xAI, and compatible TTS models.",
+            "description": "Optional language code, for models that list this parameter.",
             "example": "en-US"
           },
           "response_format": {
             "type": "string",
-            "description": "Audio format. Common values include mp3, opus, aac, flac, wav, and pcm. Supported values vary by model family.",
+            "description": "Audio format. Accepted values depend on the model; read the model's details before sending one.",
             "example": "mp3"
           },
           "stream_format": {
@@ -10917,19 +11843,19 @@
               "sse"
             ],
             "default": "audio",
-            "description": "TokenLab delivery format."
+            "description": "TokenLab delivery format. Send sse only when the model's details list it."
           },
           "speed": {
             "type": "number",
             "minimum": 0.25,
             "maximum": 4,
-            "description": "Speech speed for model families that support it."
+            "description": "Speech speed, for models that support it. A model can narrow the range."
           },
           "temperature": {
             "type": "number",
             "minimum": 0,
             "maximum": 2,
-            "description": "Sampling temperature for Gemini-compatible TTS models."
+            "description": "Sampling temperature, for models that list this parameter."
           }
         },
         "additionalProperties": false
@@ -10957,25 +11883,18 @@
           },
           "prompt": {
             "type": "string",
-            "description": "Optional prompt text"
+            "description": "Optional prompt text, for models that list this parameter."
           },
           "response_format": {
             "type": "string",
-            "enum": [
-              "json",
-              "text",
-              "srt",
-              "verbose_json",
-              "vtt"
-            ],
             "default": "json",
-            "description": "Response format"
+            "description": "json, or text/verbose_json where the model lists them."
           },
           "temperature": {
             "type": "number",
             "minimum": 0,
             "maximum": 1,
-            "description": "Sampling temperature"
+            "description": "Sampling temperature, for models that list this parameter."
           },
           "timestamp_granularities": {
             "type": "array",
@@ -10986,13 +11905,29 @@
                 "segment"
               ]
             },
-            "description": "Timestamp granularity selection. Requires verbose_json output when requesting word-level timestamps."
+            "description": "Timestamp granularity selection, for models that list this parameter. Some models need verbose_json output for timestamps."
           }
         }
       },
       "AudioTranscriptionResponse": {
         "type": "object",
         "properties": {
+          "id": {
+            "type": "string",
+            "description": "Task ID. Only an accepted asynchronous transcription returns it, with status and poll_url instead of the transcript. Poll GET /v1/tasks/{id}; the completed task returns text and, when available, duration, segments, and words."
+          },
+          "task_id": {
+            "type": "string",
+            "description": "Alias of id."
+          },
+          "status": {
+            "type": "string",
+            "description": "Task status of an accepted asynchronous transcription."
+          },
+          "poll_url": {
+            "type": "string",
+            "description": "Status URL of an accepted asynchronous transcription."
+          },
           "text": {
             "type": "string",
             "description": "Transcribed text"
@@ -11050,11 +11985,12 @@
         "properties": {
           "prompt": {
             "type": "string",
-            "description": "Video description"
+            "maxLength": 10000,
+            "description": "Video description, up to 10,000 characters."
           },
           "model": {
             "type": "string",
-            "description": "Model to use (e.g., veo3.1, kling-v3.0)"
+            "description": "Video model ID, for example veo3.1. Send it explicitly."
           },
           "operation": {
             "type": "string",
@@ -11068,50 +12004,38 @@
               "audio-to-video",
               "motion-control"
             ],
-            "description": "Requested video operation. If omitted, TokenLab infers the operation from the provided inputs. Explicit operation is recommended for production reliability."
+            "description": "Requested video operation. If omitted, TokenLab infers the operation from the provided inputs. Send it explicitly: an operation the model does not support is rejected with 400 `unsupported_operation`."
           },
           "image": {
             "type": "string",
-            "description": "Inline image as a data URL (for example, data:image/png;base64,...). Prefer image_url for broader production compatibility. Ordinary HTTP(S) and data-URL image inputs follow the normal media path and do not automatically create reusable material IDs. Use asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab Seedance material; if an explicit material is still preparing, the API returns 409 seedance_material_preparing with inactive_asset_ids."
+            "maxLength": 2000000,
+            "description": "Inline image as a data URL (for example, data:image/png;base64,...), up to 2,000,000 characters. Prefer image_url for broader compatibility. For Seedance 2.0 models this field also accepts asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab material."
           },
           "image_url": {
             "type": "string",
             "format": "uri",
-            "description": "Publicly reachable image URL for image-to-video generation, or asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab Seedance material used as the first frame. Preferred over inline base64 in production. TokenLab verifies material ownership. Ordinary HTTP(S) and data-URL image inputs follow the normal media path and do not automatically create reusable material IDs. Use asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab Seedance material; if an explicit material is still preparing, the API returns 409 seedance_material_preparing with inactive_asset_ids."
+            "maxLength": 8192,
+            "description": "Publicly reachable image URL for image-to-video generation, up to 8,192 characters, or asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab Seedance 2.0 material used as the first frame. Ordinary HTTP(S) and data-URL images are passed through as inputs and do not create reusable materials. If an explicit material is still preparing, the API returns 409 seedance_material_preparing with inactive_asset_ids."
           },
           "video_url": {
             "type": "string",
             "format": "uri",
-            "description": "Publicly reachable video URL for video-to-video style flows and motion-control models."
+            "maxLength": 8192,
+            "description": "Public source video URL, for operations that take one."
           },
           "duration": {
             "type": "integer",
             "minimum": -1,
             "maximum": 60,
-            "description": "Video duration in seconds. Seedance models also accept -1 to let the model choose within its supported duration range; TokenLab estimates billing conservatively for that mode."
+            "description": "Duration in seconds; allowed values depend on the model (400 invalid_duration). Seedance also accepts -1."
           },
           "aspect_ratio": {
             "type": "string",
-            "enum": [
-              "adaptive",
-              "16:9",
-              "9:16",
-              "1:1",
-              "4:3",
-              "3:4",
-              "21:9"
-            ],
-            "description": "Canonical video aspect ratio. Seedance defaults to adaptive when omitted. The ratio alias is accepted for compatibility."
+            "description": "Aspect ratio, for example 16:9; allowed values depend on the model (400 invalid_aspect_ratio)."
           },
           "resolution": {
             "type": "string",
-            "enum": [
-              "480p",
-              "720p",
-              "1080p",
-              "4k"
-            ],
-            "description": "Video resolution. Seedance defaults to 720p when omitted; available values are model-dependent."
+            "description": "Resolution, for example 720p; allowed values depend on the model (400 invalid_resolution)."
           },
           "output_format": {
             "type": "string",
@@ -11119,55 +12043,56 @@
               "mp4",
               "mov"
             ],
-            "description": "Video container format for compatible models. Seedance 2.5 supports mp4 and mov; omit this field for Seedance 2.0 and other models that do not publish an output-format selector."
+            "description": "Video container format for models that list this field, such as Seedance 2.5 (`mp4` or `mov`). Omit it for models that do not list it."
           },
           "output_audio": {
             "type": "boolean",
-            "description": "Audio-output selector for operations that declare it. Omission follows the model default; `false` requests silent output only when allowed. See the audio behavior above and the selected model detail."
+            "description": "Audio-output selector for operations that list it. Omit it to follow the model default. `false` asks for silent output only where the model allows it; some models always produce audio and accept only `true` (for example `veo3.1`)."
           },
           "fps": {
             "type": "integer",
             "minimum": 1,
             "maximum": 120,
-            "description": "Frames per second"
+            "description": "Frames per second, for models that list this field."
           },
           "negative_prompt": {
             "type": "string",
-            "description": "What to avoid in the video"
+            "maxLength": 5000,
+            "description": "What to avoid in the video, up to 5,000 characters, for models that list this field."
           },
           "seed": {
             "type": "integer",
             "minimum": -1,
             "maximum": 4294967295,
-            "description": "Seed for reproducibility on compatible models. Compatible Seedance models use -1 for a random seed when omitted; Seedance 2.5 does not support this field."
+            "description": "Seed for reproducibility, for models that list this field. Seedance 2.0 models accept -1 for a random seed; Seedance 2.5 does not accept this field."
           },
           "cfg_scale": {
             "type": "number",
             "minimum": 0,
             "maximum": 20,
-            "description": "Prompt adherence strength (0-20) for models that expose CFG-style control."
+            "description": "Prompt adherence strength (0-20). Accepted only by models whose details list this field."
           },
           "motion_strength": {
             "type": "number",
             "minimum": 0,
             "maximum": 1,
-            "description": "Motion intensity (0-1) for models that expose it."
+            "description": "Motion intensity (0-1). Accepted only by models whose details list this field."
           },
           "start_image": {
             "type": "string",
-            "description": "First frame image input for start-end-to-video flows. Seedance accepts a public image reference or asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab material owned by the requesting organization. Ordinary HTTP(S) and data-URL image inputs follow the normal media path and do not automatically create reusable material IDs. Use asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab Seedance material; if an explicit material is still preparing, the API returns 409 seedance_material_preparing with inactive_asset_ids."
+            "description": "First frame image for start-end-to-video. Send it with end_image. Accepts a public image URL or a data URL; Seedance 2.0 models also accept asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab material owned by your organization."
           },
           "end_image": {
             "type": "string",
-            "description": "Last frame image input for start-end-to-video flows. Seedance accepts a public image reference or asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab material owned by the requesting organization. Ordinary HTTP(S) and data-URL image inputs follow the normal media path and do not automatically create reusable material IDs. Use asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab Seedance material; if an explicit material is still preparing, the API returns 409 seedance_material_preparing with inactive_asset_ids."
+            "description": "Last frame image for start-end-to-video. Send it with start_image. Accepts the same inputs as start_image."
           },
           "user": {
             "type": "string",
-            "description": "End-user identifier"
+            "description": "End-user identifier."
           },
           "image_urls": {
             "type": "array",
-            "description": "Image URL array for compatible image-conditioned video flows. Seedance 2.5 accepts up to 30 aggregate image inputs; other video models retain the shared limit of 9 entries unless the model details specify a lower limit. Ordinary HTTP(S) and data-URL image inputs follow the normal media path and do not automatically create reusable material IDs. Use asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab Seedance material; if an explicit material is still preparing, the API returns 409 seedance_material_preparing with inactive_asset_ids.",
+            "description": "Image URLs for models that list this field. Seedance 2.5 accepts up to 30 image inputs in total across `image_urls` and `reference_images`. Seedance 2.0 models accept up to 9 image references in total, including material assets (more returns 400 `too_many_seedance_reference_images`). For other models see the model details; a request over a model's limit returns 400 `too_many_items`. Seedance 2.0 models also accept asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab material.",
             "minItems": 1,
             "maxItems": 30,
             "items": {
@@ -11215,7 +12140,7 @@
           },
           "reference_images": {
             "type": "array",
-            "description": "Canonical public reference-image field for reference-to-video conditioning. Seedance 2.5 accepts up to 30 aggregate image inputs; other video models retain the shared limit of 9 URLs or compatible data URLs unless the model details specify a lower limit. xAI grok-imagine-video accepts up to 7 image references with duration capped at 10 seconds; grok-imagine-video-1.5 and grok-imagine-video-1.5-preview are image-to-video only and do not accept reference images. Ordinary HTTP(S) and data-URL image inputs follow the normal media path and do not automatically create reusable material IDs. Use asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab Seedance material; if an explicit material is still preparing, the API returns 409 seedance_material_preparing with inactive_asset_ids.",
+            "description": "Reference images for reference-to-video, as public image URLs or data URLs. The count limit depends on the model: Seedance 2.5 accepts up to 30 image inputs in total across `image_urls` and `reference_images`; Seedance 2.0 models accept up to 9 image references in total, including material assets; `grok-imagine-video` accepts up to 7 and caps `duration` at 10 seconds. `grok-imagine-video-1.5` and `grok-imagine-video-1.5-preview` take no reference images. Seedance 2.0 models also accept asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab material; if an explicit material is still preparing, the API returns 409 seedance_material_preparing with inactive_asset_ids.",
             "minItems": 1,
             "maxItems": 30,
             "items": {
@@ -11224,11 +12149,11 @@
           },
           "material_asset_id": {
             "type": "string",
-            "description": "TokenLab Seedance material asset ID returned by /v1/videos/assets or from a real-person group returned by GetVisualValidateResult. Use it after the asset is ACTIVE with Seedance models that can use the TokenLab material library. The asset must belong to the current account. This field is a generic reference input; to assign first-frame, last-frame, or reference-image semantics explicitly, put asset://<material_asset_id> in start_image, end_image, or reference_images."
+            "description": "TokenLab Seedance material asset ID returned by /v1/videos/assets or from a real-person group returned by GetVisualValidateResult. Accepted by the Seedance 2.0 models only (other models return 400 `unsupported_seedance_material_asset_model`). The asset must be ACTIVE and belong to the current account. This field is a generic reference input; to assign first-frame, last-frame, or reference-image semantics explicitly, put asset://<material_asset_id> in start_image, end_image, or reference_images."
           },
           "material_asset_ids": {
             "type": "array",
-            "description": "TokenLab Seedance material asset IDs returned by /v1/videos/assets. They share the Seedance image-reference limit; the selected model must be able to use the TokenLab material library and all assets must belong to the current account and be ACTIVE.",
+            "description": "TokenLab Seedance material asset IDs returned by /v1/videos/assets. Accepted by the Seedance 2.0 models only. They count toward the 9 image references of those models; all assets must belong to the current account and be ACTIVE.",
             "minItems": 1,
             "maxItems": 9,
             "items": {
@@ -11246,20 +12171,21 @@
           "audio_url": {
             "type": "string",
             "format": "uri",
-            "description": "Public audio URL for an audio-driven or reference-audio operation supported by the selected model."
+            "maxLength": 8192,
+            "description": "Public audio URL for models that list this field: an audio reference or an audio-driven operation. It is an input, not an output-audio switch."
           },
           "task_id": {
             "type": "string",
-            "description": "Task identifier used by some continuation, extension, or derivative flows."
+            "description": "Earlier task in your workspace, for operations such as video-extension."
           },
           "extend_at": {
             "type": "integer",
             "minimum": 0,
-            "description": "Model-specific extension start offset used by some video-extension flows."
+            "description": "Second of the source video where a video-extension starts, for models that list this field. Required by `grok-imagine-video`."
           },
           "extend_times": {
             "type": "string",
-            "description": "Model-specific extension multiplier or repeat count used by some video-extension flows."
+            "description": "Seconds to add in a video-extension, for models that list this field. `grok-imagine-video` takes `6` or `10`."
           },
           "seconds": {
             "type": "integer",
@@ -11273,7 +12199,7 @@
           },
           "watermark": {
             "type": "boolean",
-            "description": "Optional watermark toggle for models that expose it. Seedance defaults to false when omitted."
+            "description": "Watermark toggle for models that list this field (Seedance models)."
           },
           "effect_type": {
             "type": "string",
@@ -11281,7 +12207,7 @@
           },
           "video_urls": {
             "type": "array",
-            "description": "Compatibility array for video-conditioned flows when multiple input videos are supported by the selected model. Seedance 2.5 accepts up to 10 aggregate video inputs; other video models retain the shared limit of 3 references unless the model details specify a lower limit.",
+            "description": "Source or reference videos for models that list this field. Seedance 2.5 accepts up to 10 video inputs in total across `video_url` and `video_urls`, and reference audio plus video lasting at most 30 seconds combined. For other models see the model details; a request over a model's limit returns 400 `too_many_items`.",
             "minItems": 1,
             "maxItems": 10,
             "items": {
@@ -11291,7 +12217,7 @@
           },
           "audio_urls": {
             "type": "array",
-            "description": "Compatibility array for audio-conditioned flows when multiple audio references are supported by the selected model. Seedance 2.5 accepts up to 10 aggregate audio inputs and permits pure-audio reference requests without a prompt; other video models retain the shared limit of 3 references unless the model details specify a lower limit.",
+            "description": "Reference audio for models that list this field. Seedance 2.5 accepts up to 10 audio inputs in total across `audio_url` and `audio_urls`, allows a pure-audio reference request without a prompt, and limits reference audio plus video to 30 seconds combined. For other models see the model details; a request over a model's limit returns 400 `too_many_items`.",
             "minItems": 1,
             "maxItems": 10,
             "items": {
@@ -11301,20 +12227,11 @@
           },
           "ratio": {
             "type": "string",
-            "enum": [
-              "adaptive",
-              "16:9",
-              "9:16",
-              "1:1",
-              "4:3",
-              "3:4",
-              "21:9"
-            ],
-            "description": "Compatibility alias for aspect_ratio. If both ratio and aspect_ratio are provided, they must match."
+            "description": "Compatibility alias for aspect_ratio. If both ratio and aspect_ratio are provided, they must match (400 `conflicting_aspect_ratio`)."
           },
           "outputAudio": {
             "type": "boolean",
-            "description": "Compatibility alias for output_audio. If both are provided, they must match."
+            "description": "Alias of output_audio; all audio toggles must match."
           },
           "generate_audio": {
             "type": "boolean",
@@ -11324,20 +12241,18 @@
             "type": "integer",
             "minimum": 3600,
             "maximum": 259200,
-            "default": 172800,
-            "description": "Optional execution expiry window in seconds for compatible video models. Seedance defaults to 172800 seconds when omitted."
+            "description": "Seconds the task may wait in the queue before it expires (3600 to 259200), for models that list this field (Seedance models)."
           },
           "priority": {
             "type": "integer",
             "minimum": 0,
             "maximum": 9,
-            "default": 0,
-            "description": "Optional task priority for compatible video models. Do not combine priority with service_tier=flex."
+            "description": "Task priority from 0 to 9, for models that list this field (Seedance models)."
           },
           "safety_identifier": {
             "type": "string",
             "maxLength": 128,
-            "description": "Optional safety/user trace identifier for compatible video models. If omitted for Seedance, TokenLab uses user when provided."
+            "description": "End-user safety identifier, for models that list this field (Seedance models). If omitted, TokenLab uses `user` when provided."
           },
           "service_tier": {
             "type": "string",
@@ -11350,7 +12265,7 @@
           "frames": {
             "type": "integer",
             "minimum": 1,
-            "description": "Optional frame count for compatible video models. Seedance 1.5 Pro, Seedance 2.0, and Seedance 2.5 do not support this field."
+            "description": "Frame count, for models that list this field. Seedance models do not accept it."
           },
           "camera_fixed": {
             "type": "boolean",
@@ -11358,21 +12273,19 @@
           },
           "return_last_frame": {
             "type": "boolean",
-            "default": false,
-            "description": "Return the last generated frame when the selected model supports it. Seedance defaults to false when omitted."
+            "description": "Also return the last generated frame as `last_frame_url`, for models that list this field (Seedance models)."
           },
           "draft": {
             "type": "boolean",
-            "default": false,
-            "description": "Seedance 1.5 Pro draft workflow flag. Only supported by Seedance models supporting drafts; draft=true creates a low-cost draft task."
+            "description": "Draft workflow flag. Accepted only by models whose details list this field."
           },
           "draft_task_id": {
             "type": "string",
-            "description": "Seedance 1.5 Pro draft promotion task ID. Provide this instead of draft=true to create the final video from a previous draft task."
+            "description": "ID of an earlier draft task to turn into the final video. Accepted only by models whose details list this field."
           },
           "audio": {
             "type": "boolean",
-            "description": "Audio-output selector for operations that declare it. Omission follows the model default; `false` requests silent output only when allowed. See the audio behavior above and the selected model detail."
+            "description": "Audio selector accepted by a few models, such as the Vidu models and `wan-2.6`. It must match `output_audio` when both are sent."
           },
           "bgm": {
             "type": "boolean",
@@ -11385,6 +12298,25 @@
           "voice_id": {
             "type": "string",
             "description": "Optional audio control. Accepted only when declared by the selected model and operation; availability may differ by operation."
+          },
+          "tools": {
+            "type": "array",
+            "description": "Generation tools, for models that list it, e.g. {\"type\":\"web_search\"}.",
+            "minItems": 1,
+            "maxItems": 4,
+            "items": {
+              "type": "object",
+              "required": [
+                "type"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "description": "Tool type, for example `web_search`."
+                }
+              },
+              "additionalProperties": true
+            }
           }
         }
       },
@@ -11393,7 +12325,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "Task ID"
+            "description": "Task ID. Identical to `task_id`."
           },
           "status": {
             "type": "string",
@@ -11403,7 +12335,7 @@
               "completed",
               "failed"
             ],
-            "description": "Task status"
+            "description": "Task status. A newly created task is normally `pending`."
           },
           "created": {
             "type": "integer",
@@ -11441,11 +12373,15 @@
           },
           "poll_url": {
             "type": "string",
-            "description": "Preferred polling URL for this task. Use this exact path when checking status."
+            "description": "Status URL for this task, `/v1/tasks/{id}`. Call it with your API key until `status` is `completed` or `failed`."
+          },
+          "billing_transaction_id": {
+            "type": "string",
+            "description": "Billing transaction ID when settlement already completed. It is separate from the task ID."
           },
           "video_url": {
             "type": "string",
-            "description": "Generated video URL when the create response is already terminal or includes an immediate result."
+            "description": "Generated video URL. Present only when the create response already carries the result; normally you read it from the status response."
           },
           "last_frame_url": {
             "type": "string",
@@ -11475,11 +12411,11 @@
           },
           "draft": {
             "type": "boolean",
-            "description": "Whether the Seedance draft workflow was used for this task."
+            "description": "Whether the Seedance draft workflow was used for this task, when returned."
           },
           "draft_task_id": {
             "type": "string",
-            "description": "Seedance draft task identifier when returned by the adapter."
+            "description": "Draft task ID, when returned."
           },
           "media_retention": {
             "$ref": "#/components/schemas/MediaRetention"
@@ -11537,23 +12473,7 @@
             }
           },
           "error": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "object",
-                "properties": {
-                  "code": {
-                    "type": "string"
-                  },
-                  "message": {
-                    "type": "string"
-                  }
-                },
-                "additionalProperties": true
-              }
-            ]
+            "$ref": "#/components/schemas/AsyncTaskError"
           },
           "error_details": {
             "$ref": "#/components/schemas/AsyncTaskErrorDetails"
@@ -11562,7 +12482,8 @@
             "type": "string"
           },
           "poll_url": {
-            "type": "string"
+            "type": "string",
+            "description": "Status URL for this task, `/v1/tasks/{id}`."
           },
           "cancelled": {
             "type": "boolean",
@@ -11579,7 +12500,12 @@
             "type": "string"
           },
           "video_url": {
-            "type": "string"
+            "type": "string",
+            "description": "URL of the generated video once `status` is `completed`. It is a TokenLab media-result URL that stays valid for 30 days and needs no API key. Some results are delivered as `/v1/videos/generations/{id}/content` on `https://api.tokenlab.sh`; that URL needs your API key."
+          },
+          "last_frame_url": {
+            "type": "string",
+            "description": "Last generated frame URL, when you asked for it with `return_last_frame` and the model supports it."
           },
           "videos": {
             "type": "array",
@@ -11656,7 +12582,7 @@
           },
           "group_id": {
             "type": "string",
-            "description": "TokenLab material group ID. Required for liveness_face materials; optional for aigc_avatar."
+            "description": "TokenLab material group ID. Required for liveness_face materials and whenever project_name is not default; optional for aigc_avatar, where TokenLab uses or creates the organization's default virtual-avatar group. The group must belong to the same project_name and library_type."
           },
           "project_name": {
             "type": "string",
@@ -11758,11 +12684,11 @@
           },
           "created_at": {
             "type": "integer",
-            "description": "Unix timestamp when the material asset record was created."
+            "description": "Unix timestamp in milliseconds when the material asset was created."
           },
           "updated_at": {
             "type": "integer",
-            "description": "Unix timestamp when the material asset record was last updated."
+            "description": "Unix timestamp in milliseconds when the material asset was last updated."
           }
         }
       },
@@ -12332,17 +13258,19 @@
         "properties": {
           "model": {
             "type": "string",
-            "description": "Model to use (e.g., claude-sonnet-4-6)",
+            "description": "A model whose accepted_request_formats lists anthropic_messages.",
             "example": "claude-sonnet-4-6"
           },
           "max_tokens": {
             "type": "integer",
             "minimum": 1,
-            "description": "Maximum number of tokens to generate"
+            "description": "Maximum output tokens. Required; the maximum depends on the model."
           },
           "messages": {
             "type": "array",
-            "description": "Messages in the conversation",
+            "description": "Messages in the conversation. Up to 100,000 messages.",
+            "minItems": 1,
+            "maxItems": 100000,
             "items": {
               "type": "object",
               "required": [
@@ -12364,28 +13292,28 @@
                     },
                     {
                       "type": "array",
+                      "description": "Content blocks. Besides `text` and `image`, native blocks such as `tool_use`, `tool_result`, `thinking`, and `document` are accepted for models that support them.",
                       "items": {
                         "type": "object",
+                        "additionalProperties": true,
+                        "required": [
+                          "type"
+                        ],
                         "properties": {
                           "type": {
                             "type": "string",
-                            "enum": [
-                              "text",
-                              "image"
-                            ]
+                            "description": "Content block type, for example `text`, `image`, `tool_use`, or `tool_result`."
                           },
                           "text": {
                             "type": "string"
                           },
                           "source": {
                             "type": "object",
+                            "additionalProperties": true,
                             "properties": {
                               "type": {
                                 "type": "string",
-                                "enum": [
-                                  "base64",
-                                  "url"
-                                ]
+                                "description": "`base64`, `url`, or `file` (with `file_id`; needs the `anthropic-beta: files-api-2025-04-14` header)."
                               },
                               "media_type": {
                                 "type": "string"
@@ -12407,32 +13335,60 @@
             }
           },
           "system": {
-            "type": "string",
-            "description": "System prompt"
+            "description": "System prompt: a string, or an array of text content blocks.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "required": [
+                    "type"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string"
+                    },
+                    "text": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            ]
           },
           "temperature": {
             "type": "number",
             "minimum": 0,
-            "maximum": 1
+            "maximum": 1,
+            "description": "Sampling temperature. Range and default depend on the model."
           },
           "top_p": {
             "type": "number",
             "minimum": 0,
-            "maximum": 1
+            "maximum": 1,
+            "description": "Nucleus sampling. Use temperature or top_p, not both."
           },
           "top_k": {
             "type": "integer",
-            "minimum": 1
+            "minimum": 1,
+            "description": "Sample from the top K tokens, where supported."
           },
           "stop_sequences": {
             "type": "array",
+            "maxItems": 8191,
+            "description": "Strings that stop generation.",
             "items": {
               "type": "string"
             }
           },
           "stream": {
             "type": "boolean",
-            "default": false
+            "default": false,
+            "description": "Stream Anthropic server-sent events."
           },
           "tools": {
             "type": "array",
@@ -12440,29 +13396,22 @@
               "type": "object",
               "additionalProperties": true
             },
-            "description": "Tool definitions available to the model."
+            "description": "Tool definitions available to the model. Support depends on the model."
           },
           "tool_choice": {
-            "oneOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "object",
-                "additionalProperties": true
-              }
-            ],
-            "description": "Tool choice policy or explicit tool selection."
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Native tool-choice object, for example `{\"type\":\"auto\"}`. Supported types depend on the model."
           },
           "metadata": {
             "type": "object",
             "additionalProperties": true,
-            "description": "Request metadata echoed into downstream logs or traces when supported."
+            "description": "Request metadata in the Anthropic format. `user_id` is an opaque identifier for your end user."
           },
           "thinking": {
             "type": "object",
             "additionalProperties": true,
-            "description": "Thinking configuration for compatible Anthropic-style models."
+            "description": "Thinking configuration. Modes and budgets depend on the model."
           },
           "stream_options": {
             "type": "object",
@@ -12471,7 +13420,12 @@
           },
           "service_tier": {
             "type": "string",
-            "description": "Service tier hint where supported by the model."
+            "description": "Only auto and standard_only take effect."
+          },
+          "cache_control": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Prompt-caching marker, e.g. {\"type\":\"ephemeral\"}; add \"ttl\":\"1h\" for one hour."
           }
         }
       },
@@ -12495,18 +13449,19 @@
             ]
           },
           "model": {
-            "type": "string"
+            "type": "string",
+            "description": "Model that produced the response."
           },
           "content": {
             "type": "array",
+            "description": "Content blocks, such as `text`, `thinking`, or `tool_use`.",
             "items": {
               "type": "object",
+              "additionalProperties": true,
               "properties": {
                 "type": {
                   "type": "string",
-                  "enum": [
-                    "text"
-                  ]
+                  "description": "Block type, for example `text`, `thinking`, or `tool_use`."
                 },
                 "text": {
                   "type": "string"
@@ -12515,13 +13470,11 @@
             }
           },
           "stop_reason": {
-            "type": "string",
-            "enum": [
-              "end_turn",
-              "max_tokens",
-              "stop_sequence",
-              "tool_use"
-            ]
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Why generation stopped: `end_turn`, `max_tokens`, `stop_sequence`, `tool_use`, or another value the model returns, such as `refusal`."
           },
           "stop_sequence": {
             "type": [
@@ -12531,12 +13484,21 @@
           },
           "usage": {
             "type": "object",
+            "additionalProperties": true,
             "properties": {
               "input_tokens": {
                 "type": "integer"
               },
               "output_tokens": {
                 "type": "integer"
+              },
+              "cache_creation_input_tokens": {
+                "type": "integer",
+                "description": "Input tokens written to the prompt cache, when the model reports them."
+              },
+              "cache_read_input_tokens": {
+                "type": "integer",
+                "description": "Input tokens read from the prompt cache, when the model reports them."
               }
             }
           }
@@ -13954,6 +14916,9 @@
           },
           "failed": {
             "type": "integer"
+          },
+          "cancelled": {
+            "type": "integer"
           }
         }
       },
@@ -14144,7 +15109,8 @@
           },
           "seconds": {
             "type": "integer",
-            "minimum": 1
+            "minimum": 1,
+            "maximum": 2592000
           }
         }
       },
@@ -14152,12 +15118,12 @@
         "type": "object",
         "required": [
           "input_file_id",
-          "endpoint",
-          "completion_window"
+          "endpoint"
         ],
         "properties": {
           "input_file_id": {
-            "type": "string"
+            "type": "string",
+            "description": "ID of an uploaded file with `purpose` set to `batch`."
           },
           "endpoint": {
             "type": "string",
@@ -14170,14 +15136,20 @@
             "type": "string",
             "enum": [
               "24h"
-            ]
+            ],
+            "default": "24h"
           },
           "metadata": {
             "type": "object",
-            "additionalProperties": true
+            "description": "Up to 16 string key-value pairs. Keys up to 64 characters, values up to 512 characters.",
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 512
+            }
           },
           "output_expires_after": {
-            "$ref": "#/components/schemas/BatchOutputExpiresAfter"
+            "$ref": "#/components/schemas/BatchOutputExpiresAfter",
+            "description": "When the result files expire, up to 30 days after the anchor."
           }
         }
       },
@@ -14361,26 +15333,35 @@
         ],
         "properties": {
           "model": {
-            "type": "string"
+            "type": "string",
+            "description": "ID of a model that lists the `translation` operation."
           },
           "text": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "description": "Source text. Length limit depends on the model."
           },
           "source_language": {
-            "type": "string"
+            "type": "string",
+            "description": "Optional source language hint, for example `zh`."
           },
           "target_language": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1,
+            "description": "Target language, for example en."
           },
           "mime_type": {
             "type": "string",
             "enum": [
               "text/plain",
               "text/html"
-            ]
+            ],
+            "default": "text/plain",
+            "description": "Source text format, for models that list it."
           },
           "user": {
-            "type": "string"
+            "type": "string",
+            "description": "End-user identifier, for models that list it."
           }
         },
         "additionalProperties": false
@@ -14623,11 +15604,11 @@
         "properties": {
           "input_tokens": {
             "type": "integer",
-            "description": "Number of input tokens in the supplied Anthropic messages request",
+            "description": "Number of input tokens in the supplied Anthropic messages request. An estimate for planning; it can differ from the usage of the real request.",
             "example": 1234
           }
         },
-        "additionalProperties": false
+        "additionalProperties": true
       },
       "AnthropicMessageBatchCreateRequest": {
         "type": "object",
@@ -14648,7 +15629,8 @@
               "properties": {
                 "custom_id": {
                   "type": "string",
-                  "description": "Client-supplied identifier for this batch item",
+                  "pattern": "^[a-zA-Z0-9_-]{1,64}$",
+                  "description": "Client-supplied identifier for this batch item. 1 to 64 letters, digits, underscores, or hyphens. Must be unique within the batch.",
                   "example": "request-1"
                 },
                 "params": {
@@ -14690,13 +15672,30 @@
           },
           "processing_status": {
             "type": "string",
-            "description": "Current processing status for the batch",
+            "description": "Current processing status for the batch: `in_progress`, `canceling`, or `ended`.",
             "example": "in_progress"
           },
           "request_counts": {
             "type": "object",
             "additionalProperties": true,
-            "description": "Request count summary for the batch"
+            "description": "Number of requests in each state.",
+            "properties": {
+              "processing": {
+                "type": "integer"
+              },
+              "succeeded": {
+                "type": "integer"
+              },
+              "errored": {
+                "type": "integer"
+              },
+              "canceled": {
+                "type": "integer"
+              },
+              "expired": {
+                "type": "integer"
+              }
+            }
           },
           "ended_at": {
             "type": [
@@ -14733,6 +15732,48 @@
               "null"
             ],
             "description": "Results URL, when available"
+          }
+        },
+        "additionalProperties": true
+      },
+      "AnthropicErrorResponse": {
+        "type": "object",
+        "description": "Error body of the Anthropic-compatible endpoints (`/v1/messages` and its sub-resources).",
+        "required": [
+          "type",
+          "error"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "error"
+            ]
+          },
+          "error": {
+            "type": "object",
+            "required": [
+              "type",
+              "message"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "One of `invalid_request_error`, `authentication_error`, `billing_error`, `permission_error`, `not_found_error`, `conflict_error`, `request_too_large`, `rate_limit_error`, `timeout_error`, `api_error`, `overloaded_error`."
+              },
+              "message": {
+                "type": "string"
+              },
+              "code": {
+                "type": "string",
+                "description": "TokenLab error code, when one applies, for example `insufficient_balance`."
+              }
+            },
+            "additionalProperties": true
+          },
+          "request_id": {
+            "type": "string",
+            "description": "TokenLab request ID. Also returned in the `request-id` and `X-Request-ID` response headers."
           }
         },
         "additionalProperties": true
@@ -14826,7 +15867,7 @@
       },
       "MultimodalEmbeddingInputItem": {
         "type": "object",
-        "description": "A multimodal embedding input item. Text input is generally available; image input may require feature enablement.",
+        "description": "A multimodal embedding input item. Send at least one of `text`, `image_url`, or `image_base64`. Only `text` is active; an image returns 400 `image_input_deferred`.",
         "properties": {
           "text": {
             "type": "string",
@@ -14834,7 +15875,7 @@
           },
           "image_base64": {
             "type": "string",
-            "description": "Base64-encoded image content"
+            "description": "Base64-encoded image content. Not active yet."
           },
           "image_mime_type": {
             "type": "string",
@@ -14843,7 +15884,7 @@
           },
           "image_url": {
             "type": "string",
-            "description": "Public image URL to embed"
+            "description": "Public image URL to embed. Not active yet."
           }
         },
         "additionalProperties": false
@@ -15724,11 +16765,13 @@
           },
           "created_at": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "Unix timestamp in milliseconds when the material group was created."
           },
           "updated_at": {
             "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "description": "Unix timestamp in milliseconds when the material group was last updated."
           }
         }
       },
@@ -15790,7 +16833,8 @@
             "description": "Updated client metadata stored with the material asset."
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "description": "Update asset_name or metadata. The source URL and asset type cannot be changed; create a new asset instead."
       },
       "ManagementModelBreakdown": {
         "type": "object",
@@ -16393,17 +17437,17 @@
         "properties": {
           "model": {
             "type": "string",
-            "example": "doubao-seedance-2-0-260128",
-            "description": "Seedance model or endpoint identifier. TokenLab maps supported Seedance 2.0 identifiers to the matching platform model."
+            "example": "seedance-2.0",
+            "description": "TokenLab model ID (seedance-2.0 or seedance-2.5), or the Volcengine model ID that existing clients already send for these models. The get-task response returns this value."
           },
           "content": {
             "type": "array",
             "minItems": 1,
-            "maxItems": 16,
+            "maxItems": 51,
             "items": {
               "$ref": "#/components/schemas/VolcSeedanceContentItem"
             },
-            "description": "At most 16 content items: one text item, nine image_url items, three video_url items, three audio_url items, and one draft_task item. Model- and operation-specific combination rules still apply."
+            "description": "Up to 16 items for Seedance 2.0 (1 text, 9 image_url, 3 video_url, 3 audio_url, 1 draft_task) and up to 51 for Seedance 2.5 (1 text, 30 image_url, 10 video_url, 10 audio_url, 1 draft_task). Model- and operation-specific combination rules still apply."
           },
           "ratio": {
             "type": "string",
@@ -16430,12 +17474,11 @@
               {
                 "type": "integer",
                 "minimum": 4,
-                "maximum": 15
+                "maximum": 30
               }
             ],
-            "default": 5,
             "example": 5,
-            "description": "Video duration in seconds. Seedance 2.0 supports normal integer durations and -1 for automatic duration where the selected model supports it."
+            "description": "Video duration in seconds; -1 selects automatic duration. Seedance 2.0: 4-15 (default 5). Seedance 2.5: 4-30 (default -1)."
           },
           "resolution": {
             "type": "string",
@@ -16444,14 +17487,12 @@
               "720p",
               "1080p"
             ],
-            "default": "720p",
             "example": "720p",
-            "description": "Requested output resolution. Model-specific availability still applies."
+            "description": "Output resolution (default 720p). 1080p is available for Seedance 2.0 only; Seedance 2.5 supports 480p and 720p."
           },
           "generate_audio": {
             "type": "boolean",
-            "default": false,
-            "description": "Whether to generate synchronized audio. The official default is false."
+            "description": "Whether to generate synchronized audio. Default: false for Seedance 2.0, true for Seedance 2.5."
           },
           "return_last_frame": {
             "type": "boolean",
@@ -16467,7 +17508,7 @@
             "minimum": -1,
             "maximum": 4294967295,
             "default": -1,
-            "description": "Random seed. -1 lets the model choose a seed. Accepted on a best-effort basis where supported by the model."
+            "description": "Random seed. -1 lets the model choose a seed. Seedance 2.0 only; Seedance 2.5 rejects this field."
           },
           "execution_expires_after": {
             "type": "integer",
@@ -16488,7 +17529,7 @@
               "flex"
             ],
             "default": "default",
-            "description": "default is accepted. flex is rejected for Seedance 2.0 compatibility tasks because the selected model family does not support it here."
+            "description": "Only default is accepted. flex is rejected with 400 UnsupportedParameter."
           },
           "tools": {
             "type": "array",
@@ -16508,19 +17549,33 @@
               },
               "additionalProperties": false
             },
-            "description": "Optional tools such as {\"type\":\"web_search\"} when supported by the selected model."
+            "description": "Optional. At most one item, {\"type\":\"web_search\"}."
           },
           "draft": {
             "type": "boolean",
-            "description": "draft=true is not supported for Seedance 2.0 compatibility tasks and is rejected."
+            "description": "draft=true is not supported and is rejected."
           },
           "frames": {
             "type": "integer",
-            "description": "Not supported for Seedance 2.0 compatibility tasks. Use duration instead."
+            "description": "Not supported. Use duration instead."
           },
           "camera_fixed": {
             "type": "boolean",
-            "description": "camera_fixed=true is not supported for Seedance 2.0 compatibility tasks. false is accepted as a no-op."
+            "description": "camera_fixed=true is rejected. false is accepted as a no-op for Seedance 2.0; Seedance 2.5 rejects this field."
+          },
+          "priority": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9,
+            "description": "Task priority. Seedance 2.5 only; Seedance 2.0 rejects this field."
+          },
+          "output_format": {
+            "type": "string",
+            "enum": [
+              "mp4",
+              "mov"
+            ],
+            "description": "Output container. Seedance 2.5 only; Seedance 2.0 rejects this field."
           },
           "callback_url": {
             "type": "string",
@@ -16558,7 +17613,8 @@
           },
           "model": {
             "type": "string",
-            "example": "doubao-seedance-2-0-260128"
+            "example": "seedance-2.0",
+            "description": "The model value sent when the task was created."
           },
           "status": {
             "type": "string",
@@ -18521,6 +19577,24 @@
                   }
                 }
               }
+            }
+          }
+        }
+      },
+      "AnthropicError": {
+        "description": "Error in the Anthropic error format. `error.type` names the kind of error; `request_id` is the TokenLab request ID.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AnthropicErrorResponse"
+            },
+            "example": {
+              "type": "error",
+              "error": {
+                "type": "invalid_request_error",
+                "message": "max_tokens: Required. /v1/messages follows the native Anthropic contract and does not infer a default max_tokens value."
+              },
+              "request_id": "req_01JEXAMPLE"
             }
           }
         }

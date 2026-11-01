@@ -289,8 +289,12 @@
         },
         "recommended_for": {
           "description": "Sort non-chat models for a task; include recommendation evidence."
+        },
+        "tag": {
+          "description": "Filter by a public capability tag."
         }
-      }
+      },
+      "description": "Lists the currently available models. Use `view=compact` for model selection and `view=full` for the existing OpenAI-compatible discovery shape. Native API calls default to `full`; integrations may choose `compact` as their default. Non-chat recommendations are available through `recommended_for`."
     },
     "cancelAnthropicMessageBatch": {
       "annotations": {
@@ -298,7 +302,8 @@
         "destructiveHint": true,
         "idempotentHint": true,
         "openWorldHint": true
-      }
+      },
+      "description": "Cancels an Anthropic Message Batch when cancellation is still available for that batch."
     },
     "cancelBatch": {
       "annotations": {
@@ -306,12 +311,19 @@
         "destructiveHint": true,
         "idempotentHint": true,
         "openWorldHint": true
-      }
+      },
+      "description": "Cancel batch"
     },
     "compactResponse": {
       "fixed_arguments": {
         "stream": false
-      }
+      },
+      "input_property_overrides": {
+        "stream": {
+          "description": "Streaming is not supported for compaction."
+        }
+      },
+      "description": "Compacts Responses input and returns the native `response.compaction` contract. The request model must be available on a same-protocol Responses path."
     },
     "createAnthropicMessage": {
       "tool_name": "create_anthropic_message",
@@ -321,8 +333,47 @@
       "input_property_overrides": {
         "model": {
           "description": "Model ID."
+        },
+        "max_tokens": {
+          "description": "Maximum number of tokens to generate"
+        },
+        "messages": {
+          "description": "Messages in the conversation"
+        },
+        "system": {
+          "description": "System prompt",
+          "type": "string",
+          "oneOf": null
+        },
+        "tools": {
+          "description": "Tool definitions available to the model."
+        },
+        "tool_choice": {
+          "description": "Tool choice policy or explicit tool selection."
+        },
+        "metadata": {
+          "description": "Request metadata echoed into downstream logs or traces when supported."
+        },
+        "thinking": {
+          "description": "Thinking configuration for compatible Anthropic-style models."
+        },
+        "temperature": {
+          "description": null
+        },
+        "top_p": {
+          "description": null
+        },
+        "top_k": {
+          "description": null
+        },
+        "stop_sequences": {
+          "description": null
         }
-      }
+      },
+      "omit_arguments": [
+        "cache_control"
+      ],
+      "description": "Creates a model response using Anthropic's native request format. Supports Claude models with vision and streaming. **Authentication:** Use `x-api-key` header or `Authorization: Bearer` header."
     },
     "geminiGenerateContent": {
       "tool_name": "create_gemini_content",
@@ -375,8 +426,54 @@
         },
         "extra": {
           "description": "extra.prompt_caching/extra.prompt_caching_ttl alias anthropic_options."
+        },
+        "temperature": {
+          "description": "Sampling temperature (0-2)"
+        },
+        "top_p": {
+          "description": "Nucleus sampling probability"
+        },
+        "n": {
+          "description": "Number of completions to generate"
+        },
+        "stream": {
+          "description": "If true, returns a stream of events"
+        },
+        "stop": {
+          "description": "Stop sequences"
+        },
+        "max_tokens": {
+          "description": "Maximum number of tokens to generate"
+        },
+        "max_completion_tokens": {
+          "description": "Maximum completion tokens for newer reasoning-enabled model families"
+        },
+        "response_format": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "text",
+                "json_object"
+              ]
+            }
+          },
+          "description": "Response format specification"
+        },
+        "seed": {
+          "description": "Seed for deterministic generation"
+        },
+        "reasoning_effort": {
+          "description": "Reasoning effort hint for compatible model families."
+        },
+        "logit_bias": {
+          "description": "Per-token logit bias map."
         }
-      }
+      },
+      "omit_arguments": [
+        "stream_options"
+      ]
     },
     "createResponse": {
       "fixed_arguments": {
@@ -394,13 +491,43 @@
         },
         "tools": {
           "description": "Tools; allowed types/combinations depend on the selected service."
+        },
+        "background": {
+          "description": "Whether to run the response asynchronously."
+        },
+        "previous_response_id": {
+          "description": "ID of a previous response to continue."
+        },
+        "store": {
+          "description": "Whether the response is stored for later retrieval."
+        },
+        "parallel_tool_calls": {
+          "description": "Whether the model may issue parallel tool calls."
+        },
+        "temperature": {
+          "description": null
         }
       }
     },
     "retrieveResponse": {
       "fixed_arguments": {
         "stream": false
-      }
+      },
+      "input_property_overrides": {
+        "include": {
+          "description": "Additional response fields to include."
+        },
+        "include_obfuscation": {
+          "description": "Whether streamed events include obfuscation fields."
+        },
+        "stream": {
+          "description": "Whether to retrieve the response as an event stream."
+        },
+        "starting_after": {
+          "description": "Sequence number after which streaming events are returned."
+        }
+      },
+      "description": "Retrieves a stored Responses API response by TokenLab response id. Ownership checks return 404 when the response is missing or unavailable to the current API key."
     },
     "getAsyncTask": {
       "tool_name": "get_task_status",
@@ -425,7 +552,8 @@
         "id": {
           "description": "Returned id/task_id or the ID in poll_url."
         }
-      }
+      },
+      "description": "Retrieves the status and result of an asynchronous generation task. Prefer the `poll_url` returned by the create response; `/v1/tasks/{id}` is the canonical fixed status endpoint for video, music, and 3D jobs."
     },
     "cancelAsyncTask": {
       "tool_name": "cancel_task",
@@ -450,14 +578,34 @@
         "id": {
           "description": "Returned id/task_id or the ID in poll_url."
         }
-      }
+      },
+      "description": "Cancels a queued asynchronous task when cancellation is supported for the selected task. Cancellation currently supports queued Seedance video tasks (`seedance-2.0` and `seedance-2.0-fast`) while they are still waiting to run. Tasks that are already processing, completed, failed, expired, or unsupported are not cancelled."
     },
     "createSystemOneDecision": {
       "tool_name": "evaluate_decisions",
       "description": "Evaluate typed Noul probability, Choice, and Score questions against shared state using the native System One endpoint. Discover a decision model with list_models/get_model first. Returns synchronous structured decisions, not chat text. A decision does not authorize an external action."
     },
     "createTranslation": {
-      "tool_name": "translate_text"
+      "tool_name": "translate_text",
+      "input_property_overrides": {
+        "model": {
+          "description": null
+        },
+        "text": {
+          "description": null
+        },
+        "source_language": {
+          "description": null
+        },
+        "target_language": {
+          "description": null
+        }
+      },
+      "omit_arguments": [
+        "mime_type",
+        "user"
+      ],
+      "description": "Translates text into a target language using the current translation request format."
     },
     "createAudioTranslation": {
       "tool_name": "translate_audio"
@@ -467,6 +615,18 @@
       "input_property_overrides": {
         "model": {
           "description": "Transcription model ID; no default."
+        },
+        "prompt": {
+          "description": "Optional prompt text"
+        },
+        "response_format": {
+          "description": "Response format"
+        },
+        "temperature": {
+          "description": "Sampling temperature"
+        },
+        "timestamp_granularities": {
+          "description": "Timestamp granularity selection. Requires verbose_json output when requesting word-level timestamps."
         }
       }
     },
@@ -554,6 +714,9 @@
         },
         "async": {
           "description": "Async task if the model supports it."
+        },
+        "prompt": {
+          "description": null
         }
       }
     },
@@ -635,8 +798,45 @@
         },
         "return_last_frame": {
           "description": "Return last frame where supported; Seedance default: false."
+        },
+        "prompt": {
+          "description": "Video description"
+        },
+        "output_audio": {
+          "description": "Audio-output selector for operations that declare it. Omission follows the model default; `false` requests silent output only when allowed. See the audio behavior above and the selected model detail."
+        },
+        "fps": {
+          "description": "Frames per second"
+        },
+        "negative_prompt": {
+          "description": "What to avoid in the video"
+        },
+        "cfg_scale": {
+          "description": "Prompt adherence strength (0-20) for models that expose CFG-style control."
+        },
+        "motion_strength": {
+          "description": "Motion intensity (0-1) for models that expose it."
+        },
+        "material_asset_id": {
+          "description": "TokenLab Seedance material asset ID returned by /v1/videos/assets or from a real-person group returned by GetVisualValidateResult. Use it after the asset is ACTIVE with Seedance models that can use the TokenLab material library. The asset must belong to the current account. This field is a generic reference input; to assign first-frame, last-frame, or reference-image semantics explicitly, put asset://<material_asset_id> in start_image, end_image, or reference_images."
+        },
+        "video_urls": {
+          "description": "Compatibility array for video-conditioned flows when multiple input videos are supported by the selected model. Seedance 2.5 accepts up to 10 aggregate video inputs; other video models retain the shared limit of 3 references unless the model details specify a lower limit."
+        },
+        "audio_urls": {
+          "description": "Compatibility array for audio-conditioned flows when multiple audio references are supported by the selected model. Seedance 2.5 accepts up to 10 aggregate audio inputs and permits pure-audio reference requests without a prompt; other video models retain the shared limit of 3 references unless the model details specify a lower limit."
+        },
+        "execution_expires_after": {
+          "description": "Optional execution expiry window in seconds for compatible video models. Seedance defaults to 172800 seconds when omitted."
+        },
+        "safety_identifier": {
+          "description": "Optional safety/user trace identifier for compatible video models. If omitted for Seedance, TokenLab uses user when provided."
         }
-      }
+      },
+      "omit_arguments": [
+        "tools"
+      ],
+      "description": "Creates an asynchronous video generation task. The response returns a canonical task ID and usually a preferred `poll_url`; clients should poll `poll_url` first, or use `/v1/tasks/{id}` as the fixed status endpoint."
     },
     "createMusic": {
       "task": {
@@ -656,6 +856,19 @@
           "expired"
         ]
       },
+      "omit_arguments": [
+        "task_id",
+        "audio_id",
+        "infill_start_s",
+        "infill_end_s",
+        "full_lyrics",
+        "stem_name",
+        "steps",
+        "cfg_scale",
+        "seed",
+        "output_format",
+        "duration"
+      ],
       "input_property_overrides": {
         "mv": {
           "description": "Suno model version; required for MUSIC/default action, omitted for lyrics-only."
@@ -667,12 +880,30 @@
           "description": "Public audio URL; omitted audio_operation defaults to upload-cover."
         },
         "audio_operation": {
-          "description": "upload-extend needs continue_at; add-instrumental needs audio_url/title/tags/negative_tags."
+          "description": "upload-extend needs continue_at; add-instrumental needs audio_url/title/tags/negative_tags.",
+          "enum": [
+            "upload-cover",
+            "upload-extend",
+            "add-instrumental"
+          ]
         },
         "continue_at": {
           "description": "Continuation time in seconds; required for upload-extend."
+        },
+        "tags": {
+          "description": null
+        },
+        "title": {
+          "description": "Song title."
+        },
+        "model": {
+          "description": "Music model ID."
+        },
+        "action": {
+          "description": null
         }
-      }
+      },
+      "description": "Creates a music generation task using Suno. Returns a task ID for polling."
     },
     "create3D": {
       "tool_name": "create_3d_model",
@@ -705,8 +936,18 @@
         },
         "seed": {
           "description": "Repeatable generation seed where supported."
+        },
+        "model": {
+          "description": "3D model ID."
+        },
+        "image_url": {
+          "description": null
         }
-      }
+      },
+      "omit_arguments": [
+        "operation"
+      ],
+      "description": "Creates a 3D model generation task using Tripo3D. Returns a task ID for polling."
     },
     "createWorld": {
       "task": {
@@ -725,6 +966,11 @@
           "canceled",
           "expired"
         ]
+      },
+      "input_property_overrides": {
+        "permission": {
+          "description": "Optional World Labs permission object."
+        }
       }
     },
     "getWorldStatus": {
@@ -783,15 +1029,23 @@
         },
         "user": {
           "description": "User ID."
+        },
+        "input": {
+          "description": "Input text(s) or token array(s) to embed."
+        },
+        "dimensions": {
+          "description": "Output vector dimensions"
         }
-      }
+      },
+      "description": "Creates an embedding vector representing the input text."
     },
     "createMultimodalEmbedding": {
       "input_property_overrides": {
         "model": {
           "description": "Multimodal embedding model ID."
         }
-      }
+      },
+      "description": "Creates embeddings for multimodal input items. Text input is generally available; image input may require feature enablement."
     },
     "createSpeech": {
       "input_property_overrides": {
@@ -821,6 +1075,9 @@
         },
         "temperature": {
           "description": "Gemini TTS sampling temperature."
+        },
+        "stream_format": {
+          "description": "TokenLab delivery format."
         }
       }
     },
@@ -828,8 +1085,166 @@
       "input_property_overrides": {
         "scope_id": {
           "description": "Reserved scope cursor; returns an explicit unsupported error."
+        },
+        "limit": {
+          "description": "Files to return."
         }
       }
+    },
+    "uploadFile": {
+      "omit_arguments": [
+        "expires_after[anchor]",
+        "expires_after[seconds]"
+      ]
+    },
+    "getPricing": {
+      "input_property_overrides": {
+        "provider": {
+          "description": "Filter by provider ID."
+        },
+        "tag": {
+          "description": "Filter by model tag."
+        }
+      },
+      "description": "Returns the public pricing surface for active models, with optional provider and tag filters."
+    },
+    "rerankDocuments": {
+      "input_property_overrides": {
+        "documents": {
+          "description": "Documents to rerank."
+        },
+        "top_n": {
+          "description": "Number of results to return"
+        },
+        "query": {
+          "description": "Search query."
+        },
+        "return_documents": {
+          "description": null
+        }
+      },
+      "description": "Reranks documents by relevance to a query using semantic similarity."
+    },
+    "editImageFile": {
+      "input_property_overrides": {
+        "prompt": {
+          "description": null
+        }
+      }
+    },
+    "createSeedanceMaterialAsset": {
+      "input_property_overrides": {
+        "group_id": {
+          "description": "TokenLab material group ID. Required for liveness_face materials; optional for aigc_avatar."
+        }
+      }
+    },
+    "listAnthropicMessageBatches": {
+      "input_property_overrides": {
+        "before_id": {
+          "description": "Return batches before this batch id"
+        },
+        "after_id": {
+          "description": "Return batches after this batch id"
+        }
+      },
+      "description": "Lists native Anthropic Message Batches for the authenticated organization."
+    },
+    "createVolcCompatibleSeedanceTask": {
+      "input_property_overrides": {
+        "resolution": {
+          "description": "Requested output resolution. Model-specific availability still applies."
+        },
+        "generate_audio": {
+          "description": "Whether to generate synchronized audio. The official default is false."
+        }
+      },
+      "description": "Creates a Seedance 2.0 video task with the official Volc REST body and response shape. Authentication uses a TokenLab Bearer API key. TokenLab additionally accepts an optional Idempotency-Key header so a client can recover the same task ID after a lost create response."
+    },
+    "listVolcCompatibleSeedanceTasks": {
+      "input_property_overrides": {
+        "filter.model": {
+          "description": "Filter by model identifier."
+        }
+      },
+      "description": "Lists recent Seedance compatibility tasks for the authenticated organization."
+    },
+    "geminiListFiles": {
+      "input_property_overrides": {
+        "pageSize": {
+          "description": "Requested page size; page_size is also accepted."
+        }
+      }
+    },
+    "geminiListCachedContents": {
+      "input_property_overrides": {
+        "pageSize": {
+          "description": "Requested page size; page_size is also accepted."
+        }
+      }
+    },
+    "createBatch": {
+      "input_property_overrides": {
+        "metadata": {
+          "description": "Up to 16 string key-value pairs."
+        }
+      },
+      "description": "Creates an OpenAI-compatible batch job."
+    },
+    "listBatches": {
+      "input_property_overrides": {
+        "before": {
+          "description": "Batch ID cursor (before)."
+        },
+        "after": {
+          "description": "Batch ID cursor (after)."
+        }
+      },
+      "description": "List batches"
+    },
+    "listGeminiModels": {
+      "input_property_overrides": {
+        "pageToken": {
+          "description": "Token from the previous page."
+        }
+      },
+      "description": "Lists enabled models through the Gemini-compatible v1beta model discovery surface."
+    },
+    "countAnthropicMessageTokens": {
+      "description": "Counts input tokens for an Anthropic-compatible messages request without creating a model response. Authentication is required; the operation is not billed. Verified upstream counting is preferred. Upstream availability failures return a local estimate marked by X-TokenLab-Count-Tokens-Source: local_estimate. Platform authentication, permission and input errors remain errors. Bound files unreadable locally require upstream counting."
+    },
+    "createAnthropicMessageBatch": {
+      "description": "Creates a native Anthropic Message Batch. Requests use the same Anthropic message parameters as /v1/messages."
+    },
+    "deleteAnthropicMessageBatch": {
+      "description": "Deletes an Anthropic Message Batch when deletion is supported for that batch."
+    },
+    "deleteResponse": {
+      "description": "Deletes a stored Responses API response. This operation is deletion, not cancellation of an in-progress response."
+    },
+    "geminiCountTokens": {
+      "description": "Counts tokens using the native Gemini CountTokens contract. Unknown fields and either official ProtoJSON field-name spelling are forwarded best-effort."
+    },
+    "getGeminiModel": {
+      "description": "Retrieves model metadata through the Gemini-compatible v1beta surface."
+    },
+    "getModel": {
+      "description": "Retrieves current model details, including supported operations, request parameters, request endpoints, selector limits, and pricing when available. Non-chat integrations should read these current model-specific request details before creating a request."
+    },
+    "getVideoTask": {
+      "description": "Retrieves the status and result of a video generation task. New clients should prefer the `poll_url` returned by create responses, or use `/v1/tasks/{id}` as the canonical fixed status endpoint. The `/v1/videos/generations/{id}` path remains for backward compatibility."
+    },
+    "retrieveAnthropicMessageBatch": {
+      "description": "Retrieves the status and metadata for a native Anthropic Message Batch."
+    },
+    "retrieveAnthropicMessageBatchResults": {
+      "description": "Downloads JSONL results for a completed native Anthropic Message Batch."
+    },
+    "retrieveBatch": {
+      "description": "Retrieve batch"
+    },
+    "updateSeedanceMaterialAsset": {
+      "description": "Updates a Seedance material asset owned by the authenticated organization."
     }
   }
 }
