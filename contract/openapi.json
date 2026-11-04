@@ -12040,7 +12040,7 @@
               "mov",
               "webm"
             ],
-            "description": "Video container format for models that list this field. Each model lists its own values in its public contract (for example Seedance 2.5 takes `mp4` or `mov`). Omit it for models that do not list it."
+            "description": "Video container format for models that list this field. Each model lists the values it accepts (for example Seedance 2.5 takes `mp4` or `mov`). Omit it for models that do not list it."
           },
           "width": {
             "type": "integer",
