@@ -6,7 +6,7 @@
     "openapi": "3.1.0",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "3d74be0df7a2060c871b4f02a61e40862e86d6b1fda35ed418269d9e2b23eb19"
+    "sha256": "7a5bdc9b803fd585072b96475c4b432afbc7cf72108f9001b5a5292c05f8f67a"
   },
   "default_profile": "core",
   "profiles": [
@@ -3887,7 +3887,7 @@
           },
           "start_image": {
             "type": "string",
-            "description": "First frame image for start-end-to-video. Send it with end_image. Accepts a public image URL or a data URL; Seedance 2.0 models also accept asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab material owned by your organization."
+            "description": "First frame image. With end_image, the request is start-end-to-video. Without end_image, it is image-to-video, and start_image works like image on models whose details list it. Accepts a public image URL or a data URL; Seedance 2.0 models also accept asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab material owned by your organization."
           },
           "end_image": {
             "type": "string",
