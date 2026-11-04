@@ -6,7 +6,7 @@
     "openapi": "3.1.0",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "bdab056ebbe5d6ca8b553b6152bcc10fd87bab3326fa7a78afdcb96c3589ec1a"
+    "sha256": "c765a550d133e8c42a0d9d195e6f4ed465fd3ef0c0efd6eceb6c0b00342e4191"
   },
   "default_profile": "core",
   "profiles": [
@@ -52,12 +52,12 @@
     },
     "core": {
       "endpoint_tools": 30,
-      "input_schema_bytes": 47901,
+      "input_schema_bytes": 47998,
       "max_input_schema_depth": 8
     },
     "full": {
       "endpoint_tools": 87,
-      "input_schema_bytes": 77877,
+      "input_schema_bytes": 77974,
       "max_input_schema_depth": 8
     }
   },
@@ -3839,9 +3839,18 @@
             "type": "string",
             "enum": [
               "mp4",
-              "mov"
+              "mov",
+              "webm"
             ],
-            "description": "Video container format for models that list this field, such as Seedance 2.5 (`mp4` or `mov`). Omit it for models that do not list it."
+            "description": "mp4, mov or webm, where the model lists it."
+          },
+          "width": {
+            "type": "integer",
+            "description": "Pixel width; pair with height."
+          },
+          "height": {
+            "type": "integer",
+            "description": "Pixel height; pair with width."
           },
           "output_audio": {
             "type": "boolean",
@@ -4118,6 +4127,8 @@
           "aspect_ratio",
           "resolution",
           "output_format",
+          "width",
+          "height",
           "output_audio",
           "fps",
           "negative_prompt",

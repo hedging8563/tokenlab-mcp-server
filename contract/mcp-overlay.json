@@ -831,6 +831,17 @@
         },
         "safety_identifier": {
           "description": "Optional safety/user trace identifier for compatible video models. If omitted for Seedance, TokenLab uses user when provided."
+        },
+        "output_format": {
+          "description": "mp4, mov or webm, where the model lists it."
+        },
+        "width": {
+          "description": "Pixel width; pair with height.",
+          "minimum": null
+        },
+        "height": {
+          "description": "Pixel height; pair with width.",
+          "minimum": null
         }
       },
       "omit_arguments": [

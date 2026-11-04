@@ -12037,9 +12037,20 @@
             "type": "string",
             "enum": [
               "mp4",
-              "mov"
+              "mov",
+              "webm"
             ],
-            "description": "Video container format for models that list this field, such as Seedance 2.5 (`mp4` or `mov`). Omit it for models that do not list it."
+            "description": "Video container format for models that list this field. Each model lists its own values in its public contract (for example Seedance 2.5 takes `mp4` or `mov`). Omit it for models that do not list it."
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Output width in pixels, for models that list width and height. Send it with height; the pair must be one of the model's listed sizes."
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Output height in pixels, for models that list width and height. Send it with width; the pair must be one of the model's listed sizes."
           },
           "output_audio": {
             "type": "boolean",
