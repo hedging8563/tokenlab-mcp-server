@@ -368,6 +368,9 @@
         },
         "stop_sequences": {
           "description": null
+        },
+        "Idempotency-Key": {
+          "description": "Optional retry key; see the idempotency guide."
         }
       },
       "omit_arguments": [
@@ -469,6 +472,9 @@
         },
         "logit_bias": {
           "description": "Per-token logit bias map."
+        },
+        "Idempotency-Key": {
+          "description": "Optional retry key; see the idempotency guide."
         }
       },
       "omit_arguments": [
@@ -506,6 +512,9 @@
         },
         "temperature": {
           "description": null
+        },
+        "Idempotency-Key": {
+          "description": "Optional retry key; see the idempotency guide."
         }
       }
     },
@@ -674,6 +683,52 @@
         },
         "async": {
           "description": "Async task if the model supports it."
+        },
+        "output_format": {
+          "description": "Image format; gif and svg only where get_model lists them."
+        },
+        "frame_count": {
+          "description": "GIF frames; output_format gif only."
+        },
+        "frame_duration_ms": {
+          "description": "Milliseconds per GIF frame; output_format gif only."
+        },
+        "svg": {
+          "description": "SVG settings; output_format svg only; svg.model is required."
+        },
+        "Idempotency-Key": {
+          "description": "Optional retry key; see the idempotency guide."
+        }
+      },
+      "omit_arguments_by_content_type": {
+        "application/json": [
+          "raw",
+          "image_prompt"
+        ]
+      },
+      "input_property_overrides_by_content_type": {
+        "application/json": {
+          "svg": {
+            "description": "SVG settings; output_format svg only; svg.model is required.",
+            "properties": {
+              "model": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Author model; see get_model parameter_options svg.model."
+              },
+              "reasoning": {
+                "type": "object",
+                "additionalProperties": false,
+                "description": "Author model reasoning settings.",
+                "properties": {
+                  "effort": {
+                    "type": "string",
+                    "description": "Author model reasoning effort."
+                  }
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -717,6 +772,18 @@
         },
         "prompt": {
           "description": null
+        },
+        "output_format": {
+          "description": "Image format; gif and svg only where get_model lists them."
+        },
+        "frame_count": {
+          "description": "GIF frames; output_format gif only."
+        },
+        "frame_duration_ms": {
+          "description": "Milliseconds per GIF frame; output_format gif only."
+        },
+        "Idempotency-Key": {
+          "description": "Optional retry key; see the idempotency guide."
         }
       }
     },
@@ -751,9 +818,6 @@
         "video_url": {
           "description": "Public video URL for video-to-video or motion control."
         },
-        "reference_image_type": {
-          "description": "Image reference role: asset/style; alias: referenceImageType."
-        },
         "audio_url": {
           "description": "Public audio URL for a supported audio-input operation."
         },
@@ -769,14 +833,8 @@
         "size": {
           "description": "Model-specific video size tier."
         },
-        "effect_type": {
-          "description": "Model-specific edit effect."
-        },
         "ratio": {
           "description": "aspect_ratio alias; if both are sent, values must match."
-        },
-        "outputAudio": {
-          "description": "output_audio alias; all supplied audio toggles must match."
         },
         "generate_audio": {
           "description": "output_audio alias; all supplied audio toggles must match."
@@ -814,9 +872,6 @@
         "cfg_scale": {
           "description": "Prompt adherence strength (0-20) for models that expose CFG-style control."
         },
-        "motion_strength": {
-          "description": "Motion intensity (0-1) for models that expose it."
-        },
         "material_asset_id": {
           "description": "TokenLab Seedance material asset ID returned by /v1/videos/assets or from a real-person group returned by GetVisualValidateResult. Use it after the asset is ACTIVE with Seedance models that can use the TokenLab material library. The asset must belong to the current account. This field is a generic reference input; to assign first-frame, last-frame, or reference-image semantics explicitly, put asset://<material_asset_id> in start_image, end_image, or reference_images."
         },
@@ -842,10 +897,22 @@
         "height": {
           "description": "Pixel height; pair with width.",
           "minimum": null
+        },
+        "Idempotency-Key": {
+          "description": "Optional retry key; see the idempotency guide."
         }
       },
       "omit_arguments": [
-        "tools"
+        "tools",
+        "outputAudio",
+        "kling_elements",
+        "reference_image_type",
+        "effect_type",
+        "motion_strength",
+        "frames",
+        "camera_fixed",
+        "draft",
+        "draft_task_id"
       ],
       "description": "Creates an asynchronous video generation task. The response returns a canonical task ID and usually a preferred `poll_url`; clients should poll `poll_url` first, or use `/v1/tasks/{id}` as the fixed status endpoint."
     },
@@ -912,6 +979,9 @@
         },
         "action": {
           "description": null
+        },
+        "Idempotency-Key": {
+          "description": "Optional retry key; see the idempotency guide."
         }
       },
       "description": "Creates a music generation task using Suno. Returns a task ID for polling."
@@ -953,6 +1023,9 @@
         },
         "image_url": {
           "description": null
+        },
+        "Idempotency-Key": {
+          "description": "Optional retry key; see the idempotency guide."
         }
       },
       "omit_arguments": [

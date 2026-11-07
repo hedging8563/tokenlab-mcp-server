@@ -374,7 +374,11 @@ for (const [operationId, indexed] of operations) {
       const contentTypeOmissions = override.omit_arguments_by_content_type?.[contentType] || [];
       applyInputOverrides(schema, bindings, {
         ...override,
-        omit_arguments: [...(override.omit_arguments || []), ...contentTypeOmissions]
+        omit_arguments: [...(override.omit_arguments || []), ...contentTypeOmissions],
+        input_property_overrides: {
+          ...(override.input_property_overrides || {}),
+          ...(override.input_property_overrides_by_content_type?.[contentType] || {})
+        }
       });
       assertMcpPropertyNames(schema, `${toolName}.input_schema`);
       const description = override.description || [indexed.operation.description || indexed.operation.summary]

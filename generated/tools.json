@@ -6,7 +6,7 @@
     "openapi": "3.1.0",
     "title": "TokenLab AI Gateway",
     "version": "1.0.0",
-    "sha256": "7a5bdc9b803fd585072b96475c4b432afbc7cf72108f9001b5a5292c05f8f67a"
+    "sha256": "cb8e4a52c330da966961fb660e8dc85bacdd92b6ae51258fe1ac757a0120ec33"
   },
   "default_profile": "core",
   "profiles": [
@@ -52,12 +52,12 @@
     },
     "core": {
       "endpoint_tools": 30,
-      "input_schema_bytes": 47998,
+      "input_schema_bytes": 47485,
       "max_input_schema_depth": 8
     },
     "full": {
       "endpoint_tools": 87,
-      "input_schema_bytes": 77974,
+      "input_schema_bytes": 77461,
       "max_input_schema_depth": 8
     }
   },
@@ -503,7 +503,7 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 255,
-            "description": "Optional key that makes a create request safe to retry. Send a new unique value, such as a UUID, for each task. A retry with the same key and the same body returns the result of the original create request, usually the original task, and does not create, dispatch, or charge a second task. A different body with a key that was already accepted is rejected with `409`. A key longer than 255 characters is ignored, and the request then has no idempotency protection. See [Retry safely with an idempotency key](https://tokenlab.sh/docs/en/guides/error-handling#idempotency-key)."
+            "description": "Optional retry key; see the idempotency guide."
           },
           "model": {
             "type": "string",
@@ -632,7 +632,7 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 255,
-            "description": "Optional key that stops a second run of the same request. Send a new unique value, such as a UUID, for each request, and keep it for retries after a timeout. A retry with the same key does not run again: it returns `409` with `idempotency_replay_unavailable`, or usually `idempotency_conflict` when the body changed. Exception: when a non-stream result finished after the client disconnected, a retry with the same key and body within 24 hours returns that result (up to 1 MB) with the header `Idempotent-Replayed: true` and no second charge. A key longer than 255 characters is ignored, and the request then has no idempotency protection. See [Retry safely with an idempotency key](https://tokenlab.sh/docs/en/guides/error-handling#idempotency-key)."
+            "description": "Optional retry key; see the idempotency guide."
           },
           "model": {
             "type": "string",
@@ -1209,7 +1209,7 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 255,
-            "description": "Optional key that stops a second run of the same request. Send a new unique value, such as a UUID, for each request, and keep it for retries after a timeout. A retry with the same key does not run again: it returns `409` with `idempotency_replay_unavailable`, or usually `idempotency_conflict` when the body changed. Exception: when a non-stream result finished after the client disconnected, a retry with the same key and body within 24 hours returns that result (up to 1 MB) with the header `Idempotent-Replayed: true` and no second charge. A key longer than 255 characters is ignored, and the request then has no idempotency protection. See [Retry safely with an idempotency key](https://tokenlab.sh/docs/en/guides/error-handling#idempotency-key)."
+            "description": "Optional retry key; see the idempotency guide."
           },
           "model": {
             "type": "string",
@@ -2373,7 +2373,7 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 255,
-            "description": "Optional key that makes an image request safe to retry if the request created a task. Send a new unique value, such as a UUID, for each request. A retry with the same key and the same body then returns that task and does not create, dispatch, or charge a second task. For a request that returns the image directly, a retry with the same key can return a task status instead of the image, or `409` with `idempotent_response_not_replayable`. A different body with a key that was already accepted is rejected; the status code and error code for that case are not guaranteed. A key longer than 255 characters is ignored, and the request then has no idempotency protection. See [Retry safely with an idempotency key](https://tokenlab.sh/docs/en/guides/error-handling#idempotency-key)."
+            "description": "Optional retry key; see the idempotency guide."
           },
           "prompt": {
             "type": "string",
@@ -2488,9 +2488,11 @@
             "enum": [
               "png",
               "jpeg",
-              "webp"
+              "webp",
+              "gif",
+              "svg"
             ],
-            "description": "Output image format for compatible image models such as gpt-image-2"
+            "description": "Image format; gif and svg only where get_model lists them."
           },
           "output_compression": {
             "type": "integer",
@@ -2547,6 +2549,44 @@
           "guidance": {
             "type": "number",
             "description": "Model-specific guidance value. See get_model."
+          },
+          "svg": {
+            "type": "object",
+            "required": [
+              "model"
+            ],
+            "additionalProperties": false,
+            "description": "SVG settings; output_format svg only; svg.model is required.",
+            "properties": {
+              "model": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Author model; see get_model parameter_options svg.model."
+              },
+              "reasoning": {
+                "type": "object",
+                "additionalProperties": false,
+                "description": "Author model reasoning settings.",
+                "properties": {
+                  "effort": {
+                    "type": "string",
+                    "description": "Author model reasoning effort."
+                  }
+                }
+              }
+            }
+          },
+          "frame_count": {
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 16,
+            "description": "GIF frames; output_format gif only."
+          },
+          "frame_duration_ms": {
+            "type": "integer",
+            "minimum": 20,
+            "maximum": 2000,
+            "description": "Milliseconds per GIF frame; output_format gif only."
           }
         },
         "required": [
@@ -2593,7 +2633,10 @@
           "steps",
           "cfg_scale",
           "guidance_scale",
-          "guidance"
+          "guidance",
+          "svg",
+          "frame_count",
+          "frame_duration_ms"
         ],
         "files": []
       },
@@ -2657,7 +2700,7 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 255,
-            "description": "Optional key that makes an image request safe to retry if the request created a task. Send a new unique value, such as a UUID, for each request. A retry with the same key and the same body then returns that task and does not create, dispatch, or charge a second task. For a request that returns the image directly, a retry with the same key can return a task status instead of the image, or `409` with `idempotent_response_not_replayable`. A different body with a key that was already accepted is rejected; the status code and error code for that case are not guaranteed. A key longer than 255 characters is ignored, and the request then has no idempotency protection. See [Retry safely with an idempotency key](https://tokenlab.sh/docs/en/guides/error-handling#idempotency-key)."
+            "description": "Optional retry key; see the idempotency guide."
           },
           "model": {
             "type": "string",
@@ -2739,8 +2782,11 @@
             "enum": [
               "png",
               "jpeg",
-              "webp"
-            ]
+              "webp",
+              "gif",
+              "svg"
+            ],
+            "description": "Image format; gif and svg only where get_model lists them."
           },
           "output_compression": {
             "type": "integer",
@@ -2798,6 +2844,22 @@
           "guidance": {
             "type": "number",
             "description": "Model-specific guidance value. See get_model."
+          },
+          "svg": {
+            "type": "string",
+            "description": "SVG settings; output_format svg only; svg.model is required."
+          },
+          "frame_count": {
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 16,
+            "description": "GIF frames; output_format gif only."
+          },
+          "frame_duration_ms": {
+            "type": "integer",
+            "minimum": 20,
+            "maximum": 2000,
+            "description": "Milliseconds per GIF frame; output_format gif only."
           }
         },
         "required": [
@@ -2844,7 +2906,10 @@
           "steps",
           "cfg_scale",
           "guidance_scale",
-          "guidance"
+          "guidance",
+          "svg",
+          "frame_count",
+          "frame_duration_ms"
         ],
         "files": [
           "image"
@@ -3110,7 +3175,7 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 255,
-            "description": "Optional key that makes a create request safe to retry. Send a new unique value, such as a UUID, for each task. A retry with the same key and the same body returns the result of the original create request, usually the original task, and does not create, dispatch, or charge a second task. A different body with a key that was already accepted is rejected with `409`. A key longer than 255 characters is ignored, and the request then has no idempotency protection. See [Retry safely with an idempotency key](https://tokenlab.sh/docs/en/guides/error-handling#idempotency-key)."
+            "description": "Optional retry key; see the idempotency guide."
           },
           "model": {
             "type": "string",
@@ -3145,17 +3210,9 @@
           "mv": {
             "type": "string",
             "enum": [
-              "chirp-v3-5",
-              "chirp-v4",
-              "chirp-v4-5",
-              "chirp-v4.5",
-              "chirp-v4-5plus",
-              "chirp-v4.5plus",
-              "chirp-v4-5all",
-              "chirp-v4.5all",
-              "chirp-v5",
-              "chirp-v5-5",
-              "chirp-v5.5"
+              "chirp-v6",
+              "chirp-v6-mini",
+              "chirp-v6-wild"
             ],
             "description": "Suno model version; required for MUSIC/default action, omitted for lyrics-only."
           },
@@ -3179,7 +3236,7 @@
           },
           "continue_clip_id": {
             "type": "string",
-            "description": "Clip ID to continue when extending an existing generation."
+            "description": "Clip ID to continue when extending an existing generation. To set new lyrics with prompt, also send tags and title."
           },
           "continue_at": {
             "type": "number",
@@ -3268,7 +3325,7 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 255,
-            "description": "Optional key that stops a second run of the same request. Send a new unique value, such as a UUID, for each request, and keep it for retries after a timeout. A retry with the same key does not run again: it returns `409` with `idempotency_replay_unavailable`, or usually `idempotency_conflict` when the body changed. Exception: when a non-stream result finished after the client disconnected, a retry with the same key and body within 24 hours returns that result (up to 1 MB) with the header `Idempotent-Replayed: true` and no second charge. A key longer than 255 characters is ignored, and the request then has no idempotency protection. With `background: true`, a retry with the same key and body returns the original response object instead and does not create or charge a second response; a different body is rejected, and its status code is not guaranteed. See [Retry safely with an idempotency key](https://tokenlab.sh/docs/en/guides/error-handling#idempotency-key)."
+            "description": "Optional retry key; see the idempotency guide."
           },
           "model": {
             "type": "string",
@@ -3779,7 +3836,7 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 255,
-            "description": "Optional key that makes a create request safe to retry. Send a new unique value, such as a UUID, for each task. A retry with the same key and the same body returns the result of the original create request, usually the original task, and does not create, dispatch, or charge a second task. A different body with a key that was already accepted is rejected with `409`. A key longer than 255 characters is ignored, and the request then has no idempotency protection. See [Retry safely with an idempotency key](https://tokenlab.sh/docs/en/guides/error-handling#idempotency-key)."
+            "description": "Optional retry key; see the idempotency guide."
           },
           "prompt": {
             "type": "string",
@@ -3879,12 +3936,6 @@
             "maximum": 20,
             "description": "Prompt adherence strength (0-20) for models that expose CFG-style control."
           },
-          "motion_strength": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 1,
-            "description": "Motion intensity (0-1) for models that expose it."
-          },
           "start_image": {
             "type": "string",
             "description": "First frame image. With end_image, the request is start-end-to-video. Without end_image, it is image-to-video, and start_image works like image on models whose details list it. Accepts a public image URL or a data URL; Seedance 2.0 models also accept asset://asset-YYYYMMDDHHMMSS-xxxxx for an ACTIVE TokenLab material owned by your organization."
@@ -3905,44 +3956,6 @@
             "items": {
               "type": "string",
               "format": "uri"
-            }
-          },
-          "kling_elements": {
-            "type": "array",
-            "description": "Element references for image-conditioned requests on models that explicitly support this field. Define 1-3 elements and reference them in the prompt with @name. Each element requires 2-4 image URLs in element_input_urls. Do not combine kling_elements with output_audio=true; omit output_audio or set it to false for element-reference requests.",
-            "minItems": 1,
-            "maxItems": 3,
-            "items": {
-              "type": "object",
-              "required": [
-                "name",
-                "element_input_urls"
-              ],
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "description": "Element name used in the prompt without the @ prefix.",
-                  "minLength": 1,
-                  "maxLength": 64
-                },
-                "description": {
-                  "type": "string",
-                  "description": "Optional short description of the element.",
-                  "minLength": 1,
-                  "maxLength": 500
-                },
-                "element_input_urls": {
-                  "type": "array",
-                  "description": "Reference image URLs for this element. Kling 3.0 expects 2-4 images per element.",
-                  "minItems": 2,
-                  "maxItems": 4,
-                  "items": {
-                    "type": "string",
-                    "format": "uri"
-                  }
-                }
-              },
-              "additionalProperties": false
             }
           },
           "reference_images": {
@@ -3966,14 +3979,6 @@
             "items": {
               "type": "string"
             }
-          },
-          "reference_image_type": {
-            "type": "string",
-            "enum": [
-              "asset",
-              "style"
-            ],
-            "description": "Image reference role: asset/style; alias: referenceImageType."
           },
           "audio_url": {
             "type": "string",
@@ -4008,10 +4013,6 @@
             "type": "boolean",
             "description": "Watermark toggle where supported; Seedance default: false."
           },
-          "effect_type": {
-            "type": "string",
-            "description": "Model-specific edit effect."
-          },
           "video_urls": {
             "type": "array",
             "description": "Compatibility array for video-conditioned flows when multiple input videos are supported by the selected model. Seedance 2.5 accepts up to 10 aggregate video inputs; other video models retain the shared limit of 3 references unless the model details specify a lower limit.",
@@ -4035,10 +4036,6 @@
           "ratio": {
             "type": "string",
             "description": "aspect_ratio alias; if both are sent, values must match."
-          },
-          "outputAudio": {
-            "type": "boolean",
-            "description": "output_audio alias; all supplied audio toggles must match."
           },
           "generate_audio": {
             "type": "boolean",
@@ -4069,26 +4066,9 @@
             ],
             "description": "Optional service tier for compatible video models. service_tier=default is accepted as a compatibility no-op for Seedance 2.0 and Seedance 2.5; service_tier=flex is rejected for both models."
           },
-          "frames": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Frame count, for models that list this field. Seedance models do not accept it."
-          },
-          "camera_fixed": {
-            "type": "boolean",
-            "description": "Optional fixed-camera selector for compatible video models. Seedance 2.0 and Seedance 2.5 do not support this field."
-          },
           "return_last_frame": {
             "type": "boolean",
             "description": "Return last frame where supported; Seedance default: false."
-          },
-          "draft": {
-            "type": "boolean",
-            "description": "Draft workflow flag. Accepted only by models whose details list this field."
-          },
-          "draft_task_id": {
-            "type": "string",
-            "description": "ID of an earlier draft task to turn into the final video. Accepted only by models whose details list this field."
           },
           "audio": {
             "type": "boolean",
@@ -4134,16 +4114,13 @@
           "negative_prompt",
           "seed",
           "cfg_scale",
-          "motion_strength",
           "start_image",
           "end_image",
           "user",
           "image_urls",
-          "kling_elements",
           "reference_images",
           "material_asset_id",
           "material_asset_ids",
-          "reference_image_type",
           "audio_url",
           "task_id",
           "extend_at",
@@ -4151,21 +4128,15 @@
           "seconds",
           "size",
           "watermark",
-          "effect_type",
           "video_urls",
           "audio_urls",
           "ratio",
-          "outputAudio",
           "generate_audio",
           "execution_expires_after",
           "priority",
           "safety_identifier",
           "service_tier",
-          "frames",
-          "camera_fixed",
           "return_last_frame",
-          "draft",
-          "draft_task_id",
           "audio",
           "bgm",
           "audio_type",
@@ -5541,7 +5512,7 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 255,
-            "description": "Optional key that makes an image request safe to retry if the request created a task. Send a new unique value, such as a UUID, for each request. A retry with the same key and the same body then returns that task and does not create, dispatch, or charge a second task. For a request that returns the image directly, a retry with the same key can return a task status instead of the image, or `409` with `idempotent_response_not_replayable`. A different body with a key that was already accepted is rejected; the status code and error code for that case are not guaranteed. A key longer than 255 characters is ignored, and the request then has no idempotency protection. See [Retry safely with an idempotency key](https://tokenlab.sh/docs/en/guides/error-handling#idempotency-key)."
+            "description": "Optional retry key; see the idempotency guide."
           },
           "model": {
             "type": "string",
@@ -5588,8 +5559,10 @@
             "enum": [
               "png",
               "jpeg",
-              "webp"
-            ]
+              "webp",
+              "gif"
+            ],
+            "description": "Image format; gif and svg only where get_model lists them."
           },
           "output_compression": {
             "type": "integer",
@@ -5720,6 +5693,18 @@
           "creativity": {
             "type": "number",
             "description": "Model-specific image edit creativity. See get_model."
+          },
+          "frame_count": {
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 16,
+            "description": "GIF frames; output_format gif only."
+          },
+          "frame_duration_ms": {
+            "type": "integer",
+            "minimum": 20,
+            "maximum": 2000,
+            "description": "Milliseconds per GIF frame; output_format gif only."
           }
         },
         "required": [
@@ -5763,7 +5748,9 @@
           "guidance",
           "control_strength",
           "fidelity",
-          "creativity"
+          "creativity",
+          "frame_count",
+          "frame_duration_ms"
         ],
         "files": []
       },
@@ -5827,7 +5814,7 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 255,
-            "description": "Optional key that makes an image request safe to retry if the request created a task. Send a new unique value, such as a UUID, for each request. A retry with the same key and the same body then returns that task and does not create, dispatch, or charge a second task. For a request that returns the image directly, a retry with the same key can return a task status instead of the image, or `409` with `idempotent_response_not_replayable`. A different body with a key that was already accepted is rejected; the status code and error code for that case are not guaranteed. A key longer than 255 characters is ignored, and the request then has no idempotency protection. See [Retry safely with an idempotency key](https://tokenlab.sh/docs/en/guides/error-handling#idempotency-key)."
+            "description": "Optional retry key; see the idempotency guide."
           },
           "image": {
             "oneOf": [
@@ -5889,8 +5876,10 @@
             "enum": [
               "png",
               "jpeg",
-              "webp"
-            ]
+              "webp",
+              "gif"
+            ],
+            "description": "Image format; gif and svg only where get_model lists them."
           },
           "output_compression": {
             "type": "integer",
@@ -5951,6 +5940,18 @@
           "creativity": {
             "type": "number",
             "description": "Model-specific image edit creativity. See get_model."
+          },
+          "frame_count": {
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 16,
+            "description": "GIF frames; output_format gif only."
+          },
+          "frame_duration_ms": {
+            "type": "integer",
+            "minimum": 20,
+            "maximum": 2000,
+            "description": "Milliseconds per GIF frame; output_format gif only."
           }
         },
         "required": [
@@ -5992,7 +5993,9 @@
           "guidance",
           "control_strength",
           "fidelity",
-          "creativity"
+          "creativity",
+          "frame_count",
+          "frame_duration_ms"
         ],
         "files": [
           "image",

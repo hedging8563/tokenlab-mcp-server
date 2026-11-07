@@ -3397,7 +3397,7 @@
                   "prompt": {
                     "type": "string",
                     "maxLength": 5000,
-                    "description": "Music description or replacement text."
+                    "description": "Music description or replacement text. Optional with continue_clip_id: an extension without tags and title keeps the source song and takes no prompt."
                   },
                   "title": {
                     "type": "string",
@@ -3424,17 +3424,9 @@
                   "mv": {
                     "type": "string",
                     "enum": [
-                      "chirp-v3-5",
-                      "chirp-v4",
-                      "chirp-v4-5",
-                      "chirp-v4.5",
-                      "chirp-v4-5plus",
-                      "chirp-v4.5plus",
-                      "chirp-v4-5all",
-                      "chirp-v4.5all",
-                      "chirp-v5",
-                      "chirp-v5-5",
-                      "chirp-v5.5"
+                      "chirp-v6",
+                      "chirp-v6-mini",
+                      "chirp-v6-wild"
                     ],
                     "description": "Suno model version. Required when generating new audio."
                   },
@@ -3462,7 +3454,7 @@
                   },
                   "continue_clip_id": {
                     "type": "string",
-                    "description": "Clip ID to continue when extending an existing generation."
+                    "description": "Clip ID to continue when extending an existing generation. To set new lyrics with prompt, also send tags and title."
                   },
                   "continue_at": {
                     "type": "number",
@@ -5447,8 +5439,10 @@
                     "enum": [
                       "png",
                       "jpeg",
-                      "webp"
-                    ]
+                      "webp",
+                      "gif"
+                    ],
+                    "description": "gif and svg are for models whose contract lists them; other models reject them. svg is not an edit format. gif takes no mask, stream, partial_images or output_compression."
                   },
                   "output_compression": {
                     "type": "integer",
@@ -5583,6 +5577,18 @@
                   "creativity": {
                     "type": "number",
                     "description": "Model-specific image edit creativity. See get_model."
+                  },
+                  "frame_count": {
+                    "type": "integer",
+                    "minimum": 2,
+                    "maximum": 16,
+                    "description": "Number of GIF frames, from 2 to 16. Only with output_format gif. The model lists it when it serves gif."
+                  },
+                  "frame_duration_ms": {
+                    "type": "integer",
+                    "minimum": 20,
+                    "maximum": 2000,
+                    "description": "Time of each GIF frame in milliseconds, from 20 to 2000. Only with output_format gif. The model lists it when it serves gif."
                   }
                 },
                 "additionalProperties": true,
@@ -5675,8 +5681,10 @@
                     "enum": [
                       "png",
                       "jpeg",
-                      "webp"
-                    ]
+                      "webp",
+                      "gif"
+                    ],
+                    "description": "gif and svg are for models whose contract lists them; other models reject them. svg is not an edit format. gif takes no mask, stream, partial_images or output_compression."
                   },
                   "output_compression": {
                     "type": "integer",
@@ -5749,6 +5757,18 @@
                   "creativity": {
                     "type": "number",
                     "description": "Model-specific image edit creativity. See get_model."
+                  },
+                  "frame_count": {
+                    "type": "integer",
+                    "minimum": 2,
+                    "maximum": 16,
+                    "description": "Number of GIF frames, from 2 to 16. Only with output_format gif. The model lists it when it serves gif."
+                  },
+                  "frame_duration_ms": {
+                    "type": "integer",
+                    "minimum": 20,
+                    "maximum": 2000,
+                    "description": "Time of each GIF frame in milliseconds, from 20 to 2000. Only with output_format gif. The model lists it when it serves gif."
                   }
                 },
                 "additionalProperties": true,
@@ -11473,9 +11493,11 @@
             "enum": [
               "png",
               "jpeg",
-              "webp"
+              "webp",
+              "gif",
+              "svg"
             ],
-            "description": "Output image format for compatible image models such as gpt-image-2"
+            "description": "Output image format for compatible image models such as gpt-image-2. gif and svg are for models whose contract lists them; other models reject them. svg works on /v1/images/generations only, needs svg.model, and takes n 1 only. gif takes no mask, stream, partial_images or output_compression."
           },
           "output_compression": {
             "type": "integer",
@@ -11536,6 +11558,59 @@
           "guidance": {
             "type": "number",
             "description": "Model-specific guidance value. See get_model."
+          },
+          "raw": {
+            "type": "boolean",
+            "description": "Less processed, more natural output. Only for models that list raw (for example flux-pro-1.1-ultra)."
+          },
+          "image_prompt": {
+            "type": "string",
+            "format": "uri",
+            "description": "Reference image URL that guides a text-to-image result. Only for models that list image_prompt. Cannot be combined with other image URL fields."
+          },
+          "svg": {
+            "type": "object",
+            "required": [
+              "model"
+            ],
+            "additionalProperties": false,
+            "description": "SVG settings. Only with output_format svg, where svg.model is required: the author model that writes the SVG, which sets the price.",
+            "properties": {
+              "model": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Author model. The model details list the accepted values (parameter_options, svg.model)."
+              },
+              "reasoning": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "additionalProperties": false,
+                "description": "Reasoning settings of the author model.",
+                "properties": {
+                  "effort": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "description": "Reasoning effort of the author model."
+                  }
+                }
+              }
+            }
+          },
+          "frame_count": {
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 16,
+            "description": "Number of GIF frames, from 2 to 16. Only with output_format gif. The model lists it when it serves gif."
+          },
+          "frame_duration_ms": {
+            "type": "integer",
+            "minimum": 20,
+            "maximum": 2000,
+            "description": "Time of each GIF frame in milliseconds, from 20 to 2000. Only with output_format gif. The model lists it when it serves gif."
           }
         }
       },
@@ -11624,8 +11699,11 @@
             "enum": [
               "png",
               "jpeg",
-              "webp"
-            ]
+              "webp",
+              "gif",
+              "svg"
+            ],
+            "description": "gif and svg are for models whose contract lists them; other models reject them. svg works on /v1/images/generations only, needs svg.model, and takes n 1 only. gif takes no mask, stream, partial_images or output_compression."
           },
           "output_compression": {
             "type": "integer",
@@ -11685,6 +11763,22 @@
           "guidance": {
             "type": "number",
             "description": "Model-specific guidance value. See get_model."
+          },
+          "svg": {
+            "type": "string",
+            "description": "SVG settings as a JSON object string, for example {\"model\":\"...\"}. Same keys and rules as svg in the JSON request."
+          },
+          "frame_count": {
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 16,
+            "description": "Number of GIF frames, from 2 to 16. Only with output_format gif. The model lists it when it serves gif."
+          },
+          "frame_duration_ms": {
+            "type": "integer",
+            "minimum": 20,
+            "maximum": 2000,
+            "description": "Time of each GIF frame in milliseconds, from 20 to 2000. Only with output_format gif. The model lists it when it serves gif."
           }
         },
         "additionalProperties": false
@@ -11764,6 +11858,11 @@
           },
           "media_retention": {
             "$ref": "#/components/schemas/MediaRetention"
+          },
+          "svg_usage": {
+            "type": "object",
+            "description": "Token counts of the SVG author model, as the upstream reports them. Present only for SVG output; these tokens are not in usage.",
+            "additionalProperties": true
           }
         },
         "required": [
